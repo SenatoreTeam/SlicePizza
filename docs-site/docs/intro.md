@@ -11,6 +11,7 @@ Docker, DNS, cloud, queues, CI/CD, observability, Terraform and Kubernetes.
 
 ## What you will find here
 
+- **[Product tour](/docs/tour)** — screenshots of the system running.
 - **Phase guides** — what Zé asked for and how the system evolves to meet it.
 - **Technical notes** — how the API, the database and the Docker stack fit together.
 - **[ADRs](../../docs/adr/README.md)** — architecture decision records explaining why each choice was made.

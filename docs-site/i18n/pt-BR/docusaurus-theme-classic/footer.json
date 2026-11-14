@@ -1,0 +1,8 @@
+{
+  "link.title.Docs": { "message": "Documentação" },
+  "link.title.Project": { "message": "Projeto" },
+  "link.item.label.Introduction": { "message": "Introdução" },
+  "link.item.label.ADRs": { "message": "ADRs" },
+  "link.item.label.GitHub": { "message": "GitHub" },
+  "copyright": { "message": "Copyright © 2026 SlicePizza. Feito com Docusaurus." }
+}

@@ -1,0 +1,11 @@
+{
+  "homepage.cta": { "message": "Ler a documentação" },
+  "homepage.tagline": { "message": "Projeto prático de aprendizado de DevOps para a Pizzaria do Zé" },
+  "homepage.description": { "message": "Documentação do SlicePizza, um projeto prático de aprendizado de DevOps." },
+  "features.phase.title": { "message": "Aprenda por fases" },
+  "features.phase.description": { "message": "Cada fase começa com um pedido da Pizzaria do Zé e apresenta a tecnologia necessária para atendê-lo." },
+  "features.hands.title": { "message": "Mão na massa" },
+  "features.hands.description": { "message": "Tudo roda na sua máquina: a API, o banco de dados e a stack Docker. Acompanhe e sinta os problemas antes de recorrer às ferramentas." },
+  "features.adr.title": { "message": "Decisões registradas" },
+  "features.adr.description": { "message": "Os Architecture Decision Records (ADRs) explicam por que cada escolha importante foi feita, para que quem contribuir depois conheça o raciocínio." }
+}
