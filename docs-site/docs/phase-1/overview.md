@@ -20,3 +20,5 @@ problem is exactly what the next phases solve — in Phase 2 Zé asks for the si
 to be live on his own domain.
 
 Continue with [the API](./api.md) or [the Docker setup](./docker.md).
+
+The next step is [Phase 2](../phase-2/overview.md).

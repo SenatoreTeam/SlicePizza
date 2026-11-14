@@ -19,3 +19,5 @@ Tudo roda em uma única máquina, sem URL pública e sem automação. Esse probl
 o que as próximas fases resolvem: na Fase 2, o Zé pede que o site fique no ar no domínio dele.
 
 Continue com [a API](/docs/phase-1/api) ou [a configuração do Docker](/docs/phase-1/docker).
+
+O próximo passo é a [Fase 2](/docs/phase-2/overview).
