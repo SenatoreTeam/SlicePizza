@@ -13,6 +13,7 @@
 const sidebars = {
   docsSidebar: [
     'intro',
+    'tour',
     {
       type: 'category',
       label: 'Phase 1',
