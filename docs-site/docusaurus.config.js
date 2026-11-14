@@ -83,7 +83,11 @@ const config = {
 
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'pt-BR'],
+    localeConfigs: {
+      en: {label: 'English', htmlLang: 'en'},
+      'pt-BR': {label: 'Português (Brasil)', htmlLang: 'pt-BR'},
+    },
   },
 
   presets: [
@@ -169,6 +173,10 @@ const config = {
             docsPluginId: 'adr',
             position: 'left',
             label: 'ADRs',
+          },
+          {
+            type: 'localeDropdown',
+            position: 'right',
           },
           {
             href: 'https://github.com/SenatoreTeam/SlicePizza',

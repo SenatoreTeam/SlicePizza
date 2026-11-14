@@ -1,0 +1,5 @@
+{
+  "item.label.Docs": { "message": "Documentação" },
+  "item.label.ADRs": { "message": "ADRs" },
+  "item.label.GitHub": { "message": "GitHub" }
+}

@@ -1,36 +1,34 @@
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
+import Translate from '@docusaurus/Translate';
 import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Learn by phase',
+    title: <Translate id="features.phase.title">Learn by phase</Translate>,
     icon: '🍕',
     description: (
-      <>
-        Each phase starts with a request from Zé&apos;s Pizzeria and introduces
-        the technology needed to answer it.
-      </>
+      <Translate id="features.phase.description">
+        {"Each phase starts with a request from Zé's Pizzeria and introduces the technology needed to answer it."}
+      </Translate>
     ),
   },
   {
-    title: 'Hands-on',
+    title: <Translate id="features.hands.title">Hands-on</Translate>,
     icon: '🛠️',
     description: (
-      <>
-        Everything runs on your machine: the API, the database and the Docker
-        stack. Follow along and feel the problems before reaching for tools.
-      </>
+      <Translate id="features.hands.description">
+        Everything runs on your machine: the API, the database and the Docker stack. Follow along and feel the problems before reaching for tools.
+      </Translate>
     ),
   },
   {
-    title: 'Decisions recorded',
+    title: <Translate id="features.adr.title">Decisions recorded</Translate>,
     icon: '📝',
     description: (
-      <>
-        Architecture Decision Records explain why each important choice was
-        made, so future contributors know the reasoning.
-      </>
+      <Translate id="features.adr.description">
+        Architecture Decision Records explain why each important choice was made, so future contributors know the reasoning.
+      </Translate>
     ),
   },
 ];
