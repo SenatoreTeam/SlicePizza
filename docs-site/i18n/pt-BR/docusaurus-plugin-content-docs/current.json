@@ -1,4 +1,14 @@
 {
-  "version.label": { "message": "Next" },
-  "sidebar.docsSidebar.category.Phase 1": { "message": "Fase 1" }
+  "version.label": {
+    "message": "Next"
+  },
+  "sidebar.docsSidebar.category.Phase 1": {
+    "message": "Fase 1"
+  },
+  "sidebar.docsSidebar.category.Phase 2": {
+    "message": "Fase 2"
+  },
+  "sidebar.docsSidebar.category.Phase 3": {
+    "message": "Fase 3"
+  }
 }

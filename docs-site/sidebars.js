@@ -19,6 +19,21 @@ const sidebars = {
       label: 'Phase 1',
       items: ['phase-1/overview', 'phase-1/api', 'phase-1/docker'],
     },
+    {
+      type: 'category',
+      label: 'Phase 2',
+      items: ['phase-2/overview', 'phase-2/site-and-proxy'],
+    },
+    {
+      type: 'category',
+      label: 'Phase 3',
+      items: [
+        'phase-3/overview',
+        'phase-3/events',
+        'phase-3/notifications',
+        'phase-3/kitchen',
+      ],
+    },
   ],
 };
 
