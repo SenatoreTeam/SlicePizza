@@ -62,7 +62,7 @@ def github(path, token, method="GET", body=None):
 def parse_date(value):
     if not value:
         return None
-    return dt.datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(dt.timezone.utc)
+    return dt.datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(dt.UTC)
 
 
 # --- Release dates per registry ------------------------------------------------------------
@@ -180,7 +180,7 @@ def build_section(ecosystem, rows, now):
         START,
         "### Release dates",
         "",
-        f"| Package | From | To | `From` released | `To` released | Age of `To` |",
+        "| Package | From | To | `From` released | `To` released | Age of `To` |",
         "|---|---|---|---|---|---|",
     ]
     young, unknown = [], []
@@ -254,7 +254,7 @@ def main():
         print(f"#{number}: no updated-dependencies block found; nothing to do.")
         return
 
-    now = dt.datetime.now(dt.timezone.utc)
+    now = dt.datetime.now(dt.UTC)
     rows = []
     for dep in deps:
         old = previous_version(message, dep["name"], dep["to"], pr["title"])

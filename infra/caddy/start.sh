@@ -10,6 +10,9 @@
 # Accepted: a bcrypt hash from `caddy hash-password`, either as it is
 # ($2a$14$...) or base64-encoded (what docs/DEPLOY.md recommends). A trailing
 # newline is ignored.
+# The single-quoted $2 below is the literal start of a bcrypt hash, not a
+# variable: SC2016 ("expressions don't expand in single quotes") is expected.
+# shellcheck disable=SC2016
 set -eu
 
 hash="${KITCHEN_PASSWORD_HASH:-}"

@@ -4,6 +4,7 @@ import threading
 import time
 
 import pytest
+from fakes import FakeServer
 
 from app.api_client import ApiUnavailable, OrderNotFound, TooManyFollowers
 from app.bot import BotPoller
@@ -16,8 +17,6 @@ from app.messages import (
     REPLY_WELCOME,
 )
 from app.telegram import SetupFailure, TelegramSender, TemporaryFailure
-
-from fakes import FakeServer
 
 ORDER = "9b2e1c4a-0000-4000-8000-000000000000"
 
@@ -90,7 +89,11 @@ def test_start_with_an_order_follows_it_and_answers_with_its_status():
 
 @pytest.mark.parametrize(
     ("error", "reply"),
-    [(OrderNotFound(), REPLY_UNKNOWN_ORDER), (TooManyFollowers(), REPLY_TOO_MANY), (ApiUnavailable("down"), REPLY_UNAVAILABLE)],
+    [
+        (OrderNotFound(), REPLY_UNKNOWN_ORDER),
+        (TooManyFollowers(), REPLY_TOO_MANY),
+        (ApiUnavailable("down"), REPLY_UNAVAILABLE),
+    ],
 )
 def test_start_when_following_fails(error, reply):
     telegram = FakeTelegram()

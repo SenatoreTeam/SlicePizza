@@ -1,7 +1,7 @@
 """The kitchen's routes: the order list and status changes (ADR 0007)."""
 
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import select, update
@@ -26,7 +26,7 @@ def set_created_at(db, order_id, minutes_ago):
     db.execute(
         update(Order)
         .where(Order.id == order_id)
-        .values(created_at=datetime.now(timezone.utc) - timedelta(minutes=minutes_ago))
+        .values(created_at=datetime.now(UTC) - timedelta(minutes=minutes_ago))
     )
     db.commit()
 
@@ -161,7 +161,7 @@ def test_an_unknown_status_filter_is_a_validation_error(kitchen):
 
 def test_limit(client, kitchen, db):
     ids = [new_order(client) for _ in range(3)]
-    for minutes, order_id in zip((30, 20, 10), ids):
+    for minutes, order_id in zip((30, 20, 10), ids, strict=True):
         set_created_at(db, order_id, minutes)
 
     response = kitchen.get("/orders", params={"limit": 2})

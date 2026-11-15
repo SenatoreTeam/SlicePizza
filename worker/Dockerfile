@@ -16,5 +16,10 @@ COPY app ./app
 RUN useradd --create-home --uid 10001 worker
 USER worker
 
+# The commit the image was built from, set by the pipeline (ADR 0008) and
+# logged at startup. Last, so a new commit doesn't invalidate the layers above.
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=$GIT_COMMIT
+
 # No port: the worker only makes outgoing connections (RabbitMQ, Telegram).
 CMD ["python", "-m", "app.main"]

@@ -4,12 +4,11 @@ import json
 import logging
 
 import pytest
+from test_messages import event_body
 
 from app import consumer
 from app.consumer import Decision, Notifier
 from app.telegram import ChatUnavailable, RejectedMessage, SetupFailure, TemporaryFailure
-
-from test_messages import event_body
 
 
 class FakeSender:
@@ -142,7 +141,8 @@ class FakeApi:
 
 def changed(status="preparing", chats=(111, 222), event_id="ev-1"):
     order = {**event_body()["order"], "status": status, "previous_status": "received"}
-    return raw(event_body(event_id=event_id, type="order.status_changed", order=order, notify={"telegram_chat_ids": list(chats)}))
+    notify = {"telegram_chat_ids": list(chats)}
+    return raw(event_body(event_id=event_id, type="order.status_changed", order=order, notify=notify))
 
 
 def test_customers_get_their_message_after_the_pizzeria():

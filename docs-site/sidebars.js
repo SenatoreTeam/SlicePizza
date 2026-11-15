@@ -34,6 +34,11 @@ const sidebars = {
         'phase-3/kitchen',
       ],
     },
+    {
+      type: 'category',
+      label: 'Phase 4',
+      items: ['phase-4/overview', 'phase-4/pipeline'],
+    },
   ],
 };
 

@@ -1,0 +1,35 @@
+# Lint rules for all the Python in the repository: api/, worker/ and
+# .github/scripts/. CI runs `ruff check .` from the repository root, and fails
+# the pipeline before the tests run (ADR 0008).
+#
+# The aim is to catch mistakes (undefined names, unused imports, exceptions
+# swallowed by accident, outdated syntax), not to argue about style, so the
+# formatter is not enforced.
+
+line-length = 120
+# The oldest Python that runs this code: .github/scripts/ use the runner's
+# python3. api/ and worker/ run newer (see their .python-version).
+target-version = "py312"
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes: unused imports, undefined names...
+    "I",   # import order
+    "B",   # flake8-bugbear: likely bugs
+    "UP",  # pyupgrade: syntax the target Python makes obsolete
+]
+ignore = [
+    # `db: Session = Depends(get_db)` is how FastAPI declares dependencies.
+    "B008",
+    # Suggests enum.StrEnum for `class OrderStatus(str, enum.Enum)`. StrEnum
+    # changes what str() and format() return, which reach the database, the
+    # events and the JSON: not a change to make as a lint fix.
+    "UP042",
+]
+
+[lint.isort]
+known-first-party = ["app"]
+# `from sqlalchemy import Enum as SAEnum` stays in the same import as the rest.
+combine-as-imports = true

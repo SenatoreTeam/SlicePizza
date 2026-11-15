@@ -22,4 +22,10 @@ USER app
 
 EXPOSE 8000
 
+# The commit the image was built from, set by the pipeline (ADR 0008).
+# /health reports it, so the deploy can check the new version is the one
+# answering. Last, so a new commit doesn't invalidate the layers above.
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=$GIT_COMMIT
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

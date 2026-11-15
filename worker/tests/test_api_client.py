@@ -1,10 +1,9 @@
 """The worker's client for the API's /internal routes, against a fake API."""
 
 import pytest
+from fakes import FakeServer
 
 from app.api_client import ApiClient, ApiUnavailable, OrderNotFound, TooManyFollowers
-
-from fakes import FakeServer
 
 TOKEN = "SECRET-internal-token-0123456789abcdef"
 ORDER = "9b2e1c4a-0000-4000-8000-000000000000"
@@ -60,7 +59,9 @@ def test_too_many_followers():
             ApiClient(server.url, TOKEN).follow(ORDER, 1)
 
 
-@pytest.mark.parametrize(("status", "payload"), [(401, {"detail": "Unauthorized"}), (500, {}), (200, {"unexpected": 1})])
+@pytest.mark.parametrize(
+    ("status", "payload"), [(401, {"detail": "Unauthorized"}), (500, {}), (200, {"unexpected": 1})]
+)
 def test_other_answers_mean_the_api_is_unavailable(status, payload):
     with api(status, payload) as server:
         with pytest.raises(ApiUnavailable) as raised:

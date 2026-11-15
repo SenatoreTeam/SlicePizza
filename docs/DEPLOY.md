@@ -3,8 +3,9 @@
 SlicePizza runs on a shared server at **`https://slicepizza.senatore.tech`**: the menu site at `/`, the Orders API at `/api` (see [ADR 0003](adr/0003-one-domain-caddy-in-front.md)). The docs site is separate, on GitHub Pages at `https://slicepizza-docs.senatore.tech`. Nobody deploys by hand: **merging a Pull Request into `main` is the deploy.**
 
 ```
-PR merged into main ──► GitHub Actions builds the images ──► ghcr.io/senatoreteam/slicepizza-api:latest
-                                                         └─► ghcr.io/senatoreteam/slicepizza-web:latest
+PR merged into main ──► pipeline: lint ─► tests ─► images ──► ghcr.io/senatoreteam/slicepizza-api:latest
+                                                          ├─► ghcr.io/senatoreteam/slicepizza-web:latest
+                                                          └─► ghcr.io/senatoreteam/slicepizza-worker:latest
                                                                        │
                        server checks every 5 minutes ◄─────────────────┘
                        new image? ──► replaces that container
@@ -14,9 +15,10 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
                                                                 └─ /api/*   ► api:8000 ──► db:5432
 ```
 
-- On a Pull Request, the [API image](../.github/workflows/api-image.yml) and [web image](../.github/workflows/web-image.yml) workflows only check that their image builds. Nothing is published. Each one runs only when its files change (`api/` for the API; `frontend/menu/` and `infra/caddy/` for web). Both use the same steps, in [build-image.yml](../.github/workflows/build-image.yml).
-- The web image is also rebuilt and published every Monday, so the Alpine security fixes that the official Caddy image gets under the same tag reach the server. New Caddy versions come from Dependabot, as Pull Requests.
-- On `main`, each publishes two tags: `latest` (what the server runs) and `sha-<commit>` (to know exactly which commit is live, or to go back to one).
+- The [pipeline](../.github/workflows/ci.yml) builds the three images only after the lint and every test passed ([ADR 0008](adr/0008-one-gated-pipeline.md)). On a Pull Request it only checks that they build; nothing is published. A red pipeline on `main` publishes nothing, so the server keeps the last good version.
+- All three images are built from the same commit on every run (the steps are in [build-image.yml](../.github/workflows/build-image.yml)).
+- Every Monday the pipeline runs on `main` again and republishes the images, so the security fixes the official base images (Python, Caddy) get under the same tag reach the server. New base versions come from Dependabot, as Pull Requests.
+- On `main`, each image gets two tags: `latest` (what the server runs) and `sha-<commit>` (to know exactly which commit is live, or to go back to one).
 - The images belong to the `SenatoreTeam` organization, like the repository. Registry names are lowercase, hence `senatoreteam`.
 
 ## The containers
@@ -100,7 +102,7 @@ How to create the bot and find the chat id: [worker/README.md](../worker/README.
 - `https://slicepizza.senatore.tech/` shows the menu, and placing an order from a phone works end to end.
 - `https://slicepizza.senatore.tech/api/health` answers when the API is up and connected to the database. (Before ADR 0003 this was `/health`; update any monitor that still checks the old address.)
 - `https://slicepizza.senatore.tech/api/docs` shows the API's interactive docs.
-- The tag `sha-<commit>` on each running image shows which commit is live.
+- `https://slicepizza.senatore.tech/version` (the web image) and the `version` in `/api/health` (the API) show the commit each one was built from; the worker logs its commit when it starts (`Starting version ...`). The tag `sha-<commit>` on each running image says the same.
 
 ## Kitchen
 

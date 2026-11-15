@@ -55,7 +55,11 @@ services:
       start_period: 20s
 
   api:
-    build: ./api
+    build:
+      context: ./api
+      # The commit /health and /version report (ADR 0008); CI sets it.
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
     restart: unless-stopped
     # Bind to the loopback interface only: this is a laptop dev stack.
     ports:
@@ -112,7 +116,11 @@ services:
   # RabbitMQ queue and sends Telegram messages. Without TELEGRAM_BOT_TOKEN it
   # writes them to its log instead (docker compose logs worker).
   worker:
-    build: ./worker
+    build:
+      context: ./worker
+      # The commit /health and /version report (ADR 0008); CI sets it.
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
     restart: unless-stopped
     environment:
       RABBITMQ_HOST: rabbitmq
@@ -153,6 +161,9 @@ services:
     build:
       context: .
       dockerfile: infra/caddy/Dockerfile
+      # The commit /health and /version report (ADR 0008); CI sets it.
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"

@@ -22,3 +22,4 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0005](0005-notification-worker.md) | The notification worker: one queue, retries, dead letters | Accepted |
 | [0006](0006-customer-telegram-opt-in.md) | Customers follow their order on Telegram, linked through the API | Accepted |
 | [0007](0007-kitchen-login.md) | The kitchen board at /kitchen, behind a Caddy login and a token | Accepted |
+| [0008](0008-one-gated-pipeline.md) | One pipeline: lint, then tests, then images, and only tested commits are published | Accepted |

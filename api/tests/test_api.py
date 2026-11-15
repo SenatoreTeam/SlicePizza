@@ -3,7 +3,7 @@
 import threading
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import event, select, text, update
@@ -29,11 +29,18 @@ def create_order(client, payload=None):
     return client.post("/orders", json=payload or ORDER_PAYLOAD)
 
 
-def test_health(client):
+def test_health(client, monkeypatch):
+    monkeypatch.delenv("GIT_COMMIT", raising=False)
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "ok"}
+    assert response.json() == {"status": "ok", "database": "ok", "version": "unknown"}
+
+
+def test_health_reports_the_commit_of_the_image(client, monkeypatch):
+    monkeypatch.setenv("GIT_COMMIT", "0123456789abcdef0123456789abcdef01234567")
+
+    assert client.get("/health").json()["version"] == "0123456789abcdef0123456789abcdef01234567"
 
 
 def test_menu_lists_seeded_pizzas(client):
@@ -247,7 +254,7 @@ def test_status_update_changes_updated_at(client, kitchen, db):
     db.execute(
         update(Order)
         .where(Order.id == order_id)
-        .values(updated_at=datetime(2000, 1, 1, tzinfo=timezone.utc))
+        .values(updated_at=datetime(2000, 1, 1, tzinfo=UTC))
     )
     db.commit()
 

@@ -28,7 +28,7 @@ Confira se a API está no ar e consegue acessar o banco de dados:
 
 ```bash
 curl http://localhost:8000/health
-# {"status":"ok","database":"ok"}
+# {"status":"ok","database":"ok","version":"unknown"}
 ```
 
 ## Portas
