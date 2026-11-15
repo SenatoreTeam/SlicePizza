@@ -64,7 +64,11 @@ def test_sends_the_message(fake_telegram):
 @pytest.mark.parametrize(
     ("status", "payload", "kind"),
     [
-        (429, {"ok": False, "description": "Too Many Requests: retry after 7", "parameters": {"retry_after": 7}}, TemporaryFailure),
+        (
+            429,
+            {"ok": False, "description": "Too Many Requests: retry after 7", "parameters": {"retry_after": 7}},
+            TemporaryFailure,
+        ),
         (500, {"ok": False, "description": "Internal Server Error"}, TemporaryFailure),
         (502, {}, TemporaryFailure),
         (401, {"ok": False, "description": "Unauthorized"}, SetupFailure),

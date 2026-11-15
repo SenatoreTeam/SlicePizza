@@ -17,7 +17,9 @@ class FakeServer:
                 length = int(self.headers.get("Content-Length") or 0)
                 raw = self.rfile.read(length) if length else b""
                 body = json.loads(raw) if raw else None
-                outer.requests.append({"method": self.command, "path": self.path, "json": body, "headers": dict(self.headers)})
+                outer.requests.append(
+                    {"method": self.command, "path": self.path, "json": body, "headers": dict(self.headers)}
+                )
                 status, payload = answer(self.command, self.path, body, self.headers)
                 data = json.dumps(payload).encode()
                 self.send_response(status)

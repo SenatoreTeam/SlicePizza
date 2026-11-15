@@ -28,7 +28,7 @@ Check that the API is up and can reach the database:
 
 ```bash
 curl http://localhost:8000/health
-# {"status":"ok","database":"ok"}
+# {"status":"ok","database":"ok","version":"unknown"}
 ```
 
 ## Ports

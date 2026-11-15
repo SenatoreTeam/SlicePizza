@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import uuid
 from contextlib import asynccontextmanager
 
@@ -221,12 +222,16 @@ def _load_order(db: Session, order_id: uuid.UUID, for_update: bool = False) -> O
 
 @app.get("/health")
 def health(db: Session = Depends(get_db)) -> dict[str, str]:
-    """Report whether the API can reach the database."""
+    """Report whether the API can reach the database, and which commit it runs.
+
+    ``version`` is the commit the image was built from (``GIT_COMMIT``, set by
+    the pipeline, ADR 0008), or ``unknown`` outside an image built by CI.
+    """
     try:
         db.execute(text("SELECT 1"))
     except SQLAlchemyError:
-        raise HTTPException(status_code=503, detail="Database unavailable")
-    return {"status": "ok", "database": "ok"}
+        raise HTTPException(status_code=503, detail="Database unavailable") from None
+    return {"status": "ok", "database": "ok", "version": os.getenv("GIT_COMMIT") or "unknown"}
 
 
 @app.get("/menu", response_model=list[PizzaOut])

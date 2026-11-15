@@ -1,7 +1,7 @@
-# Builds one Docker image; called by api-image.yml and web-image.yml, which only
-# say which image and when. On a Pull Request it only checks that the image
-# builds; on main (or the weekly rebuild) it publishes `latest` and `sha-<commit>`
-# to GHCR, and the server picks up the new :latest within 5 minutes (docs/DEPLOY.md).
+# Builds one Docker image; called by the pipeline (ci.yml) once for each image,
+# after the lint and the tests passed (ADR 0008). With `push`, it publishes
+# `latest` and `sha-<commit>` to GHCR, and the server picks up the new :latest
+# within 5 minutes (docs/DEPLOY.md); without it, it only checks the image builds.
 name: Build image
 
 on:
@@ -19,6 +19,10 @@ on:
         description: Path to the Dockerfile
         required: true
         type: string
+      push:
+        description: Publish the image (main only); otherwise just build it
+        required: true
+        type: boolean
 
 permissions:
   contents: read
@@ -33,7 +37,7 @@ jobs:
       - uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
+        if: inputs.push
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -49,7 +53,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha
 
-      - name: Build (and publish, except on a Pull Request)
+      - name: Build (and publish, from main)
         uses: docker/build-push-action@v7
         with:
           context: ${{ inputs.context }}
@@ -57,9 +61,11 @@ jobs:
           platforms: linux/amd64
           # Always check for a newer base image under the same tag (security fixes).
           pull: true
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ inputs.push }}
+          # The commit, reported by /api/health, /version and the worker's log.
+          build-args: GIT_COMMIT=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # One cache per image, so the two images don't evict each other's layers.
+          # One cache per image, so the images don't evict each other's layers.
           cache-from: type=gha,scope=${{ inputs.image }}
           cache-to: type=gha,mode=max,scope=${{ inputs.image }}

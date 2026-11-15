@@ -145,6 +145,10 @@ pytest
 
 The worker has its own tests, the same way, from `worker/` (see [worker/README.md](worker/README.md#tests)).
 
+The linter, [ruff](https://docs.astral.sh/ruff/), comes with the dev requirements. Run it from the repository root, where its settings are ([`ruff.toml`](ruff.toml)): `ruff check .` (`ruff check --fix .` fixes what it can).
+
+Every Pull Request runs the [pipeline](.github/workflows/ci.yml): lint, then the tests, then the images. On `main`, the images are published only when everything passed ([ADR 0008](docs/adr/0008-one-gated-pipeline.md)).
+
 ## Documentation
 
 The documentation site, built with [Docusaurus](https://docusaurus.io/), lives in [`docs-site/`](docs-site/). It needs Node.js 20 or newer. To run it locally:
@@ -165,7 +169,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 1 | "I want to see it running on your computer" | ✅ Done |
 | 2 | "I want the site live on my own domain" | ✅ Done |
 | 3 | "Customers want to know when their pizza is on the way" | ✅ Done |
-| 4 | "Every time you change something, something breaks" | ⏳ Not started |
+| 4 | "Every time you change something, something breaks" | 🚧 In progress |
 | 5 | "The site went down Friday night and nobody noticed" | ⏳ Not started |
 | 6 | "The server died and we lost the orders" | ⏳ Not started |
 | 7 | "We're running a R$20 pizza promo on Friday" | ⏳ Not started |

@@ -76,12 +76,12 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 4: "Every time you change something, something breaks"
 
-**Status:** ⏳ Not started
+**Status:** 🚧 In progress
 
 **Goal:** all code goes through automated tests before reaching production.
 
-- [ ] GitHub Actions pipeline: lint → tests → image build
-- [ ] Publish images to GHCR (GitHub's container registry)
+- [x] GitHub Actions pipeline: lint → tests → image build: one pipeline, where the images wait for the lint and every test ([ADR 0008](adr/0008-one-gated-pipeline.md))
+- [x] Publish images to GHCR (GitHub's container registry): from `main` only, and only when the pipeline passed, as `sha-<commit>` and `latest`
 - [ ] Automatic deploy to the virtual machine after merging into `main`
 - [ ] Staging environment at `staging.yourdomain.com`
 - [ ] Secrets stored in GitHub Secrets

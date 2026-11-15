@@ -1,18 +1,70 @@
-name: CI
+# The pipeline (ADR 0008): every change goes through the same stages, and an
+# image is published only when everything before it passed.
+#
+#   lint ──► tests ─────┐   API on SQLite and Postgres, worker, Telegram
+#                       │   end to end, docker compose smoke test
+#   lock files ─────────┴─► images (api, web, worker) ──► pipeline passed
+#
+# On a Pull Request the images are only built, to check they build. On main
+# they are published to GHCR as `sha-<commit>` and `latest`, and the server
+# picks up the new `latest` (docs/DEPLOY.md). "pipeline passed" is the one
+# check branch protection needs to require.
+name: Pipeline
 
 on:
   push:
     branches: [main]
   pull_request:
+  # Mondays: rebuild and republish every image from main. The official base
+  # images (python, caddy) get Alpine and Debian security fixes under the same
+  # tag, and without a rebuild they would never reach the server. New base
+  # versions come from Dependabot, as Pull Requests.
+  schedule:
+    - cron: "0 9 * * 1"  # Mondays 06:00 in São Paulo
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# A newer push to a Pull Request replaces the run still going. On main runs go
+# one at a time, so an older run can never publish `latest` after a newer one
+# (a run still waiting is skipped when a newer merge arrives: the newer one
+# includes its changes).
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  lint:
+    # Mistakes a machine can spot before any test runs (ruff.toml says which).
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: api/.python-version
+          cache: pip
+          cache-dependency-path: api/requirements-dev.txt
+
+      # ruff comes from the API's dev lock file, hash-checked: the same version
+      # as in a developer's .venv.
+      - name: Install ruff
+        run: pip install --require-hashes "--only-binary=:all:" -r api/requirements-dev.txt
+
+      - name: Python (ruff)
+        run: ruff check --output-format=github .
+
+      # shellcheck comes with GitHub's Ubuntu runners.
+      - name: Shell scripts (shellcheck)
+        run: git ls-files -z '*.sh' | xargs -0 shellcheck
+
   tests:
     # The same suite on SQLite (fast) and on real Postgres, which catches what
     # SQLite does not: 32-bit integers, NUL characters, row locks...
     name: pytest (${{ matrix.database }})
+    needs: lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -108,6 +160,7 @@ jobs:
     # The worker's unit tests, plus its integration tests against a real RabbitMQ, the
     # same version as docker-compose.yml (RABBITMQ_TEST_HOST turns them on).
     name: pytest (worker)
+    needs: lint
     runs-on: ubuntu-latest
     services:
       rabbitmq:
@@ -150,6 +203,7 @@ jobs:
     # (Postgres, RabbitMQ) and the real worker, against a fake Telegram Bot API that
     # injects /start and /stop and records every message the bot sends.
     name: Telegram opt-in, end to end
+    needs: lint
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -223,7 +277,11 @@ jobs:
 
   docker-smoke:
     name: docker compose smoke test
+    needs: lint
     runs-on: ubuntu-latest
+    env:
+      # Built into the images (docker-compose.yml), checked below.
+      GIT_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v7
 
@@ -264,6 +322,10 @@ jobs:
           curl -fsSI http://127.0.0.1:8080/ | grep -qi "^content-security-policy: default-src 'self'"
           curl -fsS http://127.0.0.1:8080/api/health
           curl -fsS http://127.0.0.1:8080/api/menu > /dev/null
+          # Both report the commit they were built from (ADR 0008).
+          test "$(curl -fsS http://127.0.0.1:8080/version)" = "$GIT_COMMIT"
+          curl -fsS http://127.0.0.1:8080/api/health | grep -q "\"version\":\"$GIT_COMMIT\""
+          docker compose logs worker | grep -q "Starting version $GIT_COMMIT"
           # The interactive docs must load their schema through the /api prefix.
           curl -fsS http://127.0.0.1:8080/api/docs | grep -q "/api/openapi.json"
           curl -fsS http://127.0.0.1:8080/api/openapi.json > /dev/null
@@ -325,3 +387,53 @@ jobs:
       - name: Stop the stack
         if: always()
         run: docker compose down -v
+
+  images:
+    # Only after everything above passed: a commit that fails a check never
+    # becomes an image the server could run.
+    name: image (${{ matrix.name }})
+    needs: [lint, lock-files, tests, worker-tests, telegram-e2e, docker-smoke]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            context: api
+            file: api/Dockerfile
+          - name: web
+            context: .
+            file: infra/caddy/Dockerfile
+          - name: worker
+            context: worker
+            file: worker/Dockerfile
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-image.yml
+    with:
+      image: ghcr.io/senatoreteam/slicepizza-${{ matrix.name }}
+      context: ${{ matrix.context }}
+      file: ${{ matrix.file }}
+      # Publish from main only: never from a Pull Request, nor from a manual
+      # run on another branch.
+      push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+
+  pipeline-passed:
+    # The single check for branch protection: green only when every job above
+    # is. (A skipped or cancelled job counts as a failure.)
+    name: pipeline passed
+    if: always()
+    needs: [lint, lock-files, tests, worker-tests, telegram-e2e, docker-smoke, images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every stage passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != success ]; then
+              echo "::error::A stage of the pipeline did not pass ($result)."
+              exit 1
+            fi
+          done

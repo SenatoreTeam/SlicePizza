@@ -6,7 +6,7 @@
 #
 # The root .dockerignore keeps everything else out of the build context.
 # A full version, so Dependabot proposes each update as a Pull Request
-# (.github/dependabot.yml). The web image workflow also rebuilds every week,
+# (.github/dependabot.yml). The pipeline also rebuilds every week (ADR 0008),
 # which picks up the Alpine fixes the official image gets under the same tag.
 FROM caddy:2.11.8-alpine
 
@@ -27,6 +27,11 @@ COPY frontend/kitchen/ /srv-kitchen/
 # place an unprivileged user can write, just in case.
 ENV XDG_CONFIG_HOME=/tmp/caddy/config \
     XDG_DATA_HOME=/tmp/caddy/data
+
+# The commit the image was built from, set by the pipeline (ADR 0008) and
+# served at /version, so the deploy can check the new version is live.
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=$GIT_COMMIT
 
 # Same unprivileged uid as the API image.
 USER 10001:10001

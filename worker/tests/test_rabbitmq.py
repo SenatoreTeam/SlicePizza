@@ -10,6 +10,7 @@ import threading
 import time
 
 import pytest
+from test_messages import event_body
 
 from app import consumer as consumer_module
 from app.config import Settings
@@ -22,8 +23,6 @@ from app.consumer import (
     declare_topology,
 )
 from app.telegram import TemporaryFailure
-
-from test_messages import event_body
 
 HOST = os.getenv("RABBITMQ_TEST_HOST")
 pytestmark = pytest.mark.skipif(not HOST, reason="set RABBITMQ_TEST_HOST to run against RabbitMQ")
@@ -64,7 +63,11 @@ class FakeSender:
 def broker(tmp_path):
     s = settings(tmp_path)
     connection = pika.BlockingConnection(
-        pika.ConnectionParameters(s.rabbitmq_host, s.rabbitmq_port, credentials=pika.PlainCredentials(s.rabbitmq_user, s.rabbitmq_password))
+        pika.ConnectionParameters(
+            s.rabbitmq_host,
+            s.rabbitmq_port,
+            credentials=pika.PlainCredentials(s.rabbitmq_user, s.rabbitmq_password),
+        )
     )
     channel = connection.channel()
     for queue in (QUEUE, DEAD_LETTER_QUEUE):
@@ -126,7 +129,8 @@ def test_messages_wait_while_the_worker_is_down_and_go_out_in_order(broker):
     s, channel = broker
     publish(channel, created(1))
     order = {**created(2)["order"], "status": "preparing", "previous_status": "received"}
-    publish(channel, event_body(event_id="00000000-0000-0000-0000-000000000002", type="order.status_changed", order=order))
+    event_id = "00000000-0000-0000-0000-000000000002"
+    publish(channel, event_body(event_id=event_id, type="order.status_changed", order=order))
     assert wait_until(lambda: depth(channel, QUEUE) == 2)
 
     sender = FakeSender()

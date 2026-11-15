@@ -11,6 +11,8 @@
 
 **Never push directly to `main`.**
 
+Every Pull Request runs the [pipeline](.github/workflows/ci.yml): lint, tests, then the images. Merge only when its **pipeline passed** check is green: on `main`, a red pipeline means nothing is published ([ADR 0008](docs/adr/0008-one-gated-pipeline.md)).
+
 ## Branch names
 
 | Prefix | When to use | Example |
@@ -35,6 +37,7 @@ infra: add Postgres to docker-compose
 
 - [ ] `docker compose up --build` runs without errors (from Phase 1 on)
 - [ ] Tests pass (from Phase 1 on)
+- [ ] `ruff check .` passes, from the repository root (from Phase 4 on)
 - [ ] No secrets (passwords, tokens, keys) were committed
 - [ ] Documentation updated, if the change affects how to run or use the system
 - [ ] [ROADMAP](docs/ROADMAP.md) boxes checked, if the task was listed there

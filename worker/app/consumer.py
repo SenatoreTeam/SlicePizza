@@ -103,7 +103,7 @@ class Notifier:
             logger.info("Duplicate event %s, already handled", event.event_id)
             return Decision.ACK
 
-        for (chat, text, pizzeria), key in zip(recipients, keys):
+        for (chat, text, pizzeria), key in zip(recipients, keys, strict=True):
             if key in self._seen:
                 continue  # sent before a failure further down the list
             try:

@@ -57,7 +57,9 @@ class BotPoller:
         try:
             self.username = (self._telegram.get_me().get("username") or "").lower() or None
         except SendFailure as error:
-            logger.warning("Could not read the bot's username (%s); commands like /stop@Bot are all taken as ours", error)
+            logger.warning(
+                "Could not read the bot's username (%s); commands like /stop@Bot are all taken as ours", error
+            )
         logger.info("Listening to the bot's messages")
         while not self._stop.is_set():
             try:

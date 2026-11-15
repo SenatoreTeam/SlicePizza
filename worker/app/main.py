@@ -1,6 +1,7 @@
 """Entry point: ``python -m app.main``."""
 
 import logging
+import os
 import signal
 import sys
 import threading
@@ -58,7 +59,8 @@ def main() -> int:
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
 
-    logger.info("Starting with %r", settings)
+    # GIT_COMMIT: the commit the image was built from (ADR 0008).
+    logger.info("Starting version %s with %r", os.getenv("GIT_COMMIT") or "unknown", settings)
     consumer.run()
     return 0
 

@@ -113,7 +113,13 @@ def test_customer_chats_are_read_without_duplicates():
 
 @pytest.mark.parametrize(
     "notify",
-    ["chats", {"telegram_chat_ids": "111"}, {"telegram_chat_ids": ["111"]}, {"telegram_chat_ids": [True]}, {"telegram_chat_ids": [1.5]}],
+    [
+        "chats",
+        {"telegram_chat_ids": "111"},
+        {"telegram_chat_ids": ["111"]},
+        {"telegram_chat_ids": [True]},
+        {"telegram_chat_ids": [1.5]},
+    ],
 )
 def test_malformed_customer_chats_are_invalid(notify):
     with pytest.raises(InvalidEvent):
