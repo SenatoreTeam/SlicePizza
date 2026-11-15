@@ -165,6 +165,8 @@ services:
       KITCHEN_USERNAME: ${KITCHEN_USERNAME:-kitchen}
       KITCHEN_PASSWORD_HASH: ${KITCHEN_PASSWORD_HASH:-}
       KITCHEN_API_TOKEN: ${KITCHEN_API_TOKEN:-}
+      # Extra proxy ranges to trust (see the Caddyfile). Unset: private ranges.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     depends_on:
