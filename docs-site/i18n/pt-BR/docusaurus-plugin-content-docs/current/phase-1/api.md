@@ -9,6 +9,11 @@ variáveis de ambiente e comandos de teste, veja a
 [referência da API em `api/README.md`](https://github.com/SenatoreTeam/SlicePizza/blob/main/api/README.md), que fica junto
 do código e é a fonte única desses detalhes (em inglês).
 
+O FastAPI também publica uma documentação interativa de todas as rotas em `/docs`
+(`/api/docs` atrás do Caddy, a partir da Fase 2):
+
+![Swagger UI com as rotas da API](@site/static/img/screenshots/api-docs.png)
+
 ## Preços
 
 Os preços vêm da tabela `pizzas`, nunca da requisição, e são guardados em

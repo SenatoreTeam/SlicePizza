@@ -9,6 +9,11 @@ examples, environment variables and test commands, see the
 [API reference in `api/README.md`](../../../api/README.md), which lives next to
 the code and is the single source for those details.
 
+FastAPI also publishes interactive documentation for every route at `/docs`
+(`/api/docs` behind Caddy, from Phase 2 on):
+
+![Swagger UI listing the API routes](@site/static/img/screenshots/api-docs.png)
+
 ## Prices
 
 Prices come from the `pizzas` table, never from the request, and are stored in

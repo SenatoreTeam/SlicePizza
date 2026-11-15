@@ -9,6 +9,8 @@ Docker, DNS, cloud, queues, CI/CD, observability, Terraform and Kubernetes.
 
 > The idea is to **feel the problem before using the tool**.
 
+![The menu site of Zé's Pizzeria, with prices and quantity pickers](@site/static/img/screenshots/menu.png)
+
 ## What you will find here
 
 - **[Product tour](/docs/tour)** — screenshots of the system running.
