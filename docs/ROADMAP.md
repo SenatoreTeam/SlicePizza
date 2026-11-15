@@ -81,10 +81,10 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 **Goal:** all code goes through automated tests before reaching production.
 
 - [x] GitHub Actions pipeline: lint → tests → image build: one pipeline, where the images wait for the lint and every test ([ADR 0008](adr/0008-one-gated-pipeline.md))
-- [x] Publish images to GHCR (GitHub's container registry): from `main` only, and only when the pipeline passed, as `sha-<commit>` and `latest`
-- [ ] Automatic deploy to the virtual machine after merging into `main`
-- [ ] Staging environment at `staging.yourdomain.com`
-- [ ] Secrets stored in GitHub Secrets
+- [x] Publish images to GHCR (GitHub's container registry): from `main` only, and only when the pipeline passed, as `sha-<commit>`; the deploy moves `staging` and `latest` to them
+- [x] Automatic deploy to the virtual machine after merging into `main`: the pipeline moves the image tags and calls Dokploy's deploy webhook, then checks the live version ([ADR 0009](adr/0009-staging-then-production.md))
+- [x] Staging environment at `staging.yourdomain.com`: `staging.slicepizza.senatore.tech`, a second Dokploy compose; production is deployed only after staging passed
+- [x] Secrets stored in GitHub Secrets: the deploy webhooks and staging's kitchen password, in the `staging` and `production` environments
 
 **Done when:** a merge into `main` puts the new version in production without you logging into the server.
 

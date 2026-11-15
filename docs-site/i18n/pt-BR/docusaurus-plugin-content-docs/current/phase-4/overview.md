@@ -8,8 +8,8 @@ e as imagens eram publicadas ao mesmo tempo em que os testes rodavam, e não dep
 torna o caminho do merge até a produção automático **e** seguro.
 
 :::info Situação
-Esta fase está **em andamento**. O pipeline (lint, testes e depois imagens) está pronto; o
-deploy automático com um ambiente de staging vem a seguir. Veja o
+Esta fase está **em andamento**: o pipeline e o deploy estão prontos, e entram no ar quando o
+ambiente de staging for configurado no servidor. Veja o
 [roadmap](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/ROADMAP.md).
 :::
 
@@ -18,9 +18,9 @@ deploy automático com um ambiente de staging vem a seguir. Veja o
 - **Um pipeline** para toda mudança: lint, depois os testes, depois as imagens. Uma imagem só é
   publicada quando tudo antes dela passou. Veja [O pipeline](/docs/phase-4/pipeline).
 - **Imagens versionadas**: cada imagem diz de qual commit foi gerada.
-- A seguir: um ambiente de **staging** em `staging.slicepizza.senatore.tech`, e um deploy que o
-  pipeline dispara e confere, primeiro no staging e depois em produção, com os segredos no
-  GitHub.
+- Um ambiente de **staging** em `staging.slicepizza.senatore.tech`, e um deploy que o pipeline
+  dispara e confere, primeiro no staging e depois em produção, com os segredos no GitHub. Veja
+  [O deploy](/docs/phase-4/deploy).
 
 ## Por que automatizar
 

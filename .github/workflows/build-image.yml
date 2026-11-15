@@ -1,7 +1,8 @@
 # Builds one Docker image; called by the pipeline (ci.yml) once for each image,
-# after the lint and the tests passed (ADR 0008). With `push`, it publishes
-# `latest` and `sha-<commit>` to GHCR, and the server picks up the new :latest
-# within 5 minutes (docs/DEPLOY.md); without it, it only checks the image builds.
+# after the lint and the tests passed (ADR 0008). With `push`, it publishes the
+# image to GHCR as `sha-<commit>` (full and short); the deploy jobs then move
+# `staging` and `latest` to it (ADR 0009). Without it, it only checks the
+# image builds.
 name: Build image
 
 on:
@@ -49,8 +50,11 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ inputs.image }}
+          # Only commit tags. `staging` and `latest` (production) are moved by the
+          # deploy jobs, after the checks: an image is never live just because
+          # it was built.
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
             type=sha
 
       - name: Build (and publish, from main)

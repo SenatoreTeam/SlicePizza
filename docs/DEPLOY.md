@@ -1,24 +1,26 @@
 # Deploy
 
-SlicePizza runs on a shared server at **`https://slicepizza.senatore.tech`**: the menu site at `/`, the Orders API at `/api` (see [ADR 0003](adr/0003-one-domain-caddy-in-front.md)). The docs site is separate, on GitHub Pages at `https://slicepizza-docs.senatore.tech`. Nobody deploys by hand: **merging a Pull Request into `main` is the deploy.**
+SlicePizza runs on a shared server at **`https://slicepizza.senatore.tech`**: the menu site at `/`, the Orders API at `/api` (see [ADR 0003](adr/0003-one-domain-caddy-in-front.md)). A second copy, **staging**, runs at `https://staging.slicepizza.senatore.tech` and gets every version first. The docs site is separate, on GitHub Pages at `https://slicepizza-docs.senatore.tech`. Nobody deploys by hand: **merging a Pull Request into `main` is the deploy.**
 
 ```
-PR merged into main ──► pipeline: lint ─► tests ─► images ──► ghcr.io/senatoreteam/slicepizza-api:latest
-                                                          ├─► ghcr.io/senatoreteam/slicepizza-web:latest
-                                                          └─► ghcr.io/senatoreteam/slicepizza-worker:latest
-                                                                       │
-                       server checks every 5 minutes ◄─────────────────┘
-                       new image? ──► replaces that container
+PR merged into main ──► pipeline: lint ─► tests ─► images: slicepizza-{api,web,worker}:sha-<commit>
+                                                      │
+                     :staging ─► sha-<commit>, staging webhook ─► Dokploy deploys staging
+                     staging runs <commit>? an order and the kitchen work?
+                                                      │ yes
+                     :latest ──► sha-<commit>, production webhook ─► Dokploy deploys production
+                     production runs <commit>? site, menu, private routes OK?
 
 https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:8080 (Caddy)
                                                                 ├─ /        ► menu site
                                                                 └─ /api/*   ► api:8000 ──► db:5432
 ```
 
-- The [pipeline](../.github/workflows/ci.yml) builds the three images only after the lint and every test passed ([ADR 0008](adr/0008-one-gated-pipeline.md)). On a Pull Request it only checks that they build; nothing is published. A red pipeline on `main` publishes nothing, so the server keeps the last good version.
+- The [pipeline](../.github/workflows/ci.yml) builds the three images only after the lint and every test passed ([ADR 0008](adr/0008-one-gated-pipeline.md)). On a Pull Request it only checks that they build; nothing is published or deployed. A red pipeline on `main` publishes nothing, so both environments keep the last good version.
+- On `main` it then deploys, staging first and production only if staging passed ([ADR 0009](adr/0009-staging-then-production.md)). How: [Deploying a version](#deploying-a-version).
 - All three images are built from the same commit on every run (the steps are in [build-image.yml](../.github/workflows/build-image.yml)).
 - Every Monday the pipeline runs on `main` again and republishes the images, so the security fixes the official base images (Python, Caddy) get under the same tag reach the server. New base versions come from Dependabot, as Pull Requests.
-- On `main`, each image gets two tags: `latest` (what the server runs) and `sha-<commit>` (to know exactly which commit is live, or to go back to one).
+- Tags: the pipeline publishes `sha-<commit>` (full and short). `staging` and `latest` (production) are moved to those images by the deploy, after the checks, never by a build.
 - The images belong to the `SenatoreTeam` organization, like the repository. Registry names are lowercase, hence `senatoreteam`.
 
 ## The containers
@@ -57,7 +59,7 @@ The API **refuses to start without a database** (see `api/app/config.py`): there
 |---|---|
 | Image | `postgres:16-alpine`, the same version as `docker-compose.yml` and CI |
 | Network | The project's isolated network only. **No published port**: only the API reaches it, by service name |
-| Data | A named volume, so the data survives API updates. The automatic update replaces **only the `api` and `web` containers**, never the database |
+| Data | A named volume, so the data survives API updates. A deploy replaces **only the containers whose image changed** (`api`, `web`, `worker`), never the database's volume |
 | API variables | `POSTGRES_HOST` (the database service name), `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`. Passed separately, not as a URL, so the password can contain any character |
 | Password | Strong, random, stored on the server. Never in Git |
 | Backup | A daily `pg_dump`, kept outside the volume. Without it, losing the volume means losing every order |
@@ -87,7 +89,7 @@ The notification worker ([`worker/`](../worker/), [ADR 0005](adr/0005-notificati
 
 | Item | On the server |
 |---|---|
-| Image | `ghcr.io/senatoreteam/slicepizza-worker:latest`, updated automatically like the others |
+| Image | `ghcr.io/senatoreteam/slicepizza-worker:latest`, deployed by the pipeline like the others |
 | Network | The project's network, to reach `rabbitmq` and `api`. It also needs outgoing HTTPS to `api.telegram.org` |
 | Variables | `RABBITMQ_HOST`, `RABBITMQ_USER`, `RABBITMQ_PASSWORD` (the same user as the API), `TELEGRAM_BOT_TOKEN`, `TELEGRAM_PIZZERIA_CHAT_ID`, `API_URL` (the API on the project network, e.g. `http://api:8000`) and `INTERNAL_API_TOKEN` (**the same value as on the API**) |
 | Instances | **Exactly one.** It reads the bot's messages by long polling, and Telegram allows one reader per bot: a second worker would get 409 Conflict ([ADR 0006](adr/0006-customer-telegram-opt-in.md)) |
@@ -96,6 +98,32 @@ The notification worker ([`worker/`](../worker/), [ADR 0005](adr/0005-notificati
 | Restarts | Safe at any time: a message is acknowledged only after it was sent; an interrupted one goes back to the queue |
 
 How to create the bot and find the chat id: [worker/README.md](../worker/README.md#setting-up-telegram). Without `TELEGRAM_BOT_TOKEN` the worker writes the messages to its log instead of sending them. That is meant for local development and CI: the messages include customers' names, so on the server set the token when you deploy the worker (or accept names in the logs until you do).
+
+## Deploying a version
+
+[`deploy.sh`](../.github/scripts/deploy.sh) does the same for both environments:
+
+1. Checks that `slicepizza-api`, `-web` and `-worker` exist as `sha-<commit>`.
+2. Moves the environment's tag (`staging` or `latest`) to them. Nothing is rebuilt: production gets the exact images staging ran.
+3. Calls the environment's **deploy webhook** in Dokploy, and fails unless Dokploy answers 200. Without a webhook it logs a warning and leaves it to Dokploy's auto-update.
+
+Then [`check_deploy.py`](../.github/scripts/check_deploy.py) waits up to 10 minutes until `/version` and `/api/health` report the commit, and checks the site, the menu, the API docs, and that `/kitchen`, `/api/orders` and `/api/internal` stay private. On staging it also places an order and, with the kitchen password, moves it to "preparing". **Production is never written to.**
+
+Each run on `main` shows the two deploys at the bottom of the pipeline, and each environment's history is under **Deployments** on the repository's page.
+
+### GitHub environments and secrets
+
+| Environment | Secret | Value |
+|---|---|---|
+| `staging` | `DEPLOY_WEBHOOK_URL` | Staging compose in Dokploy → **Deployments** → webhook URL |
+| `staging` | `KITCHEN_PASSWORD` | Staging's kitchen password (its hash is `KITCHEN_PASSWORD_HASH` on staging's `web`). Without it the kitchen check is skipped |
+| `production` | `DEPLOY_WEBHOOK_URL` | Production compose in Dokploy → **Deployments** → webhook URL |
+
+Set them in GitHub → repository **Settings** → **Environments** → the environment → **Environment secrets**. The webhook URL contains its token: whoever has it can redeploy that service (nothing more), so it lives only there. If it leaks, refresh it in Dokploy and update the secret.
+
+### Rolling back
+
+Actions → **Roll back production** → **Run workflow**, with the full commit of a version that passed on `main` (`git log --format=%H`). It moves `latest` back to that commit's images, deploys and checks them. Staging is left as it is. The next merge into `main` deploys forward again, so revert or fix the bad change first.
 
 ## Checking the deploy
 
@@ -131,6 +159,47 @@ What happens when something is missing:
 
 To change the password, set a new hash and restart `web`. Everyone then logs in again with the new password.
 
+## Staging
+
+A second copy of the system, for the pipeline to try every version on before production ([ADR 0009](adr/0009-staging-then-production.md)). Same images, its own data and secrets. Nobody uses it but the pipeline and whoever wants to try a change for real.
+
+| Item | Staging |
+|---|---|
+| Address | `https://staging.slicepizza.senatore.tech` |
+| Compose | [`infra/dokploy/docker-compose.yml`](../infra/dokploy/docker-compose.yml), with `SLICEPIZZA_TAG=staging` |
+| Data | Its own Postgres and RabbitMQ volumes; only test orders (the pipeline places one per deploy) |
+| Telegram | None by default: the worker writes the messages to its log. A separate test bot can be set (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_PIZZERIA_CHAT_ID`, `TELEGRAM_BOT_USERNAME`); **never production's bot**, which allows one reader only |
+| Secrets | All its own: different database and RabbitMQ passwords, `INTERNAL_API_TOKEN`, `KITCHEN_API_TOKEN` and kitchen password |
+| Size | Five containers, each within the server's 512 MB / 1 CPU limits |
+
+### Setting up staging (once)
+
+1. **DNS:** `A staging.slicepizza → 179.66.139.4` (like `slicepizza`).
+2. **Dokploy**, in the SlicePizza project: create a **Compose** service, e.g. `slicepizza-staging`:
+   - Source: **Raw**, and paste [`infra/dokploy/docker-compose.yml`](../infra/dokploy/docker-compose.yml).
+   - **Environment** tab, with fresh values (`openssl rand -hex 32` for each token and password):
+     ```
+     SLICEPIZZA_TAG=staging
+     POSTGRES_USER=slicepizza
+     POSTGRES_PASSWORD=<new>
+     POSTGRES_DB=slicepizza
+     RABBITMQ_USER=slicepizza
+     RABBITMQ_PASSWORD=<new>
+     INTERNAL_API_TOKEN=<new>
+     KITCHEN_API_TOKEN=<new>
+     KITCHEN_PASSWORD_HASH=<hash of a new kitchen password, see Kitchen>
+     TRUSTED_PROXIES=private_ranges 100.80.1.0/24
+     UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.80.1.0/24
+     ```
+   - **Isolated deployment** on (Advanced), so its containers can't reach production's by name: both stacks have services called `api`, `db` and `rabbitmq`.
+   - **Domains:** `staging.slicepizza.senatore.tech` → service `web`, port **8080**, HTTPS on.
+   - **Auto deploy** on, so the webhook works. **Deployments** → copy the webhook URL.
+   - Deploy it once by hand and open `https://staging.slicepizza.senatore.tech/version`.
+3. **GitHub:** create the `staging` environment's secrets `DEPLOY_WEBHOOK_URL` and `KITCHEN_PASSWORD`, and the `production` environment's `DEPLOY_WEBHOOK_URL` (see [GitHub environments and secrets](#github-environments-and-secrets)).
+4. **Production in Dokploy:** turn on **Auto deploy** (for its webhook) and make sure its deploys pull the images (**Pull images** on, or `pull_policy: always`), so a deploy fetches the moved `:latest`. The 5-minute auto-update of the images can then be turned off: `latest` only moves when the pipeline deploys production, so the polling would only repeat a deploy the webhook already started. Keep it on until the first webhook deploy worked.
+
+Only then merge the change that adds the deploy jobs: the first run after it deploys to staging, and if staging can't be reached, production isn't updated.
+
 ## One-time setup
 
 1. After the first image of each kind is published, make the packages public: GitHub → **SenatoreTeam** organization → **Packages** → `slicepizza-api`, `slicepizza-web` and `slicepizza-worker` → **Package settings** → **Change visibility** → Public. (The server downloads them without a password.) Only organization owners can change it.
@@ -139,9 +208,9 @@ To change the password, set a new hash and restart `web`. Everyone then logs in 
    - `api`: `ghcr.io/senatoreteam/slicepizza-api:latest`, with the database variables, `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`. **No domain.**
    - `web`: `ghcr.io/senatoreteam/slicepizza-web:latest`, on the same network as `api`, with `API_UPSTREAM` set to the API's service name and port (e.g. `api:8000`).
    - Route `slicepizza.senatore.tech` to `web` on port **8080** (`senatore.tech` and `www.senatore.tech` too, if they should keep showing the system).
-   - Add the `web` image to the automatic update, like the API's.
+   - Auto deploy on, with its webhook in GitHub (see [Setting up staging](#setting-up-staging-once), step 4).
    - `rabbitmq` with a fixed hostname and its volume, and `RABBITMQ_*` on `api` (see [RabbitMQ](#rabbitmq)).
-   - `worker`: `ghcr.io/senatoreteam/slicepizza-worker:latest` with its variables (see [Worker](#worker)), in the automatic update too. One instance only.
+   - `worker`: `ghcr.io/senatoreteam/slicepizza-worker:latest` with its variables (see [Worker](#worker)). One instance only.
    - The same `INTERNAL_API_TOKEN` (`openssl rand -hex 32`) on `api` and `worker`.
    - The kitchen login: see [Kitchen](#kitchen). Until it is set, nobody can change an order's status.
    - `TELEGRAM_BOT_USERNAME` on `web` (the bot's username, without the @), so the order page shows **Follow on Telegram**. Set it once the worker has its token and `INTERNAL_API_TOKEN`; before that the button would lead to a bot that can't link the order.

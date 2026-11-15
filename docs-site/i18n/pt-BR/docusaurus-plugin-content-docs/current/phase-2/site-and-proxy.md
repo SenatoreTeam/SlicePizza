@@ -59,5 +59,7 @@ merge na main ──► o GitHub Actions gera as imagens ──► registro de c
                         o servidor procura imagens novas a cada 5 minutos
 ```
 
-Nada é copiado para o servidor à mão. Os passos da primeira configuração e da migração do
+Desde a [Fase 4](/docs/phase-4/deploy), o próprio pipeline dispara o deploy, primeiro no
+staging e depois em produção, em vez de esperar o servidor perceber. Nada é copiado para o
+servidor à mão. Os passos da primeira configuração e da migração do
 formato anterior (só a API) estão no [DEPLOY.md](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/DEPLOY.md).

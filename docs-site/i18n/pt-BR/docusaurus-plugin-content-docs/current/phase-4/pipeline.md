@@ -11,6 +11,8 @@ Esta página explica as etapas e por que elas estão nessa ordem; o raciocínio 
 lint ──► testes ────┐   API no SQLite e no Postgres, worker com RabbitMQ,
                     │   Telegram de ponta a ponta, smoke test do docker compose
 lock files ─────────┴─► imagens (api, web, worker) ──► pipeline passed
+                                                           │ só na main
+                              deploy (staging) ──► deploy (produção)
 ```
 
 1. **Lint.** O [ruff](https://docs.astral.sh/ruff/) lê o código Python (API, worker e scripts
@@ -32,14 +34,14 @@ lock files ─────────┴─► imagens (api, web, worker) ─�
 | | Pull Request | `main` |
 |---|---|---|
 | Lint e testes | Rodam | Rodam |
-| Imagens | Geradas, para provar que funcionam | Geradas **e publicadas** no GHCR |
-| Tags | — | `sha-<commit>` e `latest` |
+| Imagens | Geradas, para provar que funcionam | Geradas **e publicadas** no GHCR como `sha-<commit>` |
+| Deploy | — | Staging, depois produção: veja [O deploy](/docs/phase-4/deploy) |
 
-Um merge cujo pipeline falha não publica nada, e o servidor continua rodando a última versão
-boa. As execuções na `main` são uma de cada vez, então uma execução mais antiga nunca publica o
+Um merge cujo pipeline falha não publica nada, e os dois ambientes continuam rodando a última
+versão boa. As execuções na `main` são uma de cada vez, então uma execução mais antiga nunca publica o
 `latest` depois de uma mais nova.
 
-Toda segunda-feira o pipeline também roda sozinho na `main` e publica as imagens de novo, para
+Toda segunda-feira o pipeline também roda sozinho na `main`, publica as imagens de novo e faz o deploy, para
 que as correções de segurança que as imagens oficiais do Python e do Caddy recebem sob a mesma
 tag cheguem ao servidor.
 

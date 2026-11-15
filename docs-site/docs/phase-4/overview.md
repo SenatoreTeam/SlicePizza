@@ -9,8 +9,8 @@ tests ran, not after. Phase 4 makes the path from a merge to production
 automatic **and** safe.
 
 :::info Status
-This phase is **in progress**. The pipeline (lint, tests, then images) is done;
-the automatic deploy with a staging environment comes next. See the
+This phase is **in progress**: the pipeline and the deploy are built, and go
+live once the staging environment is set up on the server. See the
 [roadmap](../../../docs/ROADMAP.md).
 :::
 
@@ -20,9 +20,9 @@ the automatic deploy with a staging environment comes next. See the
   image is published only when everything before it passed. See
   [The pipeline](./pipeline.md).
 - **Versioned images**: every image says which commit it was built from.
-- Coming next: a **staging** environment at `staging.slicepizza.senatore.tech`,
-  and a deploy that the pipeline starts and checks, first on staging and then in
-  production, with its secrets in GitHub.
+- A **staging** environment at `staging.slicepizza.senatore.tech`, and a
+  deploy that the pipeline starts and checks, first on staging and then in
+  production, with its secrets in GitHub. See [Deploying](./deploy.md).
 
 ## Why automate this
 
