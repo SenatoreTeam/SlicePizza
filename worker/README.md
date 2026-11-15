@@ -1,6 +1,6 @@
 # Notification worker
 
-> 🚧 **Phase 3.** The pizzeria's Telegram chat gets a message for every new order and every status change, and customers who follow it from the order page ("Follow on Telegram") get its updates. See the [ROADMAP](../docs/ROADMAP.md#phase-3-customers-want-to-know-when-their-pizza-is-on-the-way).
+> ✅ **Phase 3 (live).** The pizzeria's Telegram chat gets a message for every new order and every status change, and customers who follow it from the order page ("Follow on Telegram") get its updates. See the [ROADMAP](../docs/ROADMAP.md#phase-3-customers-want-to-know-when-their-pizza-is-on-the-way).
 
 A Python service that reads order events from its RabbitMQ queue and sends Telegram messages, and that runs the bot customers talk to. It never touches the database: everything it needs to send is in the event, and the API links customers' chats to their orders ([ADR 0006](../docs/adr/0006-customer-telegram-opt-in.md)).
 

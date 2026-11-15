@@ -151,7 +151,7 @@ The site is served at http://localhost:3000/. The published version is at https:
 |---|---|---|
 | 1 | "I want to see it running on your computer" | ✅ Done |
 | 2 | "I want the site live on my own domain" | ✅ Done |
-| 3 | "Customers want to know when their pizza is on the way" | 🚧 In progress |
+| 3 | "Customers want to know when their pizza is on the way" | ✅ Done |
 | 4 | "Every time you change something, something breaks" | ⏳ Not started |
 | 5 | "The site went down Friday night and nobody noticed" | ⏳ Not started |
 | 6 | "The server died and we lost the orders" | ⏳ Not started |

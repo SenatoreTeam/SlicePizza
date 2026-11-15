@@ -7,10 +7,10 @@ quando um pedido chega, e para os clientes que pedirem, conforme o pedido avanç
 também ganha uma tela para tocar os pedidos.
 
 :::info Situação
-Tudo nesta fase está construído e passa nas verificações automáticas, inclusive o objetivo da
-fase (derrubar o worker sem perder nenhuma mensagem). O painel da cozinha já está no ar; a fila,
-o worker e as mensagens no Telegram entram no ar quando o bot, o RabbitMQ e o worker forem
-configurados no servidor. A [Fase 2](/docs/phase-2/overview) está concluída.
+Esta fase está **concluída**. O painel da cozinha, a fila, o worker e as mensagens no Telegram
+estão no ar em https://slicepizza.senatore.tech desde 2026-11-15, e um pedido feito pelo celular
+foi acompanhado no Telegram do começo ao fim. Veja o
+[roadmap](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/ROADMAP.md).
 :::
 
 ## O que a Fase 3 entrega
