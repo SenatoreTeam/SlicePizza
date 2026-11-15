@@ -9,6 +9,8 @@ Docker, DNS, nuvem, filas, CI/CD, observabilidade, Terraform e Kubernetes.
 
 > A ideia é **sentir o problema antes de usar a ferramenta**.
 
+![O site de cardápio da Pizzaria do Zé, com preços e seletores de quantidade](@site/static/img/screenshots/menu.png)
+
 ## O que você vai encontrar aqui
 
 - **[Tour do produto](/docs/tour)**: capturas de tela do sistema rodando.

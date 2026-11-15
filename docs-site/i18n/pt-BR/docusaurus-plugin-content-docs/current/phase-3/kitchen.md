@@ -13,6 +13,8 @@ próxima etapa; pedidos novos também podem ser cancelados, depois de uma confir
 atualiza a cada poucos segundos, avisa a cozinha se outra tela já mudou um pedido, e continua
 mostrando os últimos pedidos carregados se o sistema ficar inacessível.
 
+![O painel da cozinha com os pedidos em três colunas](@site/static/img/screenshots/kitchen-board.png)
+
 ## Mantendo privado
 
 Até esta fase, qualquer pessoa que soubesse o id de um pedido podia mudar o status dele, e uma

@@ -87,6 +87,46 @@ slicepizza-docs.senatore.tech** (Settings → Pages). The DNS has
 https://senatoreteam.github.io/SlicePizza/, redirects to the custom domain.
 To publish again without a change, run the workflow from the Actions tab.
 
+## Two languages
+
+The site is in English and Brazilian Portuguese (`pt-BR`), with a language menu
+in the top bar.
+
+```bash
+npm start                      # English
+npm start -- --locale pt-BR    # Portuguese, at /pt-BR/ (the dev server runs one locale at a time)
+npm run build                  # both locales into build/ (Portuguese under /pt-BR/)
+```
+
+- English pages: `docs/`
+- Portuguese pages: `i18n/pt-BR/docusaurus-plugin-content-docs/current/`, same
+  file names
+- UI labels (navbar, footer, sidebar categories, homepage): `i18n/pt-BR/*.json`
+  and `i18n/pt-BR/docusaurus-*/`. After adding a navbar item, sidebar category
+  or `<Translate>` string, run
+  `npm run write-translations -- --locale pt-BR` and translate the new entries.
+- The ADRs stay in English and are shown as-is under `/pt-BR/adr`.
+
+**Every change to a page in `docs/` goes into its pt-BR copy in the same Pull
+Request.** In the Portuguese pages, link to other site pages by route
+(`/docs/phase-1/overview`, `/adr/0003-one-domain-caddy-in-front`) and to
+repository files by their full GitHub URL, as the existing pages do.
+
+## Screenshots
+
+Screenshots live in `static/img/screenshots/` and are shared by both languages
+(only the alt text is translated). Embed them with the `@site` path:
+
+```md
+![The kitchen board with orders in three columns](@site/static/img/screenshots/kitchen-board.png)
+```
+
+They show the stack running locally (`docker compose up`) with **fictional demo
+data only**: no real names, phones or addresses. Keep the size of the shot you
+replace (most are 1650 px wide, the kitchen board 1920 px, the phone shot
+780 px), and when a screen changes, retake its screenshot in the same Pull
+Request. The root `README.md` uses some of them too.
+
 ## Images
 
 `static/img/logo.svg` is the source. If it changes, regenerate the PNGs with

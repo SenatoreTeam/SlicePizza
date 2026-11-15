@@ -34,6 +34,10 @@ pequeno `config.js`. A jornada do cliente:
 4. A página de status consulta o pedido a cada 10 segundos até que ele seja entregue ou
    cancelado, e pausa enquanto a aba está em segundo plano.
 
+| Fazendo o pedido | Acompanhando |
+| --- | --- |
+| ![O formulário de entrega com o total do carrinho](@site/static/img/screenshots/menu-order-form.png) | ![A página de status do pedido com as quatro etapas](@site/static/img/screenshots/order-status.png) |
+
 O texto vindo da API só é inserido na página como **texto**, nunca como HTML, e uma
 Content-Security-Policy definida pelo Caddy só permite que a página carregue os próprios
 scripts.

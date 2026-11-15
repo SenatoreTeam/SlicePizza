@@ -6,6 +6,18 @@ The system starts small and grows in **phases**. In each phase, the "pizzeria ow
 
 > The idea is to **feel the problem before using the tool**. We don't use Kubernetes in Phase 1, because the problem it solves doesn't exist yet.
 
+**Um projeto prático de aprendizado de DevOps: o sistema de pedidos online da Pizzaria do Zé, uma pizzaria fictícia.**
+
+📖 **Documentation / Documentação:** https://slicepizza-docs.senatore.tech/ (English · Português)
+
+![The menu site: pizzas, prices and quantity pickers](docs-site/static/img/screenshots/menu.png)
+
+| Order status | Kitchen board |
+| --- | --- |
+| ![The order status page](docs-site/static/img/screenshots/order-status.png) | ![The kitchen board with orders in three columns](docs-site/static/img/screenshots/kitchen-board.png) |
+
+> Screenshots show the system running locally with `docker compose up`. All names, phones and addresses are fictional demo data. More in the [product tour](https://slicepizza-docs.senatore.tech/docs/tour).
+
 ---
 
 ## Architecture (end goal)
@@ -140,10 +152,11 @@ The documentation site, built with [Docusaurus](https://docusaurus.io/), lives i
 ```bash
 cd docs-site
 npm install
-npm start
+npm start                      # English
+npm start -- --locale pt-BR    # Brazilian Portuguese
 ```
 
-The site is served at http://localhost:3000/. The published version is at https://slicepizza-docs.senatore.tech. Build the static version with `npm run build`. The ADRs on the site are rendered straight from [`docs/adr/`](docs/adr/).
+The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/ with `--locale pt-BR` (the dev server runs one language at a time; the published site has a language menu). The published version is at https://slicepizza-docs.senatore.tech. Build the static version with `npm run build`. The ADRs on the site are rendered straight from [`docs/adr/`](docs/adr/).
 
 ## Roadmap
 

@@ -15,6 +15,8 @@ refreshes every few seconds, tells the kitchen if another screen already changed
 an order, and keeps showing the last orders it loaded if the system is
 unreachable.
 
+![The kitchen board with orders in three columns](@site/static/img/screenshots/kitchen-board.png)
+
 ## Keeping it private
 
 Until this phase, anyone who knew an order's id could change its status, and a

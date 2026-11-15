@@ -36,6 +36,10 @@ and a small `config.js`. A customer's journey:
 4. The status page asks for the order every 10 seconds until it is delivered or
    cancelled, and pauses while the tab is in the background.
 
+| Placing the order | Following it |
+| --- | --- |
+| ![The delivery form with the cart total](@site/static/img/screenshots/menu-order-form.png) | ![The order status page with its four stages](@site/static/img/screenshots/order-status.png) |
+
 Text from the API is only ever inserted into the page as **text**, never as HTML,
 and a Content-Security-Policy set by Caddy only lets the page load its own
 scripts.
