@@ -58,7 +58,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 3: "Customers want to know when their pizza is on the way"
 
-**Status:** 🚧 In progress: everything is built and passes CI (including the "done when" below); the server switch is done, and it goes live when the Telegram bot, RabbitMQ and the worker are set up on the server
+**Status:** ✅ Done: live at https://slicepizza.senatore.tech since 2026-11-15 (the Telegram bot, RabbitMQ and the worker run on the server, and an order on a phone was followed on Telegram end to end)
 
 **Goal:** notify the customer on every status change, without slowing down the API.
 
