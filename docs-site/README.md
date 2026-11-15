@@ -94,7 +94,7 @@ in the top bar.
 
 ```bash
 npm start                      # English
-npm start -- --locale pt-BR    # Portuguese (the dev server runs one locale at a time)
+npm start -- --locale pt-BR    # Portuguese, at /pt-BR/ (the dev server runs one locale at a time)
 npm run build                  # both locales into build/ (Portuguese under /pt-BR/)
 ```
 
@@ -125,8 +125,7 @@ They show the stack running locally (`docker compose up`) with **fictional demo
 data only**: no real names, phones or addresses. Keep the size of the shot you
 replace (most are 1650 px wide, the kitchen board 1920 px, the phone shot
 780 px), and when a screen changes, retake its screenshot in the same Pull
-Request. The root `README.md` uses some
-of them too.
+Request. The root `README.md` uses some of them too.
 
 ## Images
 

@@ -156,7 +156,7 @@ npm start                      # English
 npm start -- --locale pt-BR    # Brazilian Portuguese
 ```
 
-The site is served at http://localhost:3000/ in English and Brazilian Portuguese (language menu in the top bar). The published version is at https://slicepizza-docs.senatore.tech. Build the static version with `npm run build`. The ADRs on the site are rendered straight from [`docs/adr/`](docs/adr/).
+The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/ with `--locale pt-BR` (the dev server runs one language at a time; the published site has a language menu). The published version is at https://slicepizza-docs.senatore.tech. Build the static version with `npm run build`. The ADRs on the site are rendered straight from [`docs/adr/`](docs/adr/).
 
 ## Roadmap
 
