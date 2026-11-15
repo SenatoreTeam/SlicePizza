@@ -7,9 +7,9 @@ endereço público, **https://slicepizza.senatore.tech**, e um site de cardápio
 podem usar pelo celular.
 
 :::info Situação
-O código, as imagens e as verificações automáticas desta fase estão prontos. A fase continua
-marcada como **Em andamento** no [roadmap](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/ROADMAP.md) até que o servidor de produção
-seja trocado para o novo formato e um pedido tenha sido feito pelo site no ar.
+Esta fase está **concluída**. O sistema está no ar em https://slicepizza.senatore.tech desde
+2026-11-15, e um pedido foi feito pelo site no ar. Veja o
+[roadmap](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/ROADMAP.md).
 :::
 
 ## O que a Fase 2 entrega

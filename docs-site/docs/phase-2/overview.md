@@ -7,10 +7,9 @@ public address, **https://slicepizza.senatore.tech**, and a menu website that
 customers can use from their phones.
 
 :::info Status
-The code, images and automatic checks for this phase are done. The phase is
-marked **In progress** on the [roadmap](../../../docs/ROADMAP.md) until the
-production server is switched to the new layout and an order has been placed
-through the live site.
+This phase is **done**. The system has been live at
+https://slicepizza.senatore.tech since 2026-11-15, and an order has been placed
+through the live site. See the [roadmap](../../../docs/ROADMAP.md).
 :::
 
 ## What Phase 2 delivers

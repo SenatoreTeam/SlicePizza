@@ -33,5 +33,8 @@ fi
 if [ -z "${KITCHEN_USERNAME:-}" ]; then
 	unset KITCHEN_USERNAME
 fi
+if [ -z "${TRUSTED_PROXIES:-}" ]; then
+	unset TRUSTED_PROXIES
+fi
 
 exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile

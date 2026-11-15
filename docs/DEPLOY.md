@@ -23,7 +23,7 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 
 | Container | Image | Public? | Settings |
 |---|---|---|---|
-| `web` | `slicepizza-web` (Caddy + the site, [`infra/caddy/`](../infra/caddy/)) | **Yes**: the domain points here, port 8080 | `API_UPSTREAM`: the API's `host:port` on the project network (default `api:8000`). `TELEGRAM_BOT_USERNAME`: the bot for the "Follow on Telegram" button, without the @ (unset: no button). `KITCHEN_PASSWORD_HASH`, `KITCHEN_USERNAME` and `KITCHEN_API_TOKEN` for the kitchen board (see [Kitchen](#kitchen)) |
+| `web` | `slicepizza-web` (Caddy + the site, [`infra/caddy/`](../infra/caddy/)) | **Yes**: the domain points here, port 8080 | `API_UPSTREAM`: the API's `host:port` on the project network (default `api:8000`). `TELEGRAM_BOT_USERNAME`: the bot for the "Follow on Telegram" button, without the @ (unset: no button). `KITCHEN_PASSWORD_HASH`, `KITCHEN_USERNAME` and `KITCHEN_API_TOKEN` for the kitchen board (see [Kitchen](#kitchen)). `TRUSTED_PROXIES` if the server's proxy is outside the private ranges (see below) |
 | `api` | `slicepizza-api` ([`api/`](../api/)) | No: only `web` reaches it | `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`, plus the database variables below. `INTERNAL_API_TOKEN` for the worker's routes ([ADR 0006](adr/0006-customer-telegram-opt-in.md)). `KITCHEN_API_TOKEN` for the kitchen's routes ([ADR 0007](adr/0007-kitchen-login.md)) |
 
 | `db` | `postgres:16-alpine` | No: only `api` reaches it | See [Database](#database) |
@@ -31,6 +31,8 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 | `worker` | `slicepizza-worker` ([`worker/`](../worker/)) | No: no port at all, it only connects out (RabbitMQ, Telegram) | `RABBITMQ_HOST`, `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_PIZZERIA_CHAT_ID`. See [Worker](#worker) |
 
 Both trust the forwarding headers of the proxy in front of them: Caddy those of the server's proxy (from private addresses, see the Caddyfile), and the API those of Caddy (also from private addresses only). That way the access logs show the customer's IP, and links and redirects the API generates keep `https`.
+
+If the server's proxy is not in a private range (on the live server Traefik is at `100.80.1.0/24`, which is not), Caddy ignores its headers and logs the proxy's IP and `http`. Set `TRUSTED_PROXIES` on `web` to the ranges to trust, space-separated and with `private_ranges` kept: `private_ranges 100.80.1.0/24`. On `api`, put the same range in `UVICORN_FORWARDED_ALLOW_IPS` (comma-separated).
 
 Both images meet the server's rules:
 

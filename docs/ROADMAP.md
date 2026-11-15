@@ -34,19 +34,19 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 2: "I want the site live on my own domain"
 
-**Status:** 🚧 In progress
+**Status:** ✅ Done: live at https://slicepizza.senatore.tech since 2026-11-15
 
 **Goal:** the system reachable from the internet, over HTTPS, on your domain.
 
-- [ ] Register a domain (e.g. Registro.br, Cloudflare or Namecheap)
-- [ ] Create a cloud virtual machine (AWS EC2 or Oracle Cloud Free Tier)
-- [ ] Set up SSH access with a key (no password)
-- [ ] Open only ports 22, 80 and 443 in the firewall
-- [ ] Install Docker on the virtual machine
+- [x] Register a domain (e.g. Registro.br, Cloudflare or Namecheap)
+- [x] Create a cloud virtual machine (AWS EC2 or Oracle Cloud Free Tier): a shared server that already existed
+- [x] Set up SSH access with a key (no password): the shared server's own setup
+- [x] Open only ports 22, 80 and 443 in the firewall: the shared server's own setup
+- [x] Install Docker on the virtual machine
 - [x] Build the menu website in `frontend/` (plain HTML + JS)
-- [ ] Host the static site on a CDN (Cloudflare Pages or S3 + CloudFront)
-- [ ] DNS: `www` (CNAME to the CDN), `api` and `admin` (A record to the virtual machine)
-- [ ] Caddy as reverse proxy, with automatic HTTPS
+- [x] Host the static site on a CDN (Cloudflare Pages or S3 + CloudFront): served by the Caddy container instead, see below
+- [x] DNS: `www` (CNAME to the CDN), `api` and `admin` (A record to the virtual machine): one record for `slicepizza.senatore.tech`, see below
+- [x] Caddy as reverse proxy, with automatic HTTPS: Caddy routes, the server's proxy does the HTTPS
 
 > **How SlicePizza did it:** the system lives at `slicepizza.senatore.tech` on a shared server that already has a domain, Docker and an HTTPS proxy (Dokploy, see [DEPLOY.md](DEPLOY.md)). Instead of a CDN plus `api` and `admin` subdomains, a Caddy container serves the site at `/` and the API at `/api` on that one domain ([ADR 0003](adr/0003-one-domain-caddy-in-front.md)). The server's proxy keeps the HTTPS part.
 
@@ -58,7 +58,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 3: "Customers want to know when their pizza is on the way"
 
-**Status:** 🚧 In progress: everything is built and passes CI (including the "done when" below); it goes live with the server switch that finishes Phase 2
+**Status:** 🚧 In progress: everything is built and passes CI (including the "done when" below); the server switch is done, and it goes live when the Telegram bot, RabbitMQ and the worker are set up on the server
 
 **Goal:** notify the customer on every status change, without slowing down the API.
 

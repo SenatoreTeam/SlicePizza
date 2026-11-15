@@ -8,8 +8,10 @@ along. The kitchen also gets a screen to run the orders from.
 
 :::info Status
 Everything in this phase is built and passes the automatic checks, including the
-phase's goal (take the worker down and no message is lost). It goes live
-together with the server switch that finishes [Phase 2](../phase-2/overview.md).
+phase's goal (take the worker down and no message is lost). The kitchen board is
+already live; the queue, the worker and the Telegram messages go live once the
+bot, RabbitMQ and the worker are set up on the server. [Phase 2](../phase-2/overview.md)
+is done.
 :::
 
 ## What Phase 3 delivers

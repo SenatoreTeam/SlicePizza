@@ -8,8 +8,9 @@ também ganha uma tela para tocar os pedidos.
 
 :::info Situação
 Tudo nesta fase está construído e passa nas verificações automáticas, inclusive o objetivo da
-fase (derrubar o worker sem perder nenhuma mensagem). Ela entra no ar junto com a troca do
-servidor que conclui a [Fase 2](/docs/phase-2/overview).
+fase (derrubar o worker sem perder nenhuma mensagem). O painel da cozinha já está no ar; a fila,
+o worker e as mensagens no Telegram entram no ar quando o bot, o RabbitMQ e o worker forem
+configurados no servidor. A [Fase 2](/docs/phase-2/overview) está concluída.
 :::
 
 ## O que a Fase 3 entrega

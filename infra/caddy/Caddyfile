@@ -38,7 +38,10 @@
 		# keeps the X-Forwarded-For and X-Forwarded-Proto they send, so the
 		# access log and the API see the customer's IP and "https", not the
 		# proxy's IP and "http". Nothing outside the server reaches :8080.
-		trusted_proxies static private_ranges
+		# TRUSTED_PROXIES adds ranges the private ones don't cover (on the
+		# live server Traefik is at 100.80.1.0/24): space-separated, and
+		# "private_ranges" has to be listed again to keep it.
+		trusted_proxies static {$TRUSTED_PROXIES:private_ranges}
 		client_ip_headers X-Forwarded-For
 	}
 }
