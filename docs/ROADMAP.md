@@ -100,7 +100,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 - [x] `/health` route on every service (each container has a health check; the API's `/health` is the full-path one)
 - [x] Expose API metrics to Prometheus: orders, latency, errors and the outbox backlog at `/metrics`, private ([ADR 0012](adr/0012-api-metrics.md))
-- [x] Grafana dashboards: the SlicePizza overview, provisioned from Git ([ADR 0013](adr/0013-prometheus-and-grafana.md)). Prometheus and Grafana run locally with `docker compose --profile monitoring up`; **not on the server yet**
+- [x] Grafana dashboards: the SlicePizza overview, provisioned from Git ([ADR 0013](adr/0013-prometheus-and-grafana.md)). Prometheus and Grafana run locally with `docker compose --profile monitoring up`; published as images by the pipeline; **not on the server yet**
 - [ ] Centralize container logs in Loki
 - [ ] Telegram alerts: API down, queue piling up
 

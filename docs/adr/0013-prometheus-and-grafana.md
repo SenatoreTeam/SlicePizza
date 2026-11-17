@@ -1,6 +1,6 @@
 # 0013: Prometheus and Grafana, on the same server, from files in Git
 
-- **Status:** Accepted (the server deploy is the next step, see Consequences)
+- **Status:** Accepted
 - **Date:** 2026-11-17
 - **Phase:** 5
 
@@ -21,6 +21,7 @@ Option 1, in [`infra/monitoring/`](../../infra/monitoring/):
 - **Prometheus** (`prom/prometheus`, pinned) scrapes every 15 s: the API (`api:8000/metrics`), RabbitMQ's built-in exporter (`rabbitmq:15692`, on by default in the official image) and itself. It keeps **15 days and at most 2 GB**: a full disk would take the whole server down.
 - **Grafana** (`grafana/grafana`, pinned) with the datasource and the **SlicePizza overview** dashboard **provisioned from files**: services up, orders per minute, the release running, requests by status, 5xx per minute, latency p95 by route, the outbox backlog and its oldest event, and RabbitMQ's messages. Dashboards are read-only in the browser: to change one, change the file in Git, like the rest of the project. Sign-up and anonymous access are off, and Grafana's reporting to its vendor is off.
 - Both run with `cap_drop: ALL` and `no-new-privileges`, like the other containers. Neither publishes a port to the internet. Grafana alone gets a domain, behind its login; Prometheus has no domain and no login of its own, so it must never get one.
+- **Delivery: two small images, like `web`.** `infra/monitoring/prometheus/Dockerfile` and `infra/monitoring/grafana/Dockerfile` put the configuration inside the official images, and the pipeline publishes `ghcr.io/senatoreteam/slicepizza-prometheus` and `-grafana` as `sha-<commit>` after the same checks. The server's compose then needs no copy of this repository's files. They are **not part of the numbered versions**: they change rarely, so the server pins the `sha-` tag it runs and moves it by hand when the configuration changes, and the version flow (ADR 0009) and its "all three images or none" rule stay as they are. Dependabot watches their base images.
 - Locally: `docker compose --profile monitoring up -d`. The profile keeps CI and everyday development unchanged: nothing starts without it.
 - Versions follow the project's 7-day rule: both were public for a week or more when chosen.
 
@@ -28,4 +29,5 @@ Option 1, in [`infra/monitoring/`](../../infra/monitoring/):
 
 - Verified locally with the real stack: all three targets `up`, the order created by a test shows in `slicepizza_orders_created_total`, Grafana finds the datasource and the dashboard.
 - RabbitMQ's default exporter sums all queues (per-queue numbers need a second endpoint), so the dashboard shows the total of ready and unacknowledged messages. Per-queue detail can come with the alert on the dead-letter queue.
-- **Not on the server yet.** The server's compose is managed on the server, which has no copy of this repository's files, so the two config sets have to reach it: baked into two small images published by the pipeline like `web` (consistent with ADR 0003), or the compose deployed from Git. That choice, the DNS record for Grafana and the Dokploy domain are the next step, and the Telegram alerts (Alertmanager or Grafana alerting) build on the same two containers.
+- CI checks the real thing on every run: it starts the two images next to the stack and requires the three targets (`api`, `rabbitmq`, `prometheus`) to be up, Grafana's datasource to answer, and the dashboard to be found.
+- **Not on the server yet.** What is left is on the server itself: adding the two containers to the compose, a DNS record and a Dokploy domain for Grafana, and its admin password (docs/DEPLOY.md, "Monitoring"). The Telegram alerts (Alertmanager or Grafana alerting) build on the same two containers.
