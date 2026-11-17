@@ -100,6 +100,17 @@ The notification worker ([`worker/`](../worker/), [ADR 0005](adr/0005-notificati
 
 How to create the bot and find the chat id: [worker/README.md](../worker/README.md#setting-up-telegram). Without `TELEGRAM_BOT_TOKEN` the worker writes the messages to its log instead of sending them. That is meant for local development and CI: the messages include customers' names, so on the server set the token when you deploy the worker (or accept names in the logs until you do).
 
+## Monitoring
+
+Prometheus and Grafana ([ADR 0013](adr/0013-prometheus-and-grafana.md)) run next to the system, from two images the pipeline publishes with their configuration inside. They are **not** part of the numbered versions: use the newest `sha-<commit>` tag of `main` that has them, and move it by hand only when [`infra/monitoring/`](../infra/monitoring/) changes.
+
+| Container | Image | Public? | Settings |
+|---|---|---|---|
+| `prometheus` | `ghcr.io/senatoreteam/slicepizza-prometheus:sha-<commit>` | **No**: no domain and no published port. It has no login of its own | A named volume on `/prometheus` (15 days, at most 2 GB). Same project network as `api` and `rabbitmq`: it reads `api:8000/metrics` and `rabbitmq:15692` |
+| `grafana` | `ghcr.io/senatoreteam/slicepizza-grafana:sha-<commit>` | **Yes, behind its login**: `https://grafana.slicepizza.senatore.tech` → `grafana` port **3000** | `GF_SECURITY_ADMIN_PASSWORD`: strong and random, stored on the server (the user is `admin`). `GF_SERVER_ROOT_URL=https://grafana.slicepizza.senatore.tech`. A named volume on `/var/lib/grafana`. Same network as `prometheus` |
+
+To set it up: make the two packages public (like in [One-time setup](#one-time-setup)), add the two containers to the project's compose, create the DNS record `A grafana.slicepizza → 179.66.139.4`, and add the domain to `grafana` with HTTPS. Then open the domain, log in, and the **SlicePizza overview** dashboard shows the live numbers. **Never give `prometheus` a domain**: anyone who reached it could read every number without logging in.
+
 ## Releasing a version
 
 Production runs the newest version ([ADR 0009](adr/0009-numbered-versions.md)), and the versions live in [`releases.toml`](../releases.toml) ([ADR 0010](adr/0010-releases-file.md)). To release one, in the Pull Request:
