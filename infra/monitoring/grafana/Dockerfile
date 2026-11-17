@@ -1,7 +1,7 @@
 # The Grafana container: the official image with the datasource and the
 # SlicePizza dashboards inside it (ADR 0013). Secrets are not here: the admin
 # password comes from GF_SECURITY_ADMIN_PASSWORD on the server.
-FROM grafana/grafana:13.2.6
+FROM grafana/grafana:13.3.1
 
 ENV GF_USERS_ALLOW_SIGN_UP=false \
     GF_AUTH_ANONYMOUS_ENABLED=false \
