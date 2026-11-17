@@ -76,15 +76,15 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 4: "Every time you change something, something breaks"
 
-**Status:** 🚧 In progress
+**Status:** ✅ Done: live since 2026-11-17. A merge that adds a version to `releases.toml` reaches production by itself, checked, without anyone logging into the server (versions 1.0.0 and 1.1.0 went out this way)
 
 **Goal:** all code goes through automated tests before reaching production.
 
 - [x] GitHub Actions pipeline: lint → tests → image build: one pipeline, where the images wait for the lint and every test ([ADR 0008](adr/0008-one-gated-pipeline.md))
 - [x] Publish images to GHCR (GitHub's container registry): from `main` only, and only when the pipeline passed, as `sha-<commit>`; a merge that adds a version to `releases.toml` also tags them with it and creates the release ([ADR 0009](adr/0009-numbered-versions.md), [ADR 0010](adr/0010-releases-file.md))
-- [ ] Automatic deploy to the virtual machine after merging into `main`
-- [ ] Staging environment at `staging.yourdomain.com`
-- [ ] Secrets stored in GitHub Secrets
+- [x] Automatic deploy to the virtual machine after merging into `main`: when the merge adds a version, the server fetches it from GHCR, backs up the database, deploys it and checks it, and puts the previous version back if the checks fail ([ADR 0009](adr/0009-numbered-versions.md)). The version and what changed show in the system ([Versions and releases](https://slicepizza-docs.senatore.tech/docs/phase-4/versions))
+- [ ] Staging environment at `staging.yourdomain.com`: not built. The checks and the automatic rollback above protect production; a staging environment that follows `main` remains an option ([#43](https://github.com/SenatoreTeam/SlicePizza/pull/43))
+- [x] ~~Secrets stored in GitHub Secrets~~ Not needed: the deploy keeps no secret on GitHub. The server fetches the public images itself, and the system's own secrets stay on the server ([ADR 0009](adr/0009-numbered-versions.md))
 
 **Done when:** a merge into `main` puts the new version in production without you logging into the server.
 

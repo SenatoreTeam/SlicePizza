@@ -61,6 +61,10 @@ merge to main ──► GitHub Actions builds the images ──► GitHub contai
                           the server checks for new images every 5 minutes
 ```
 
+Since [Phase 4](../phase-4/versions.md), production no longer takes every new
+image: it runs numbered versions, and the server installs each new version by
+itself, checked.
+
 Nothing is copied to the server by hand. The steps for the first setup and for
 moving from the earlier API-only layout are in
 [DEPLOY.md](../../../docs/DEPLOY.md).

@@ -60,7 +60,7 @@ The API **refuses to start without a database** (see `api/app/config.py`): there
 |---|---|
 | Image | `postgres:16-alpine`, the same version as `docker-compose.yml` and CI |
 | Network | The project's isolated network only. **No published port**: only the API reaches it, by service name |
-| Data | A named volume, so the data survives API updates. The automatic update replaces **only the `api` and `web` containers**, never the database |
+| Data | A named volume, so the data survives API updates. A new version replaces **only the `api`, `web` and `worker` containers**, never the database |
 | API variables | `POSTGRES_HOST` (the database service name), `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`. Passed separately, not as a URL, so the password can contain any character |
 | Password | Strong, random, stored on the server. Never in Git |
 | Backup | A daily `pg_dump`, kept outside the volume. Without it, losing the volume means losing every order |
