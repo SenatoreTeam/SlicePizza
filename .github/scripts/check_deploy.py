@@ -1,29 +1,28 @@
-"""Wait for a deploy to go live, then check the live system (ADR 0009).
+"""Wait until production runs a new version, then check it like a visitor (ADR 0011).
 
-Used by the pipeline after it asks the server to deploy a version:
+Used by the pipeline's "production check", after its release job published a
+new version (ADR 0009). The server installs the version by itself; GitHub never
+reaches the server, so this only looks at the public site:
 
-    python3 -I .github/scripts/check_deploy.py https://staging.slicepizza.senatore.tech <commit> --write
-    python3 -I .github/scripts/check_deploy.py https://slicepizza.senatore.tech <commit>
+    python3 -I .github/scripts/check_deploy.py https://slicepizza.senatore.tech <commit> --release 1.2.0
 
 1. Waits (up to --timeout seconds) until the web container's /version and the
-   API's /api/health both report <commit>: the deploy is asynchronous, so the
-   old version answers for a while.
+   API's /api/health both report <commit>, and, with --release, until
+   /api/health's "release" and /releases.json's "version" say that version:
+   the server looks for new versions every 2 minutes, so the old one answers
+   for a while.
 2. Checks what any visitor sees: the menu site, the menu, the API docs, and
    that the private routes stay private (/kitchen asks for a login, listing or
    changing orders without the kitchen's token is refused, /api/internal is
    not reachable).
-3. With --write (staging only, never production): places an order and reads
-   it back like a customer. With KITCHEN_PASSWORD in the environment, also
-   logs in to the kitchen board, finds the order and moves it to "preparing".
 
-Exit code 0 when everything passed, 1 otherwise. Standard library only: it
-runs on the runner's python3 without installing anything.
+It never writes: placing an order would reach the real kitchen and the
+pizzeria's Telegram. Exit code 0 when everything passed, 1 otherwise. Standard
+library only: it runs on the runner's python3 without installing anything.
 """
 
 import argparse
-import base64
 import json
-import os
 import sys
 import time
 import urllib.error
@@ -68,8 +67,11 @@ def expect_status(method, url, expected, body=None, headers=None):
 
 
 def live_versions(base):
-    """What /version and /api/health report right now (None if unreachable)."""
-    web = api = None
+    """What /version, /api/health and /releases.json report right now (None if unreachable).
+
+    Returns (web commit, API commit, API release, web release).
+    """
+    web = api = api_release = web_release = None
     try:
         status, text = request("GET", f"{base}/version", timeout=10)
         # A commit is one short line; anything else (an HTML page from an
@@ -87,28 +89,39 @@ def live_versions(base):
             health = json.loads(text)
             if health.get("status") == "ok":
                 api = health.get("version")
+                api_release = health.get("release")
         else:
             api = f"<HTTP {status}>"
     except (OSError, ValueError):
         pass
-    return web, api
+    try:
+        # The version history the web image was built with (releases.toml, ADR 0010).
+        status, text = request("GET", f"{base}/releases.json", timeout=10)
+        if status == 200:
+            web_release = json.loads(text).get("version")
+    except (OSError, ValueError, AttributeError):
+        pass
+    return web, api, api_release, web_release
 
 
-def wait_for_version(base, version, timeout):
+def wait_for_version(base, commit, release, timeout):
     deadline = time.monotonic() + timeout
+    wanted = (commit, commit, release, release) if release else (commit, commit)
     last = None
     while True:
         current = live_versions(base)
         if current != last:
-            print(f"live: web={current[0]} api={current[1]}")
+            print(f"live: web={current[0]} api={current[1]} release: api={current[2]} web={current[3]}")
             last = current
-        if current == (version, version):
-            print(f"ok  {base} runs {version}")
+        if current[: len(wanted)] == wanted:
+            print(f"ok  {base} runs {release + ' = ' if release else ''}{commit}")
             return
         if time.monotonic() > deadline:
             raise CheckFailed(
-                f"{base} still reports web={current[0]} api={current[1]} after {timeout} s, "
-                f"not {version}. Check the deployment's log in Dokploy."
+                f"{base} still reports web={current[0]} api={current[1]} (release {current[2]}) after "
+                f"{timeout} s, not {release or ''} {commit}. The server installs a new version within a few "
+                "minutes, and puts the previous one back if its own checks fail: ask the server's "
+                "administrator, or see the SlicePizza dashboard."
             )
         time.sleep(10)
 
@@ -135,52 +148,18 @@ def check_public(base):
     return menu
 
 
-def check_order(base, menu, kitchen_password):
-    order = {
-        "customer": {
-            "name": "Deploy check",
-            "phone": "+55 11 90000-0000",
-            "address": "Rua do Teste, 1",
-        },
-        "items": [{"pizza_id": menu[0]["id"], "quantity": 1}],
-    }
-    created = json.loads(expect_status("POST", f"{base}/api/orders", 201, body=order))
-    order_id = created["id"]
-    read = get_json(f"{base}/api/orders/{order_id}")
-    if read["status"] != "received":
-        raise CheckFailed(f"new order {order_id} has status {read['status']!r}, expected 'received'")
-    print(f"ok  order {order_id} placed and read back")
-
-    if not kitchen_password:
-        print("--  KITCHEN_PASSWORD not set: kitchen board check skipped")
-        return
-    username = os.environ.get("KITCHEN_USERNAME") or "kitchen"
-    login = base64.b64encode(f"{username}:{kitchen_password}".encode()).decode()
-    auth = {"Authorization": f"Basic {login}"}
-    expect_status("GET", f"{base}/kitchen/", 200, headers=auth)
-    orders = get_json(f"{base}/kitchen/api/orders", headers=auth)
-    if order_id not in {o["id"] for o in orders}:
-        raise CheckFailed(f"order {order_id} is not on the kitchen board")
-    expect_status(
-        "PATCH", f"{base}/kitchen/api/orders/{order_id}/status", 200, body={"status": "preparing"}, headers=auth
-    )
-    print(f"ok  kitchen board lists order {order_id} and moved it to preparing")
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("url", help="the environment's address, e.g. https://slicepizza.senatore.tech")
-    parser.add_argument("version", help="the commit that must be live")
-    parser.add_argument("--timeout", type=int, default=600, help="seconds to wait for the version (default 600)")
-    parser.add_argument("--write", action="store_true", help="also place an order (staging only)")
+    parser.add_argument("url", help="the site's address, e.g. https://slicepizza.senatore.tech")
+    parser.add_argument("commit", help="the commit that must be live")
+    parser.add_argument("--release", help="the version that must be live, e.g. 1.2.0 (releases.toml)")
+    parser.add_argument("--timeout", type=int, default=900, help="seconds to wait for the version (default 900)")
     args = parser.parse_args()
     base = args.url.rstrip("/")
 
     try:
-        wait_for_version(base, args.version, args.timeout)
-        menu = check_public(base)
-        if args.write:
-            check_order(base, menu, os.environ.get("KITCHEN_PASSWORD"))
+        wait_for_version(base, args.commit, args.release, args.timeout)
+        check_public(base)
     except CheckFailed as error:
         print(f"::error::{error}")
         return 1

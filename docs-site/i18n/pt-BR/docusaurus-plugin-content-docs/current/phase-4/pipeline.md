@@ -11,6 +11,8 @@ Esta página explica as etapas e por que elas estão nessa ordem; o raciocínio 
 lint ──► testes ────┐   API no SQLite e no Postgres, worker com RabbitMQ,
                     │   Telegram de ponta a ponta, smoke test do docker compose
 lock files ─────────┴─► imagens (api, web, worker) ──► pipeline passed
+                                                           │ só na main
+                                       release ──► production check (só uma versão nova)
 ```
 
 1. **Lint.** O [ruff](https://docs.astral.sh/ruff/) lê o código Python (API, worker e scripts

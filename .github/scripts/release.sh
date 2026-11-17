@@ -13,7 +13,9 @@
 #    ("1.4.2 – <title>", "- **Fix · Orders:** <text>", Dependabot's marked "(Dependabot, #N)").
 #
 # The server then puts the newest version in production by itself
-# (docs/DEPLOY.md#releasing-a-version).
+# (docs/DEPLOY.md#releasing-a-version). With GITHUB_OUTPUT set, it writes
+# `version` and `published` (true only when this run tagged the images), so
+# the pipeline's production check runs only for a new version (ADR 0011).
 #
 # Needs GITHUB_SHA, `gh` with GH_TOKEN (contents: write) and a `docker login
 # ghcr.io` that can push the packages. REGISTRY is only changed by tests.
@@ -50,6 +52,7 @@ if [ "$published" -eq 3 ]; then
 	# The version's images came from the first commit that had this version.
 	target=$(revision "$registry/slicepizza-api:$version")
 	echo "Version $version is already published (images of $target)."
+	new=false
 elif [ "$published" -eq 0 ]; then
 	target=$commit
 	short=$(printf '%.7s' "$commit")
@@ -64,6 +67,7 @@ elif [ "$published" -eq 0 ]; then
 		docker buildx imagetools create --tag "$registry/slicepizza-$image:$version" "$registry/slicepizza-$image:sha-$short"
 		echo "$registry/slicepizza-$image:$version -> sha-$short"
 	done
+	new=true
 else
 	fail "Only $published of the 3 images have the tag $version. Fix it by hand: a version is all three or none."
 fi
@@ -77,6 +81,13 @@ else
 	gh release create "$tag" --target "$target" --title "$(python3 -I .github/scripts/releases.py --title "$version")" \
 		--notes-file "$notes" --latest
 	echo "Created the release $tag."
+fi
+
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+	{
+		echo "version=$version"
+		echo "published=$new"
+	} >> "$GITHUB_OUTPUT"
 fi
 
 if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then

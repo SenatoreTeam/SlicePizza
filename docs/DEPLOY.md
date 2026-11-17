@@ -133,6 +133,8 @@ The lint checks the file and the README line, and refuses a version lower than `
 4. checks that the containers run those images and are healthy, and that `/api/health` and `/version` answer with the version's commit;
 5. if any of that fails, puts the previous version back and doesn't try that version again: release the fix as a new version.
 
+On GitHub, the pipeline's last job, **production check** ([ADR 0011](adr/0011-production-check.md)), waits up to 15 minutes until the site answers with the new version and its commit, then checks it like a visitor, without writing anything ([`check_deploy.py`](../.github/scripts/check_deploy.py)). Green: the version is live. Red: it is not (the server didn't install it, or put the previous one back): see the server's dashboard or ask its administrator. Each version that went live is listed under **Deployments** on the repository's page.
+
 A merge that adds no version is published as `sha-<commit>` only, and production doesn't change: several merges can go out together in one version. The server never goes to a lower version by itself: to go back, revert the change and release it as a new version (e.g. 1.4.4 with 1.4.2's code). In an emergency the server's administrator can hold production at an earlier version.
 
 ## Checking the deploy
