@@ -11,6 +11,8 @@ explains its stages and why they are in this order; the reasoning is in
 lint ──► tests ─────┐   API on SQLite and Postgres, worker with RabbitMQ,
                     │   Telegram end to end, docker compose smoke test
 lock files ─────────┴─► images (api, web, worker) ──► pipeline passed
+                                                          │ main only
+                                       release ──► production check (a new version only)
 ```
 
 1. **Lint.** [ruff](https://docs.astral.sh/ruff/) reads the Python code

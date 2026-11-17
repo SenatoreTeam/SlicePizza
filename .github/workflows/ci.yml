@@ -1,4 +1,4 @@
-# The pipeline (ADR 0008, ADR 0009, ADR 0010): every change goes through the same
+# The pipeline (ADR 0008 to ADR 0011): every change goes through the same
 # stages, and an image is published only when everything before it passed.
 #
 #   lint ──► tests ─────┐   API on SQLite and Postgres, worker, Telegram
@@ -6,13 +6,16 @@
 #   lock files ─────────┴─► images (api, web, worker) ──► pipeline passed
 #                                                             │ main only
 #                                                          release
+#                                                             │ a new version only
+#                                                    production check
 #
 # On a Pull Request the images are only built, to check they build. On main
 # they are published to GHCR as `sha-<commit>`; when the merge adds a version
 # to releases.toml, `release` also tags them with it (`1.4.2`) and creates the
 # GitHub release, and the server puts the newest version in production by
-# itself (docs/DEPLOY.md). "pipeline passed" is the one check branch
-# protection needs to require.
+# itself (docs/DEPLOY.md); "production check" then waits until production runs
+# it and checks it, read-only (ADR 0011). "pipeline passed" is the one check
+# branch protection needs to require.
 name: Pipeline
 
 on:
@@ -481,6 +484,9 @@ jobs:
     permissions:
       contents: write  # the release and its tag
       packages: write  # the version's tag on the images
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      published: ${{ steps.release.outputs.published }}
     steps:
       - uses: actions/checkout@v7
 
@@ -493,6 +499,35 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish the version, if it is new
+        id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: .github/scripts/release.sh
+
+  production-check:
+    # After a new version is published, the server installs it by itself within
+    # a few minutes (ADR 0009). This waits until production runs it and checks
+    # it like a visitor would, read-only, so the run on GitHub says whether the
+    # version went live (ADR 0011). GitHub never reaches the server and holds no
+    # secret for it: it only looks at the public site. Red after 15 minutes
+    # means the server did not install it, or put the previous one back.
+    name: production check
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    # A GitHub environment with no secrets: the repository's Deployments page
+    # lists each version that went live, and when.
+    environment:
+      name: production
+      url: https://slicepizza.senatore.tech
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Wait for the version, then check production (read-only)
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: python3 -I .github/scripts/check_deploy.py https://slicepizza.senatore.tech "$GITHUB_SHA" --release "$VERSION" --timeout 900

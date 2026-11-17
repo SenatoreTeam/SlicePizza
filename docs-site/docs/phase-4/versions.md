@@ -70,7 +70,15 @@ release job: slicepizza-{api,web,worker}:1.5.0 (the same images, nothing rebuilt
                                    - **New · Menu:** The kitchen can mark…
                                    │
 server, every 2 minutes ◄──────────┘  backup ─► :1.5.0 ─► deploy ─► checks
+                                   │
+production check (GitHub) ◄────────┘  waits for 1.5.0 on the site, then checks it, read-only
 ```
+
+The pipeline run ends with **production check**: green when production answers
+with the new version and passes the checks, red when it doesn't within 15
+minutes ([ADR 0011](../../../docs/adr/0011-production-check.md)). The server
+only goes forward when its own checks pass, so red means "not live yet", not
+"production is broken".
 
 A merge that adds no version changes nothing in production: several merges can
 go out together in one version.
@@ -84,7 +92,7 @@ go out together in one version.
 | `/api/health` | `release` (the version) and `version` (the commit) |
 | `/api/docs` | The version, next to the API's name |
 | The worker's log | `Starting version 1.5.0 (commit …)` when it starts |
-| GitHub | The [releases](https://github.com/SenatoreTeam/SlicePizza/releases), one per version, and the images' tags on GHCR |
+| GitHub | The [releases](https://github.com/SenatoreTeam/SlicePizza/releases), one per version, the images' tags on GHCR, the **production check** of the run that released it, and **Deployments** (each version that went live) |
 
 The pages read `/releases.json`, which the web image makes from `releases.toml`
 when it is built; the API and the worker get the version from the pipeline.
