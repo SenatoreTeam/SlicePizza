@@ -233,9 +233,50 @@ services:
     security_opt: ["no-new-privileges:true"]
     depends_on:
       - prometheus
+      - loki
+
+  # Logs (ADR 0014): Alloy reads every container's logs and pushes them to Loki;
+  # Grafana shows them. Alloy never touches the Docker socket: the proxy below
+  # allows only read-only container calls (no exec, no start, no images).
+  loki:
+    build: ./infra/monitoring/loki
+    profiles: [monitoring]
+    restart: unless-stopped
+    volumes:
+      - lokidata:/loki
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    profiles: [monitoring]
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1   # list containers and read their logs
+      NETWORKS: 1     # Alloy's discovery also reads network labels
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    read_only: true
+    tmpfs: [/run, /tmp]
+    security_opt: ["no-new-privileges:true"]
+
+  alloy:
+    build: ./infra/monitoring/alloy
+    profiles: [monitoring]
+    restart: unless-stopped
+    volumes:
+      - alloydata:/var/lib/alloy/data
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      - loki
+      - socket-proxy
 
 volumes:
   pgdata:
   rabbitmqdata:
   prometheusdata:
   grafanadata:
+  lokidata:
+  alloydata:

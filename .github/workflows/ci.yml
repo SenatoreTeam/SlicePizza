@@ -332,7 +332,7 @@ jobs:
       # Monitoring (ADR 0013): the same images the server runs, reading the live stack.
       - name: Check Prometheus and Grafana
         run: |
-          docker compose --profile monitoring up -d --build prometheus grafana
+          docker compose --profile monitoring up -d --build prometheus grafana loki socket-proxy alloy
           for i in $(seq 1 30); do
             up=$(curl -fsS http://127.0.0.1:9090/api/v1/targets | python3 -c "import sys,json;print(sorted(t['labels']['job'] for t in json.load(sys.stdin)['data']['activeTargets'] if t['health']=='up'))") || up=
             [ "$up" = "['api', 'prometheus', 'rabbitmq']" ] && break
@@ -345,6 +345,27 @@ jobs:
             sleep 2
           done
           curl -fsS -u admin:admin "http://127.0.0.1:3000/api/search?query=SlicePizza" | grep -q slicepizza-overview
+
+      # Logs (ADR 0014): Alloy reads the containers' logs through the socket
+      # proxy and Loki answers for them; the proxy refuses anything but reading.
+      - name: Check Loki and the log collection
+        run: |
+          for i in $(seq 1 30); do
+            curl -fsS -u admin:admin http://127.0.0.1:3000/api/datasources/uid/loki/health && break
+            sleep 2
+          done
+          for i in $(seq 1 45); do
+            services=$(curl -fsS -u admin:admin http://127.0.0.1:3000/api/datasources/proxy/uid/loki/loki/api/v1/label/service/values) || services=
+            echo "$services" | grep -q '"api"' && break
+            sleep 2
+          done
+          echo "services with logs: $services"
+          echo "$services" | grep -q '"api"'
+          # The proxy lets Alloy read containers and nothing else (no exec, no images).
+          code() { docker run --rm --network slicepizza_default curlimages/curl:8.11.1 -s -o /dev/null -w '%{http_code}' "$@"; }
+          test "$(code http://socket-proxy:2375/containers/json)" = 200
+          test "$(code http://socket-proxy:2375/images/json)" = 403
+          test "$(code -X POST http://socket-proxy:2375/containers/x/exec)" = 403
 
       - name: Check health and menu
         run: |
@@ -466,6 +487,12 @@ jobs:
           - name: grafana
             context: infra/monitoring/grafana
             file: infra/monitoring/grafana/Dockerfile
+          - name: loki
+            context: infra/monitoring/loki
+            file: infra/monitoring/loki/Dockerfile
+          - name: alloy
+            context: infra/monitoring/alloy
+            file: infra/monitoring/alloy/Dockerfile
     permissions:
       contents: read
       packages: write

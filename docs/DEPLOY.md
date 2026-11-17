@@ -102,12 +102,24 @@ How to create the bot and find the chat id: [worker/README.md](../worker/README.
 
 ## Monitoring
 
-Prometheus and Grafana ([ADR 0013](adr/0013-prometheus-and-grafana.md)) run next to the system, from two images the pipeline publishes with their configuration inside. They are **not** part of the numbered versions: use the newest `sha-<commit>` tag of `main` that has them, and move it by hand only when [`infra/monitoring/`](../infra/monitoring/) changes.
+Prometheus and Grafana ([ADR 0013](adr/0013-prometheus-and-grafana.md)) and, for logs, Loki and Alloy ([ADR 0014](adr/0014-loki-and-alloy.md)) run next to the system, from images the pipeline publishes with their configuration inside. They are **not** part of the numbered versions: use the newest `sha-<commit>` tag of `main` that has them, and move it by hand only when [`infra/monitoring/`](../infra/monitoring/) changes.
 
 | Container | Image | Public? | Settings |
 |---|---|---|---|
 | `prometheus` | `ghcr.io/senatoreteam/slicepizza-prometheus:sha-<commit>` | **No**: no domain and no published port. It has no login of its own | A named volume on `/prometheus` (15 days, at most 2 GB). Same project network as `api` and `rabbitmq`: it reads `api:8000/metrics` and `rabbitmq:15692` |
 | `grafana` | `ghcr.io/senatoreteam/slicepizza-grafana:sha-<commit>` | **Yes, behind its login**: `https://grafana.slicepizza.senatore.tech` → `grafana` port **3000** | `GF_SECURITY_ADMIN_PASSWORD`: strong and random, stored on the server (the user is `admin`). `GF_SERVER_ROOT_URL=https://grafana.slicepizza.senatore.tech`. A named volume on `/var/lib/grafana`. Same network as `prometheus` |
+
+### Logs (Loki)
+
+| Container | Image | Public? | Settings |
+|---|---|---|---|
+| `loki` | `ghcr.io/senatoreteam/slicepizza-loki:sha-<commit>` | **No**: no domain, no published port, no login of its own | A named volume on `/loki` (7 days). Same network as `grafana` and `alloy` |
+| `socket-proxy` | `tecnativa/docker-socket-proxy:v0.5.0` | **No** | Env `CONTAINERS=1`, `NETWORKS=1`, `POST=0`; `/var/run/docker.sock` mounted `:ro`; read-only filesystem with tmpfs on `/run` and `/tmp`. The only container that sees the socket |
+| `alloy` | `ghcr.io/senatoreteam/slicepizza-alloy:sha-<commit>` | **No** | Runs as the `alloy` user, `cap_drop: ALL`, a named volume on `/var/lib/alloy/data`. Reaches `socket-proxy:2375` and `loki:3100` |
+
+Grafana (the same container as above) must be on the same network as `loki`. Make the `loki` and `alloy` packages public, add the three containers, and the **Recent logs** panel of the overview dashboard fills in. **Never give `loki` a domain**, and never mount the Docker socket in anything but `socket-proxy`.
+
+### Setting it up
 
 To set it up: make the two packages public (like in [One-time setup](#one-time-setup)), add the two containers to the project's compose, create the DNS record `A grafana.slicepizza → 179.66.139.4`, and add the domain to `grafana` with HTTPS. Then open the domain, log in, and the **SlicePizza overview** dashboard shows the live numbers. **Never give `prometheus` a domain**: anyone who reached it could read every number without logging in.
 

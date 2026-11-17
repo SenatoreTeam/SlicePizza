@@ -28,3 +28,4 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0011](0011-production-check.md) | The pipeline checks each new version in production, from the outside | Accepted |
 | [0012](0012-api-metrics.md) | The API reports its own metrics, with no new dependency | Accepted |
 | [0013](0013-prometheus-and-grafana.md) | Prometheus and Grafana, on the same server, from files in Git | Accepted |
+| [0014](0014-loki-and-alloy.md) | Container logs in Loki, collected by Alloy through a read-only Docker proxy | Accepted |
