@@ -1,7 +1,7 @@
 # Builds one Docker image; called by the pipeline (ci.yml) once for each image,
 # after the lint and the tests passed (ADR 0008). With `push`, it publishes
-# `latest` and `sha-<commit>` to GHCR, and the server picks up the new :latest
-# within 5 minutes (docs/DEPLOY.md); without it, it only checks the image builds.
+# `sha-<commit>` to GHCR; the pipeline's `release` job adds the version's tag
+# when VERSION changes (ADR 0009). Without it, it only checks the image builds.
 name: Build image
 
 on:
@@ -49,8 +49,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ inputs.image }}
+          # No `latest`: the server runs numbered versions (ADR 0009).
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
             type=sha
 
       - name: Build (and publish, from main)
