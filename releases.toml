@@ -1,0 +1,53 @@
+# SlicePizza's versions, newest first (ADR 0010). The single source of:
+#   - the version: a merge that adds a version at the top publishes it, and the server
+#     puts it in production (docs/DEPLOY.md#releasing-a-version);
+#   - the GitHub release of each version, written by the pipeline from this file;
+#   - the "Current version" line of README.md (the lint checks they match).
+#
+# To release a version, add a [[release]] block at the TOP, above the newest one:
+#
+#   [[release]]
+#   version = "1.1.0"                  # MAJOR.MINOR.PATCH, higher than the one below
+#   date = 2026-11-20                  # the day it is merged
+#   title.en = "Pizzas can be marked as sold out"      # optional, one sentence
+#   title.pt-br = "Pizzas podem ser marcadas como esgotadas"
+#
+#   [[release.item]]                   # one per change, in the words of the people who use it
+#   kind = "new"                       # new | improvement | fix | security
+#   area = "Menu"                      # Menu | Orders | Kitchen | Telegram | System
+#   text.en = "The kitchen can mark a pizza as sold out, and the menu hides it until it is back."
+#   text.pt-br = "A cozinha pode marcar uma pizza como esgotada, e o cardápio a esconde até ela voltar."
+#
+# An update proposed by Dependabot adds `source = "dependabot"` and `pr = <its number>`: the
+# release says "(Dependabot, #N)", so the project's own changes and Dependabot's are told apart.
+# Security fixes say that something was fixed, never how to exploit it.
+
+[[release]]
+version = "1.0.0"
+date = 2026-11-17
+title.en = "The first numbered version"
+title.pt-br = "A primeira versão numerada"
+
+[[release.item]]
+kind = "new"
+area = "Menu"
+text.en = "The menu site at `/` and the Orders API at `/api`, on one domain."
+text.pt-br = "O site do cardápio em `/` e a API de pedidos em `/api`, num domínio só."
+
+[[release.item]]
+kind = "new"
+area = "Telegram"
+text.en = "Telegram messages for the pizzeria about each order, and for the customers who follow their order."
+text.pt-br = "Mensagens no Telegram para a pizzaria sobre cada pedido, e para os clientes que acompanham o seu."
+
+[[release.item]]
+kind = "new"
+area = "Kitchen"
+text.en = "The kitchen board at `/kitchen`, behind a login."
+text.pt-br = "O painel da cozinha em `/kitchen`, com login."
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "Numbered versions: production runs the newest released version, instead of every change merged."
+text.pt-br = "Versões numeradas: a produção roda a versão publicada mais nova, e não cada mudança que entra."

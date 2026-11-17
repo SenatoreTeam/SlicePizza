@@ -81,7 +81,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 **Goal:** all code goes through automated tests before reaching production.
 
 - [x] GitHub Actions pipeline: lint → tests → image build: one pipeline, where the images wait for the lint and every test ([ADR 0008](adr/0008-one-gated-pipeline.md))
-- [x] Publish images to GHCR (GitHub's container registry): from `main` only, and only when the pipeline passed, as `sha-<commit>`; a merge that raises `VERSION` also tags them with the version and creates the release ([ADR 0009](adr/0009-numbered-versions.md))
+- [x] Publish images to GHCR (GitHub's container registry): from `main` only, and only when the pipeline passed, as `sha-<commit>`; a merge that adds a version to `releases.toml` also tags them with it and creates the release ([ADR 0009](adr/0009-numbered-versions.md), [ADR 0010](adr/0010-releases-file.md))
 - [ ] Automatic deploy to the virtual machine after merging into `main`
 - [ ] Staging environment at `staging.yourdomain.com`
 - [ ] Secrets stored in GitHub Secrets

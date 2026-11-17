@@ -34,17 +34,19 @@ lock files ─────────┴─► images (api, web, worker) ──
 |---|---|---|
 | Lint and tests | Run | Run |
 | Images | Built, to prove they build | Built **and published** to GHCR |
-| Tags | — | `sha-<commit>`; when the merge raises `VERSION`, also the version (`1.4.3`) |
+| Tags | — | `sha-<commit>`; when the merge adds a version to `releases.toml`, also the version (`1.4.3`) |
 
 A merge whose pipeline fails publishes nothing, and production keeps its
 version. Runs on `main` go one at a time, so an older run can never publish
 after a newer one.
 
-Production runs **numbered versions**: a merge reaches it only when it raises
-`VERSION` (and adds its `CHANGELOG.md` section). The pipeline's last job,
-**release**, then tags the images it just tested with the version and creates
-the GitHub release, and the server installs the new version by itself
-([ADR 0009](../../../docs/adr/0009-numbered-versions.md),
+Production runs **numbered versions**: a merge reaches it only when it adds a
+version at the top of `releases.toml`, with an item per change (its kind, its
+area and its text in English and Portuguese). The pipeline's last job,
+**release**, then tags the images it just tested with the version and writes
+the GitHub release from that file, and the server installs the new version by
+itself ([ADR 0009](../../../docs/adr/0009-numbered-versions.md),
+[ADR 0010](../../../docs/adr/0010-releases-file.md),
 [Releasing a version](../../../docs/DEPLOY.md#releasing-a-version)).
 
 Every Monday the pipeline also runs on `main` by itself and republishes the

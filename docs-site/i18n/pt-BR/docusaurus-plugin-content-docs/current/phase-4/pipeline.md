@@ -33,16 +33,17 @@ lock files ─────────┴─► imagens (api, web, worker) ─�
 |---|---|---|
 | Lint e testes | Rodam | Rodam |
 | Imagens | Geradas, para provar que funcionam | Geradas **e publicadas** no GHCR |
-| Tags | — | `sha-<commit>`; quando o merge sobe o `VERSION`, também a versão (`1.4.3`) |
+| Tags | — | `sha-<commit>`; quando o merge acrescenta uma versão no `releases.toml`, também a versão (`1.4.3`) |
 
 Um merge cujo pipeline falha não publica nada, e a produção continua na versão que tem. As
 execuções na `main` são uma de cada vez, então uma execução mais antiga nunca publica depois de
 uma mais nova.
 
-A produção roda **versões numeradas**: um merge só chega lá quando sobe o `VERSION` (e acrescenta
-a seção dele no `CHANGELOG.md`). O último job do pipeline, **release**, põe a tag da versão nas
-imagens que acabou de testar e cria a release no GitHub, e o servidor instala a versão nova
-sozinho ([ADR 0009](/adr/0009-numbered-versions),
+A produção roda **versões numeradas**: um merge só chega lá quando acrescenta uma versão no topo
+do `releases.toml`, com um item por mudança (o tipo, a área e o texto em inglês e português). O
+último job do pipeline, **release**, põe a tag da versão nas imagens que acabou de testar e escreve
+a release do GitHub a partir desse arquivo, e o servidor instala a versão nova sozinho
+([ADR 0009](/adr/0009-numbered-versions), [ADR 0010](/adr/0010-releases-file),
 [Releasing a version](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/DEPLOY.md#releasing-a-version)).
 
 Toda segunda-feira o pipeline também roda sozinho na `main` e publica de novo as imagens

@@ -1,5 +1,6 @@
 #!/bin/sh
-# Publishes VERSION's version when a merge into main brings a new one (ADR 0009).
+# Publishes the newest version of releases.toml when a merge into main brings a new one
+# (ADR 0009, ADR 0010).
 # Run by the pipeline's `release` job, after every stage passed:
 #
 #   .github/scripts/release.sh
@@ -7,8 +8,9 @@
 # 1. Puts the version's tag (e.g. `1.4.2`) on the three images this run just
 #    built and tested (`sha-<commit>`). Nothing is rebuilt, so production runs
 #    exactly what passed. The tag goes on the first image of each version and
-#    never moves: a merge that keeps VERSION publishes no version.
-# 2. Creates the GitHub release vX.Y.Z, with the version's CHANGELOG.md notes.
+#    never moves: a merge that adds no version publishes nothing.
+# 2. Creates the GitHub release vX.Y.Z, its title and notes written from releases.toml
+#    ("1.4.2 – <title>", "- **Fix · Orders:** <text>", Dependabot's marked "(Dependabot, #N)").
 #
 # The server then puts the newest version in production by itself
 # (docs/DEPLOY.md#releasing-a-version).
@@ -26,8 +28,8 @@ fail() {
 	exit 1
 }
 
-python3 -I .github/scripts/check_version.py > /dev/null || fail "VERSION and CHANGELOG.md disagree (see the lint)."
-version=$(cat VERSION)
+python3 -I .github/scripts/releases.py > /dev/null || fail "releases.toml or README.md is not right (see the lint)."
+version=$(python3 -I .github/scripts/releases.py --version)
 tag=v$version
 
 exists() {
@@ -45,7 +47,7 @@ for image in $images; do
 done
 
 if [ "$published" -eq 3 ]; then
-	# The version's images came from the first commit with this VERSION.
+	# The version's images came from the first commit that had this version.
 	target=$(revision "$registry/slicepizza-api:$version")
 	echo "Version $version is already published (images of $target)."
 elif [ "$published" -eq 0 ]; then
@@ -71,8 +73,9 @@ if gh release view "$tag" > /dev/null 2>&1; then
 	echo "The release $tag already exists."
 else
 	notes=$(mktemp)
-	python3 -I .github/scripts/check_version.py --notes > "$notes"
-	gh release create "$tag" --target "$target" --title "SlicePizza $version" --notes-file "$notes" --latest
+	python3 -I .github/scripts/releases.py --notes "$version" > "$notes"
+	gh release create "$tag" --target "$target" --title "$(python3 -I .github/scripts/releases.py --title "$version")" \
+		--notes-file "$notes" --latest
 	echo "Created the release $tag."
 fi
 
