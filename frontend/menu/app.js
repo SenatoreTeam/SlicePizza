@@ -417,6 +417,29 @@ function renderOrder(order) {
   $("order-address").textContent = order.delivery_address;
 }
 
+// --- Version ------------------------------------------------------------------
+// /releases.json is made from releases.toml when the image is built (ADR 0010).
+// The footer says the version and links to what changed in it.
+
+async function showVersion() {
+  let version;
+  try {
+    const response = await fetch("/releases.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    version = (await response.json()).version;
+  } catch {
+    return; // no version in the footer; the site works the same
+  }
+  if (!/^\d+\.\d+\.\d+$/.test(version)) return;
+  const link = el(
+    "a",
+    { class: "link", href: `https://github.com/SenatoreTeam/SlicePizza/releases/tag/v${version}` },
+    "what changed",
+  );
+  $("app-version").replaceChildren(`Version ${version} · `, link);
+  $("app-version").hidden = false;
+}
+
 // --- Routing ------------------------------------------------------------------
 
 function showLastOrderLink() {
@@ -474,3 +497,4 @@ document.addEventListener("visibilitychange", () => {
 $("order-form").addEventListener("submit", placeOrder);
 window.addEventListener("hashchange", route);
 route();
+showVersion();

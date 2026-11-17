@@ -20,6 +20,11 @@
   </header>
 
   <p id="problem" class="problem" role="alert" hidden></p>
+  <!-- After an update, until "What's new" is opened in this browser. -->
+  <p id="new-version" class="notice notice-version" role="status" hidden>
+    <span id="new-version-text"></span>
+    <button id="new-version-open" class="link-button" type="button">See what changed</button>
+  </p>
   <p id="notice" class="notice" role="status" hidden></p>
   <!-- Read out by screen readers when tickets arrive or leave. -->
   <p id="announce" class="visually-hidden" aria-live="polite"></p>
@@ -41,5 +46,19 @@
       <p class="rail-empty" data-empty hidden>No orders on the way.</p>
     </section>
   </main>
+
+  <footer class="foot">
+    <span id="version"></span>
+    <button id="whats-new-open" class="link-button" type="button" hidden>What's new</button>
+  </footer>
+
+  <!-- What changed in each version (releases.toml, ADR 0010), from /releases.json. -->
+  <dialog id="whats-new" class="whats-new" aria-labelledby="whats-new-title">
+    <div class="whats-new-head">
+      <h2 id="whats-new-title" class="whats-new-title">What's new</h2>
+      <button id="whats-new-close" class="link-button" type="button">Close</button>
+    </div>
+    <div id="whats-new-list"></div>
+  </dialog>
 </body>
 </html>

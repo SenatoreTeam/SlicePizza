@@ -59,8 +59,14 @@ def main() -> int:
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
 
-    # GIT_COMMIT: the commit the image was built from (ADR 0008).
-    logger.info("Starting version %s with %r", os.getenv("GIT_COMMIT") or "unknown", settings)
+    # APP_VERSION: the version (releases.toml, ADR 0010); GIT_COMMIT: the commit
+    # the image was built from (ADR 0008). Both set by the pipeline.
+    logger.info(
+        "Starting version %s (commit %s) with %r",
+        os.getenv("APP_VERSION") or "unknown",
+        os.getenv("GIT_COMMIT") or "unknown",
+        settings,
+    )
     consumer.run()
     return 0
 

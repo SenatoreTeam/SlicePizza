@@ -31,16 +31,23 @@ def create_order(client, payload=None):
 
 def test_health(client, monkeypatch):
     monkeypatch.delenv("GIT_COMMIT", raising=False)
+    monkeypatch.delenv("APP_VERSION", raising=False)
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "ok", "version": "unknown"}
+    assert response.json() == {"status": "ok", "database": "ok", "version": "unknown", "release": "unknown"}
 
 
 def test_health_reports_the_commit_of_the_image(client, monkeypatch):
     monkeypatch.setenv("GIT_COMMIT", "0123456789abcdef0123456789abcdef01234567")
 
     assert client.get("/health").json()["version"] == "0123456789abcdef0123456789abcdef01234567"
+
+
+def test_health_reports_the_version_number(client, monkeypatch):
+    monkeypatch.setenv("APP_VERSION", "1.4.2")
+
+    assert client.get("/health").json()["release"] == "1.4.2"
 
 
 def test_menu_lists_seeded_pizzas(client):

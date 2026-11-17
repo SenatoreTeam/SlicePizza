@@ -23,6 +23,30 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.1.0"
+date = 2026-11-17
+title.en = "The version and what's new, in the system"
+title.pt-br = "A versão e as novidades, no próprio sistema"
+
+[[release.item]]
+kind = "new"
+area = "Kitchen"
+text.en = "The kitchen board shows the version at the bottom, and What's new lists what changed in each version. After an update, a notice says a new version is live until What's new is opened."
+text.pt-br = "O painel da cozinha mostra a versão no rodapé, e o What's new lista o que mudou em cada versão. Depois de uma atualização, um aviso diz que há versão nova até o What's new ser aberto."
+
+[[release.item]]
+kind = "improvement"
+area = "Menu"
+text.en = "The menu site shows the version at the bottom, with a link to what changed in it."
+text.pt-br = "O site do cardápio mostra a versão no rodapé, com um link para o que mudou nela."
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "The API's health check and its docs say the version, and the notification worker logs it when it starts."
+text.pt-br = "A verificação de saúde da API e a documentação dela dizem a versão, e o worker de notificações a registra no log ao iniciar."
+
+[[release]]
 version = "1.0.0"
 date = 2026-11-17
 title.en = "The first numbered version"

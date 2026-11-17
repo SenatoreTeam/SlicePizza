@@ -60,6 +60,8 @@ services:
       # The commit /health and /version report (ADR 0008); CI sets it.
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        # The version (releases.toml, ADR 0010); CI sets it.
+        APP_VERSION: ${APP_VERSION:-unknown}
     restart: unless-stopped
     # Bind to the loopback interface only: this is a laptop dev stack.
     ports:
@@ -121,6 +123,8 @@ services:
       # The commit /health and /version report (ADR 0008); CI sets it.
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        # The version (releases.toml, ADR 0010); CI sets it.
+        APP_VERSION: ${APP_VERSION:-unknown}
     restart: unless-stopped
     environment:
       RABBITMQ_HOST: rabbitmq
@@ -164,6 +168,8 @@ services:
       # The commit /health and /version report (ADR 0008); CI sets it.
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        # The version (releases.toml, ADR 0010); CI sets it.
+        APP_VERSION: ${APP_VERSION:-unknown}
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"
