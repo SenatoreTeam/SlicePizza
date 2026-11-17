@@ -33,15 +33,22 @@ lock files ─────────┴─► imagens (api, web, worker) ─�
 |---|---|---|
 | Lint e testes | Rodam | Rodam |
 | Imagens | Geradas, para provar que funcionam | Geradas **e publicadas** no GHCR |
-| Tags | — | `sha-<commit>` e `latest` |
+| Tags | — | `sha-<commit>`; quando o merge sobe o `VERSION`, também a versão (`1.4.3`) |
 
-Um merge cujo pipeline falha não publica nada, e o servidor continua rodando a última versão
-boa. As execuções na `main` são uma de cada vez, então uma execução mais antiga nunca publica o
-`latest` depois de uma mais nova.
+Um merge cujo pipeline falha não publica nada, e a produção continua na versão que tem. As
+execuções na `main` são uma de cada vez, então uma execução mais antiga nunca publica depois de
+uma mais nova.
 
-Toda segunda-feira o pipeline também roda sozinho na `main` e publica as imagens de novo, para
-que as correções de segurança que as imagens oficiais do Python e do Caddy recebem sob a mesma
-tag cheguem ao servidor.
+A produção roda **versões numeradas**: um merge só chega lá quando sobe o `VERSION` (e acrescenta
+a seção dele no `CHANGELOG.md`). O último job do pipeline, **release**, põe a tag da versão nas
+imagens que acabou de testar e cria a release no GitHub, e o servidor instala a versão nova
+sozinho ([ADR 0009](/adr/0009-numbered-versions),
+[Releasing a version](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/DEPLOY.md#releasing-a-version)).
+
+Toda segunda-feira o pipeline também roda sozinho na `main` e publica de novo as imagens
+`sha-<commit>`, com as correções de segurança que as imagens oficiais do Python e do Caddy recebem
+sob a mesma tag. Uma versão publicada não muda mais, então essas correções chegam à produção com a
+próxima versão.
 
 ## Qual versão está rodando?
 
