@@ -8,8 +8,8 @@ e as imagens eram publicadas ao mesmo tempo em que os testes rodavam, e não dep
 torna o caminho do merge até a produção automático **e** seguro.
 
 :::info Situação
-Esta fase está **em andamento**. O pipeline (lint, testes e depois imagens) está pronto; o
-deploy automático com um ambiente de staging vem a seguir. Veja o
+Esta fase está **concluída**: no ar desde 17/11/2026. Um merge que acrescenta uma versão no
+`releases.toml` chega à produção sozinho, conferido, sem ninguém entrar no servidor. Veja o
 [roadmap](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/ROADMAP.md).
 :::
 
@@ -17,10 +17,15 @@ deploy automático com um ambiente de staging vem a seguir. Veja o
 
 - **Um pipeline** para toda mudança: lint, depois os testes, depois as imagens. Uma imagem só é
   publicada quando tudo antes dela passou. Veja [O pipeline](/docs/phase-4/pipeline).
-- **Imagens versionadas**: cada imagem diz de qual commit foi gerada.
-- A seguir: um ambiente de **staging** em `staging.slicepizza.senatore.tech`, e um deploy que o
-  pipeline dispara e confere, primeiro no staging e depois em produção, com os segredos no
-  GitHub.
+- **Versões numeradas**: a produção roda uma versão (`1.1.0`), escrita no `releases.toml` e
+  publicada pelo pipeline quando um merge acrescenta uma, nunca "o que a `main` tiver agora".
+  Cada imagem diz de qual commit foi gerada, e a versão e o que mudou aparecem no sistema. Veja
+  [Versões e releases](/docs/phase-4/versions).
+- **Um deploy conferido**: o servidor encontra sozinho cada versão nova no GHCR, faz o backup do
+  banco, faz o deploy, confere e volta a versão anterior se as verificações falharem. O GitHub
+  nunca acessa o servidor, então nenhum segredo de deploy fica no GitHub.
+- Não foi feito: um ambiente de **staging**. As verificações e a volta automática protegem a
+  produção; o staging continua sendo uma opção.
 
 ## Por que automatizar
 

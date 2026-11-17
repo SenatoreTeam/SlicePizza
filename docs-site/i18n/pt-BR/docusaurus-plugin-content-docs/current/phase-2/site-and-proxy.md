@@ -59,5 +59,8 @@ merge na main ──► o GitHub Actions gera as imagens ──► registro de c
                         o servidor procura imagens novas a cada 5 minutos
 ```
 
+Desde a [Fase 4](/docs/phase-4/versions), a produção não pega mais toda imagem nova: ela roda
+versões numeradas, e o servidor instala cada versão nova sozinho, conferida.
+
 Nada é copiado para o servidor à mão. Os passos da primeira configuração e da migração do
 formato anterior (só a API) estão no [DEPLOY.md](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/DEPLOY.md).
