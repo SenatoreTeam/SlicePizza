@@ -5,6 +5,7 @@
     python3 -I .github/scripts/releases.py --version       # the newest version, e.g. 1.3.0
     python3 -I .github/scripts/releases.py --title 1.3.0   # "1.3.0 – <its title>"
     python3 -I .github/scripts/releases.py --notes 1.3.0   # its items, as Markdown
+    python3 -I .github/scripts/releases.py --json          # every version, for the pages
 
 releases.toml lists the versions, newest first, each with its date, an optional title
 and its items (kind, area, text in English and Portuguese, and the Pull Request of an
@@ -12,12 +13,15 @@ update proposed by Dependabot). The check also requires README.md's "Current ver
 line to say the newest version. With --base, the newest version must not be lower than
 main's, and a notice says whether merging releases a new version (which then goes to
 production) or not. --file reads another copy of the file (main's, for --base).
+--json is what the web image serves at /releases.json: the kitchen's "What's new" and
+the version at the bottom of the pages (infra/caddy/Dockerfile).
 
 Exit code 0 when everything is right, 1 otherwise. Standard library only (tomllib).
 """
 
 import argparse
 import datetime
+import json
 import re
 import sys
 import tomllib
@@ -135,6 +139,25 @@ def notes(release):
     return "\n".join(lines)
 
 
+def as_json(releases):
+    """Every version, newest first, for /releases.json (the pages read it)."""
+    return {
+        "version": releases[0]["version"],
+        "releases": [
+            {
+                "version": release["version"],
+                "date": release["date"].isoformat(),
+                "title": release["title"],
+                "items": [
+                    {key: item[key] for key in ("kind", "area", "text", "source", "pr") if key in item}
+                    for item in release["items"]
+                ],
+            }
+            for release in releases
+        ],
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--file", type=Path, default=ROOT / "releases.toml", help="the releases file to read")
@@ -143,6 +166,7 @@ def main():
     what.add_argument("--version", action="store_true", help="print the newest version")
     what.add_argument("--title", metavar="VERSION", help="print the GitHub release title of VERSION")
     what.add_argument("--notes", metavar="VERSION", help="print the GitHub release notes of VERSION")
+    what.add_argument("--json", action="store_true", help="print every version as JSON, for the pages")
     args = parser.parse_args()
     try:
         releases = load(args.file)
@@ -155,6 +179,9 @@ def main():
             return 0
         if args.notes:
             print(notes(find(releases, args.notes)))
+            return 0
+        if args.json:
+            print(json.dumps(as_json(releases), ensure_ascii=False, indent=1))
             return 0
         check_readme(newest)
         if args.base:

@@ -44,7 +44,7 @@ do `releases.toml`, com um item por mudança (o tipo, a área e o texto em ingl�
 último job do pipeline, **release**, põe a tag da versão nas imagens que acabou de testar e escreve
 a release do GitHub a partir desse arquivo, e o servidor instala a versão nova sozinho
 ([ADR 0009](/adr/0009-numbered-versions), [ADR 0010](/adr/0010-releases-file),
-[Releasing a version](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/DEPLOY.md#releasing-a-version)).
+[Versões e releases](/docs/phase-4/versions)).
 
 Toda segunda-feira o pipeline também roda sozinho na `main` e publica de novo as imagens
 `sha-<commit>`, com as correções de segurança que as imagens oficiais do Python e do Caddy recebem

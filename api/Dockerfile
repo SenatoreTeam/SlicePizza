@@ -27,5 +27,9 @@ EXPOSE 8000
 # answering. Last, so a new commit doesn't invalidate the layers above.
 ARG GIT_COMMIT=unknown
 ENV GIT_COMMIT=$GIT_COMMIT
+# The version (releases.toml, ADR 0010), set by the pipeline: /health and the
+# docs at /api/docs say it.
+ARG APP_VERSION=unknown
+ENV APP_VERSION=$APP_VERSION
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

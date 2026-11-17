@@ -47,7 +47,7 @@ area and its text in English and Portuguese). The pipeline's last job,
 the GitHub release from that file, and the server installs the new version by
 itself ([ADR 0009](../../../docs/adr/0009-numbered-versions.md),
 [ADR 0010](../../../docs/adr/0010-releases-file.md),
-[Releasing a version](../../../docs/DEPLOY.md#releasing-a-version)).
+[Versions and releases](./versions.md)).
 
 Every Monday the pipeline also runs on `main` by itself and republishes the
 `sha-<commit>` images, with the security fixes that the official Python and

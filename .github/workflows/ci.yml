@@ -308,6 +308,8 @@ jobs:
 
       - name: Prepare environment
         run: |
+          # The version the images are built with (docker-compose.yml), checked below.
+          echo "APP_VERSION=$(python3 -I .github/scripts/releases.py --version)" >> "$GITHUB_ENV"
           cp .env.example .env
           # A bot username, so the check below sees Caddy fill it into config.js.
           echo "TELEGRAM_BOT_USERNAME=CiPizzeriaBot" >> .env
@@ -343,10 +345,17 @@ jobs:
           curl -fsSI http://127.0.0.1:8080/ | grep -qi "^content-security-policy: default-src 'self'"
           curl -fsS http://127.0.0.1:8080/api/health
           curl -fsS http://127.0.0.1:8080/api/menu > /dev/null
-          # Both report the commit they were built from (ADR 0008).
+          # Both report the commit they were built from (ADR 0008), and the
+          # version number (releases.toml, ADR 0010).
           test "$(curl -fsS http://127.0.0.1:8080/version)" = "$GIT_COMMIT"
           curl -fsS http://127.0.0.1:8080/api/health | grep -q "\"version\":\"$GIT_COMMIT\""
-          docker compose logs worker | grep -q "Starting version $GIT_COMMIT"
+          curl -fsS http://127.0.0.1:8080/api/health | grep -q "\"release\":\"$APP_VERSION\""
+          curl -fsS http://127.0.0.1:8080/api/openapi.json | grep -q "\"version\":\"$APP_VERSION\""
+          docker compose logs worker | grep -q "Starting version $APP_VERSION (commit $GIT_COMMIT)"
+          # The pages' version history, made from releases.toml inside the image.
+          curl -fsS http://127.0.0.1:8080/releases.json \
+            | python3 -I -c 'import json, os, sys; d = json.load(sys.stdin); assert d["version"] == os.environ["APP_VERSION"] and d["releases"], d'
+          curl -fsSI http://127.0.0.1:8080/releases.json | grep -qi "^content-type: application/json"
           # The interactive docs must load their schema through the /api prefix.
           curl -fsS http://127.0.0.1:8080/api/docs | grep -q "/api/openapi.json"
           curl -fsS http://127.0.0.1:8080/api/openapi.json > /dev/null

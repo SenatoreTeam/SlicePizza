@@ -54,6 +54,12 @@ jobs:
           tags: |
             type=sha
 
+      # The newest version in releases.toml (ADR 0010), built into the images:
+      # /api/health, the API docs, the worker's log and the pages say it.
+      - name: Version
+        id: version
+        run: echo "version=$(python3 -I .github/scripts/releases.py --version)" >> "$GITHUB_OUTPUT"
+
       - name: Build (and publish, from main)
         uses: docker/build-push-action@v7
         with:
@@ -63,8 +69,11 @@ jobs:
           # Always check for a newer base image under the same tag (security fixes).
           pull: true
           push: ${{ inputs.push }}
-          # The commit, reported by /api/health, /version and the worker's log.
-          build-args: GIT_COMMIT=${{ github.sha }}
+          # The commit, reported by /api/health, /version and the worker's log,
+          # and the version number.
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            APP_VERSION=${{ steps.version.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # One cache per image, so the images don't evict each other's layers.

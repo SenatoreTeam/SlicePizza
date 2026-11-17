@@ -96,6 +96,35 @@ body {
   font-weight: 600;
 }
 
+.notice-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  background: #e4f0e8;
+}
+
+/* Buttons that look like links: the notice, the footer and "What's new". */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--basil);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--basil-dark);
+}
+
+.link-button:focus-visible {
+  outline: 3px solid var(--basil);
+  outline-offset: 2px;
+}
+
 /* --- Rails ------------------------------------------------------------------- */
 
 .board {
@@ -310,4 +339,77 @@ body {
 
 .btn-danger:hover:not(:disabled) {
   background: var(--tomato-dark);
+}
+
+/* --- Version and "What's new" ------------------------------------------------ */
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  padding: 0 clamp(1rem, 3vw, 2rem) 1.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.whats-new {
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 1.25rem 1.5rem;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--ink);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 25%);
+}
+
+.whats-new::backdrop {
+  background: rgb(27 36 32 / 45%);
+}
+
+.whats-new-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.whats-new-title {
+  margin: 0;
+  font: 400 1.5rem / 1.2 var(--serif);
+}
+
+.release {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.release:last-child {
+  border-bottom: 0;
+}
+
+.release-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.release-date {
+  margin: 0.125rem 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.release-items {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.release-items li + li {
+  margin-top: 0.375rem;
+}
+
+.release-items code {
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  background: var(--leaf);
+  font: 0.875em ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }

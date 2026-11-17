@@ -79,6 +79,15 @@
 		respond "{$GIT_COMMIT:unknown}"
 	}
 
+	# The version history (releases.toml, ADR 0010), made when the image was
+	# built: the kitchen's "What's new" and the version at the bottom of the
+	# pages read it. Public, like the releases on GitHub.
+	handle /releases.json {
+		root * /srv-data
+		file_server
+		import page_headers
+	}
+
 	# The API's /internal routes are for the notification worker only, on the
 	# project network (ADR 0006): never reachable from the internet. The API
 	# also requires a token there; this keeps them out of reach either way.

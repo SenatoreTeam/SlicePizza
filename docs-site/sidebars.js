@@ -37,7 +37,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'Phase 4',
-      items: ['phase-4/overview', 'phase-4/pipeline'],
+      items: ['phase-4/overview', 'phase-4/pipeline', 'phase-4/versions'],
     },
   ],
 };
