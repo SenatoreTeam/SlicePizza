@@ -23,6 +23,18 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.2.0"
+date = 2026-11-17
+title.en = "The API reports how it is doing"
+title.pt-br = "A API informa como ela está"
+
+[[release.item]]
+kind = "new"
+area = "System"
+text.en = "The API now reports its own numbers (orders created, requests, errors, how fast it answers, and order events waiting to be sent), for the monitoring that comes next. They are not public and hold no customer data."
+text.pt-br = "A API agora informa seus próprios números (pedidos criados, requisições, erros, a rapidez das respostas e eventos de pedido esperando para serem enviados), para o monitoramento que vem a seguir. Eles não são públicos e não contêm dados de clientes."
+
+[[release]]
 version = "1.1.1"
 date = 2026-11-17
 title.en = "Each new version is checked in production"

@@ -13,8 +13,8 @@ reaches the server, so this only looks at the public site:
    for a while.
 2. Checks what any visitor sees: the menu site, the menu, the API docs, and
    that the private routes stay private (/kitchen asks for a login, listing or
-   changing orders without the kitchen's token is refused, /api/internal is
-   not reachable).
+   changing orders without the kitchen's token is refused, /api/internal and
+   /api/metrics are not reachable).
 
 It never writes: placing an order would reach the real kitchen and the
 pizzeria's Telegram. Exit code 0 when everything passed, 1 otherwise. Standard
@@ -145,6 +145,7 @@ def check_public(base):
         body={"status": "preparing"},
     )
     expect_status("PUT", f"{base}/api/internal/orders/x/telegram-subscriptions/1", 404)
+    expect_status("GET", f"{base}/api/metrics", 404)
     return menu
 
 
