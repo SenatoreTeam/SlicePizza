@@ -94,12 +94,12 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 5: "The site went down Friday night and nobody noticed"
 
-**Status:** ⏳ Not started
+**Status:** 🚧 In progress
 
 **Goal:** know something broke before a customer complains.
 
-- [ ] `/health` route on every service
-- [ ] Expose API metrics to Prometheus (orders per minute, latency, errors)
+- [x] `/health` route on every service (each container has a health check; the API's `/health` is the full-path one)
+- [x] Expose API metrics to Prometheus: orders, latency, errors and the outbox backlog at `/metrics`, private ([ADR 0012](adr/0012-api-metrics.md))
 - [ ] Grafana dashboards
 - [ ] Centralize container logs in Loki
 - [ ] Telegram alerts: API down, queue piling up
