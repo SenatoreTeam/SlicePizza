@@ -6,6 +6,7 @@
 //
 //   GET   api/orders                 the open orders, oldest first
 //   PATCH api/orders/<id>/status     move one along
+//   GET   /releases.json             the version and what changed in each one
 //
 // The board refreshes every few seconds, and right away after every change.
 
@@ -340,6 +341,79 @@ function announce(message) {
   $("announce").textContent = message;
 }
 
+// --- Versions -----------------------------------------------------------------
+// /releases.json is made from releases.toml when the image is built (ADR 0010):
+// the version at the bottom, and "What's new". After an update, a notice says
+// a new version is live until "What's new" is opened in this browser.
+
+const SEEN_VERSION = "slicepizza:kitchen-seen-version";
+const KIND_NAMES = { new: "New", improvement: "Improvement", fix: "Fix", security: "Security" };
+const day = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" });
+let releases = null;
+
+function seenVersion() {
+  try {
+    return localStorage.getItem(SEEN_VERSION);
+  } catch {
+    return null; // storage blocked: the notice shows every time, nothing else changes
+  }
+}
+
+function markSeen(version) {
+  try {
+    localStorage.setItem(SEEN_VERSION, version);
+  } catch {}
+}
+
+async function loadReleases() {
+  try {
+    const response = await fetch("/releases.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    releases = await response.json();
+  } catch {
+    return; // no version shown; the board works the same
+  }
+  $("version").textContent = `Version ${releases.version}`;
+  $("whats-new-open").hidden = false;
+  if (seenVersion() !== releases.version) {
+    $("new-version-text").textContent = `Version ${releases.version} is live.`;
+    $("new-version").hidden = false;
+  }
+}
+
+// `/api` in a text is code on GitHub's release (Markdown), and code here too.
+function withCode(text) {
+  return text.split("`").map((part, i) => (i % 2 ? el("code", {}, part) : part));
+}
+
+function releaseItem(item) {
+  const source = item.source === "dependabot" ? ` (Dependabot, #${item.pr})` : "";
+  const kind = `${KIND_NAMES[item.kind] ?? item.kind} · ${item.area}: `;
+  return el("li", {}, el("strong", {}, kind), ...withCode(item.text.en + source));
+}
+
+function openWhatsNew() {
+  if (!releases) return;
+  $("whats-new-list").replaceChildren(
+    ...releases.releases.map((release) =>
+      el(
+        "section",
+        { class: "release" },
+        el("h3", { class: "release-title" }, release.title ? `${release.version} – ${release.title.en}` : release.version),
+        el("p", { class: "release-date" }, day.format(new Date(`${release.date}T00:00:00Z`))),
+        el("ul", { class: "release-items" }, ...release.items.map(releaseItem)),
+      ),
+    ),
+  );
+  $("whats-new").showModal();
+  markSeen(releases.version);
+  $("new-version").hidden = true;
+}
+
+$("whats-new-open").addEventListener("click", openWhatsNew);
+$("new-version-open").addEventListener("click", openWhatsNew);
+$("whats-new-close").addEventListener("click", () => $("whats-new").close());
+
 // --- Start --------------------------------------------------------------------
 
 document.addEventListener("visibilitychange", () => {
@@ -347,3 +421,4 @@ document.addEventListener("visibilitychange", () => {
 });
 
 refresh();
+loadReleases();

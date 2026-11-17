@@ -1,22 +1,18 @@
-# The pipeline (ADR 0008, ADR 0009): every change goes through the same
-# stages, an image is published only when everything before it passed, and a
-# version reaches production only after it worked on staging.
+# The pipeline (ADR 0008, ADR 0009, ADR 0010): every change goes through the same
+# stages, and an image is published only when everything before it passed.
 #
 #   lint ──► tests ─────┐   API on SQLite and Postgres, worker, Telegram
 #                       │   end to end, docker compose smoke test
 #   lock files ─────────┴─► images (api, web, worker) ──► pipeline passed
 #                                                             │ main only
-#                              deploy (staging) ◄─────────────┘
-#                                     │ live and checked
-#                                     ▼
-#                              deploy (production)
+#                                                          release
 #
-# On a Pull Request the images are only built, to check they build, and
-# nothing is deployed. On main they are published to GHCR as `sha-<commit>`;
-# then the `staging` tag moves to them and staging is deployed and checked
-# (an order is placed there), and only then the `latest` tag moves and
-# production is deployed and checked (read-only). "pipeline passed" is the
-# check branch protection requires; a red deploy shows on the run.
+# On a Pull Request the images are only built, to check they build. On main
+# they are published to GHCR as `sha-<commit>`; when the merge adds a version
+# to releases.toml, `release` also tags them with it (`1.4.2`) and creates the
+# GitHub release, and the server puts the newest version in production by
+# itself (docs/DEPLOY.md). "pipeline passed" is the one check branch
+# protection needs to require.
 name: Pipeline
 
 on:
@@ -34,12 +30,8 @@ on:
 permissions:
   contents: read
 
-env:
-  STAGING_URL: https://staging.slicepizza.senatore.tech
-  PRODUCTION_URL: https://slicepizza.senatore.tech
-
 # A newer push to a Pull Request replaces the run still going. On main runs go
-# one at a time, so an older run can never publish `latest` after a newer one
+# one at a time, so an older run can never publish after a newer one
 # (a run still waiting is skipped when a newer merge arrives: the newer one
 # includes its changes).
 concurrency:
@@ -71,6 +63,23 @@ jobs:
       # shellcheck comes with GitHub's Ubuntu runners.
       - name: Shell scripts (shellcheck)
         run: git ls-files -z '*.sh' | xargs -0 shellcheck
+
+      # releases.toml is right and README.md says its newest version (ADR 0010).
+      # On a Pull Request it also refuses a version lower than main's, and says
+      # whether merging releases a new version (which then goes to production).
+      - name: Versions (releases.toml)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          base=
+          if [ -n "$BASE_REF" ] && git fetch -q --depth=1 origin "$BASE_REF"; then
+            if git show FETCH_HEAD:releases.toml > "$RUNNER_TEMP/main-releases.toml" 2>/dev/null; then
+              base=$(python3 -I .github/scripts/releases.py --version --file "$RUNNER_TEMP/main-releases.toml")
+            elif git cat-file -e FETCH_HEAD:VERSION 2>/dev/null; then
+              base=$(git show FETCH_HEAD:VERSION)  # main before ADR 0010
+            fi
+          fi
+          python3 -I .github/scripts/releases.py ${base:+--base "$base"}
 
   tests:
     # The same suite on SQLite (fast) and on real Postgres, which catches what
@@ -299,6 +308,8 @@ jobs:
 
       - name: Prepare environment
         run: |
+          # The version the images are built with (docker-compose.yml), checked below.
+          echo "APP_VERSION=$(python3 -I .github/scripts/releases.py --version)" >> "$GITHUB_ENV"
           cp .env.example .env
           # A bot username, so the check below sees Caddy fill it into config.js.
           echo "TELEGRAM_BOT_USERNAME=CiPizzeriaBot" >> .env
@@ -334,10 +345,17 @@ jobs:
           curl -fsSI http://127.0.0.1:8080/ | grep -qi "^content-security-policy: default-src 'self'"
           curl -fsS http://127.0.0.1:8080/api/health
           curl -fsS http://127.0.0.1:8080/api/menu > /dev/null
-          # Both report the commit they were built from (ADR 0008).
+          # Both report the commit they were built from (ADR 0008), and the
+          # version number (releases.toml, ADR 0010).
           test "$(curl -fsS http://127.0.0.1:8080/version)" = "$GIT_COMMIT"
           curl -fsS http://127.0.0.1:8080/api/health | grep -q "\"version\":\"$GIT_COMMIT\""
-          docker compose logs worker | grep -q "Starting version $GIT_COMMIT"
+          curl -fsS http://127.0.0.1:8080/api/health | grep -q "\"release\":\"$APP_VERSION\""
+          curl -fsS http://127.0.0.1:8080/api/openapi.json | grep -q "\"version\":\"$APP_VERSION\""
+          docker compose logs worker | grep -q "Starting version $APP_VERSION (commit $GIT_COMMIT)"
+          # The pages' version history, made from releases.toml inside the image.
+          curl -fsS http://127.0.0.1:8080/releases.json \
+            | python3 -I -c 'import json, os, sys; d = json.load(sys.stdin); assert d["version"] == os.environ["APP_VERSION"] and d["releases"], d'
+          curl -fsSI http://127.0.0.1:8080/releases.json | grep -qi "^content-type: application/json"
           # The interactive docs must load their schema through the /api prefix.
           curl -fsS http://127.0.0.1:8080/api/docs | grep -q "/api/openapi.json"
           curl -fsS http://127.0.0.1:8080/api/openapi.json > /dev/null
@@ -450,23 +468,21 @@ jobs:
             fi
           done
 
-  deploy-staging:
-    # The images of this commit go to staging first, and are tried there like
-    # a customer and the kitchen would: an order is placed and moved along.
-    name: deploy (staging)
+  release:
+    # A merge that adds a version to releases.toml publishes it (ADR 0009,
+    # ADR 0010): the images this run just tested get the version's tag,
+    # nothing is rebuilt, and the GitHub release vX.Y.Z is written from it.
+    # The server sees the new version and puts it in production by itself.
+    # Not on the Monday rebuild: a version's tag never moves.
+    name: release
     needs: pipeline-passed
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: ${{ env.STAGING_URL }}
     permissions:
-      contents: read
-      packages: write
+      contents: write  # the release and its tag
+      packages: write  # the version's tag on the images
     steps:
       - uses: actions/checkout@v7
-        with:
-          sparse-checkout: .github/scripts
 
       - uses: docker/setup-buildx-action@v4
 
@@ -476,51 +492,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Point :staging at this commit and deploy
+      - name: Publish the version, if it is new
         env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
-        run: .github/scripts/deploy.sh staging "$GITHUB_SHA"
-
-      # Waits until staging runs this commit, then places an order and, with
-      # the staging kitchen's password, moves it along on the kitchen board.
-      - name: Check staging
-        env:
-          KITCHEN_PASSWORD: ${{ secrets.KITCHEN_PASSWORD }}
-        run: python3 -I .github/scripts/check_deploy.py "$STAGING_URL" "$GITHUB_SHA" --write
-
-  deploy-production:
-    # The same images that just passed on staging: only the tag moves.
-    name: deploy (production)
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ env.PRODUCTION_URL }}
-    # Shared with the rollback workflow, so the two never move `latest` at once.
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          sparse-checkout: .github/scripts
-
-      - uses: docker/setup-buildx-action@v4
-
-      - uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Point :latest at this commit and deploy
-        env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
-        run: .github/scripts/deploy.sh latest "$GITHUB_SHA"
-
-      # Read-only: no orders are placed in production.
-      - name: Check production
-        run: python3 -I .github/scripts/check_deploy.py "$PRODUCTION_URL" "$GITHUB_SHA"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/release.sh

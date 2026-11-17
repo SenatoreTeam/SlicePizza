@@ -9,9 +9,9 @@ tests ran, not after. Phase 4 makes the path from a merge to production
 automatic **and** safe.
 
 :::info Status
-This phase is **in progress**: the pipeline and the deploy are built, and go
-live once the staging environment is set up on the server. See the
-[roadmap](../../../docs/ROADMAP.md).
+This phase is **done**: live since 2026-11-17. A merge that adds a version to
+`releases.toml` reaches production by itself, checked, without anyone logging
+into the server. See the [roadmap](../../../docs/ROADMAP.md).
 :::
 
 ## What Phase 4 delivers
@@ -19,10 +19,19 @@ live once the staging environment is set up on the server. See the
 - **One pipeline** for every change: lint, then the tests, then the images. An
   image is published only when everything before it passed. See
   [The pipeline](./pipeline.md).
-- **Versioned images**: every image says which commit it was built from.
-- A **staging** environment at `staging.slicepizza.senatore.tech`, and a
-  deploy that the pipeline starts and checks, first on staging and then in
-  production, with its secrets in GitHub. See [Deploying](./deploy.md).
+- **Numbered versions**: production runs a version (`1.1.0`), written in
+  `releases.toml` and released by the pipeline when a merge adds one, never
+  "whatever `main` is now". Every image says which commit it was built from, and
+  the version and what changed show in the system. See
+  [Versions and releases](./versions.md).
+- **A checked deploy**: the server finds each new version in GHCR by itself,
+  backs up the database, deploys it, checks it, and puts the previous version
+  back if the checks fail. GitHub never reaches the server, so no deploy secret
+  lives on GitHub.
+- **No staging**: each version goes straight to production, where the server
+  checks it and puts the previous version back if the checks fail. A separate
+  copy for testing (QA) was left out on purpose: at this size, the checks and
+  the automatic rollback are enough.
 
 ## Why automate this
 

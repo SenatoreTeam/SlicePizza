@@ -20,6 +20,9 @@ USER worker
 # logged at startup. Last, so a new commit doesn't invalidate the layers above.
 ARG GIT_COMMIT=unknown
 ENV GIT_COMMIT=$GIT_COMMIT
+# The version (releases.toml, ADR 0010), set by the pipeline and logged too.
+ARG APP_VERSION=unknown
+ENV APP_VERSION=$APP_VERSION
 
 # No port: the worker only makes outgoing connections (RabbitMQ, Telegram).
 CMD ["python", "-m", "app.main"]

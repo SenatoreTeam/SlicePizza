@@ -87,7 +87,8 @@ def _events_committed() -> None:
 app = FastAPI(
     title="SlicePizza Orders API",
     description="Menu and orders for Zé's Pizzeria.",
-    version="0.1.0",
+    # The version (releases.toml, ADR 0010), set by the pipeline when it builds the image.
+    version=os.getenv("APP_VERSION") or "unknown",
     lifespan=lifespan,
 )
 
@@ -222,16 +223,22 @@ def _load_order(db: Session, order_id: uuid.UUID, for_update: bool = False) -> O
 
 @app.get("/health")
 def health(db: Session = Depends(get_db)) -> dict[str, str]:
-    """Report whether the API can reach the database, and which commit it runs.
+    """Report whether the API can reach the database, and which version it runs.
 
     ``version`` is the commit the image was built from (``GIT_COMMIT``, set by
-    the pipeline, ADR 0008), or ``unknown`` outside an image built by CI.
+    the pipeline, ADR 0008), and ``release`` the version number (``APP_VERSION``,
+    from releases.toml, ADR 0010); each is ``unknown`` outside an image built by CI.
     """
     try:
         db.execute(text("SELECT 1"))
     except SQLAlchemyError:
         raise HTTPException(status_code=503, detail="Database unavailable") from None
-    return {"status": "ok", "database": "ok", "version": os.getenv("GIT_COMMIT") or "unknown"}
+    return {
+        "status": "ok",
+        "database": "ok",
+        "version": os.getenv("GIT_COMMIT") or "unknown",
+        "release": os.getenv("APP_VERSION") or "unknown",
+    }
 
 
 @app.get("/menu", response_model=list[PizzaOut])

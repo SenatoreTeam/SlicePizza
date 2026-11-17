@@ -10,6 +10,8 @@ The system starts small and grows in **phases**. In each phase, the "pizzeria ow
 
 📖 **Documentation / Documentação:** https://slicepizza-docs.senatore.tech/ (English · Português)
 
+**Current version:** 1.1.0 · [what changed in each version](https://github.com/SenatoreTeam/SlicePizza/releases) ([`releases.toml`](releases.toml))
+
 ![The menu site: pizzas, prices and quantity pickers](docs-site/static/img/screenshots/menu.png)
 
 | Order status | Kitchen board |
@@ -169,7 +171,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 1 | "I want to see it running on your computer" | ✅ Done |
 | 2 | "I want the site live on my own domain" | ✅ Done |
 | 3 | "Customers want to know when their pizza is on the way" | ✅ Done |
-| 4 | "Every time you change something, something breaks" | 🚧 In progress |
+| 4 | "Every time you change something, something breaks" | ✅ Done |
 | 5 | "The site went down Friday night and nobody noticed" | ⏳ Not started |
 | 6 | "The server died and we lost the orders" | ⏳ Not started |
 | 7 | "We're running a R$20 pizza promo on Friday" | ⏳ Not started |

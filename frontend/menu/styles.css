@@ -502,6 +502,10 @@ main.wrap {
   margin: 0;
 }
 
+.footer .version {
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 30rem) {
   .brand {
     font-size: var(--step-2);

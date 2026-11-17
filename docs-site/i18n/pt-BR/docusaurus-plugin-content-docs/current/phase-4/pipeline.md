@@ -11,8 +11,6 @@ Esta página explica as etapas e por que elas estão nessa ordem; o raciocínio 
 lint ──► testes ────┐   API no SQLite e no Postgres, worker com RabbitMQ,
                     │   Telegram de ponta a ponta, smoke test do docker compose
 lock files ─────────┴─► imagens (api, web, worker) ──► pipeline passed
-                                                           │ só na main
-                              deploy (staging) ──► deploy (produção)
 ```
 
 1. **Lint.** O [ruff](https://docs.astral.sh/ruff/) lê o código Python (API, worker e scripts
@@ -34,16 +32,24 @@ lock files ─────────┴─► imagens (api, web, worker) ─�
 | | Pull Request | `main` |
 |---|---|---|
 | Lint e testes | Rodam | Rodam |
-| Imagens | Geradas, para provar que funcionam | Geradas **e publicadas** no GHCR como `sha-<commit>` |
-| Deploy | — | Staging, depois produção: veja [O deploy](/docs/phase-4/deploy) |
+| Imagens | Geradas, para provar que funcionam | Geradas **e publicadas** no GHCR |
+| Tags | — | `sha-<commit>`; quando o merge acrescenta uma versão no `releases.toml`, também a versão (`1.4.3`) |
 
-Um merge cujo pipeline falha não publica nada, e os dois ambientes continuam rodando a última
-versão boa. As execuções na `main` são uma de cada vez, então uma execução mais antiga nunca publica o
-`latest` depois de uma mais nova.
+Um merge cujo pipeline falha não publica nada, e a produção continua na versão que tem. As
+execuções na `main` são uma de cada vez, então uma execução mais antiga nunca publica depois de
+uma mais nova.
 
-Toda segunda-feira o pipeline também roda sozinho na `main`, publica as imagens de novo e faz o deploy, para
-que as correções de segurança que as imagens oficiais do Python e do Caddy recebem sob a mesma
-tag cheguem ao servidor.
+A produção roda **versões numeradas**: um merge só chega lá quando acrescenta uma versão no topo
+do `releases.toml`, com um item por mudança (o tipo, a área e o texto em inglês e português). O
+último job do pipeline, **release**, põe a tag da versão nas imagens que acabou de testar e escreve
+a release do GitHub a partir desse arquivo, e o servidor instala a versão nova sozinho
+([ADR 0009](/adr/0009-numbered-versions), [ADR 0010](/adr/0010-releases-file),
+[Versões e releases](/docs/phase-4/versions)).
+
+Toda segunda-feira o pipeline também roda sozinho na `main` e publica de novo as imagens
+`sha-<commit>`, com as correções de segurança que as imagens oficiais do Python e do Caddy recebem
+sob a mesma tag. Uma versão publicada não muda mais, então essas correções chegam à produção com a
+próxima versão.
 
 ## Qual versão está rodando?
 

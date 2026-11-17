@@ -5,6 +5,21 @@
 #   docker build -f infra/caddy/Dockerfile -t slicepizza-web .
 #
 # The root .dockerignore keeps everything else out of the build context.
+# The version history for the pages, as JSON (releases.toml, ADR 0010): the
+# kitchen's "What's new" and the version at the bottom of both pages. Made
+# with the script the pipeline checks the file with, on the same Python as
+# the API's image. Only /releases.json leaves this stage.
+FROM python:3.15-slim AS releases
+COPY releases.toml /src/releases.toml
+COPY .github/scripts/releases.py /src/.github/scripts/releases.py
+# The pipeline also passes the version it read (APP_VERSION): they must agree.
+ARG APP_VERSION=unknown
+RUN python3 -I /src/.github/scripts/releases.py --json > /releases.json \
+    && found="$(python3 -I /src/.github/scripts/releases.py --version)" \
+    && if [ "$APP_VERSION" != unknown ] && [ "$APP_VERSION" != "$found" ]; then \
+         echo "APP_VERSION is $APP_VERSION but releases.toml says $found" >&2; exit 1; \
+       fi
+
 # A full version, so Dependabot proposes each update as a Pull Request
 # (.github/dependabot.yml). The pipeline also rebuilds every week (ADR 0008),
 # which picks up the Alpine fixes the official image gets under the same tag.
@@ -22,6 +37,8 @@ COPY --chmod=755 infra/caddy/start.sh /usr/local/bin/start-web
 COPY frontend/menu/ /srv/
 # The kitchen board, served at /kitchen/ behind the kitchen login (ADR 0007).
 COPY frontend/kitchen/ /srv-kitchen/
+# /releases.json, outside /srv so docker-compose.site-dev.yml's folders don't hide it.
+COPY --from=releases /releases.json /srv-data/releases.json
 
 # Caddy writes nothing to disk with this Caddyfile, but point its folders to a
 # place an unprivileged user can write, just in case.

@@ -1,8 +1,8 @@
 # Builds one Docker image; called by the pipeline (ci.yml) once for each image,
-# after the lint and the tests passed (ADR 0008). With `push`, it publishes the
-# image to GHCR as `sha-<commit>` (full and short); the deploy jobs then move
-# `staging` and `latest` to it (ADR 0009). Without it, it only checks the
-# image builds.
+# after the lint and the tests passed (ADR 0008). With `push`, it publishes
+# `sha-<commit>` to GHCR; the pipeline's `release` job adds the version's tag
+# when releases.toml gets a new version (ADR 0009). Without it, it only checks
+# the image builds.
 name: Build image
 
 on:
@@ -50,12 +50,15 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ inputs.image }}
-          # Only commit tags. `staging` and `latest` (production) are moved by the
-          # deploy jobs, after the checks: an image is never live just because
-          # it was built.
+          # No `latest`: the server runs numbered versions (ADR 0009).
           tags: |
-            type=sha,format=long
             type=sha
+
+      # The newest version in releases.toml (ADR 0010), built into the images:
+      # /api/health, the API docs, the worker's log and the pages say it.
+      - name: Version
+        id: version
+        run: echo "version=$(python3 -I .github/scripts/releases.py --version)" >> "$GITHUB_OUTPUT"
 
       - name: Build (and publish, from main)
         uses: docker/build-push-action@v7
@@ -66,8 +69,11 @@ jobs:
           # Always check for a newer base image under the same tag (security fixes).
           pull: true
           push: ${{ inputs.push }}
-          # The commit, reported by /api/health, /version and the worker's log.
-          build-args: GIT_COMMIT=${{ github.sha }}
+          # The commit, reported by /api/health, /version and the worker's log,
+          # and the version number.
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            APP_VERSION=${{ steps.version.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # One cache per image, so the images don't evict each other's layers.

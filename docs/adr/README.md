@@ -23,4 +23,5 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0006](0006-customer-telegram-opt-in.md) | Customers follow their order on Telegram, linked through the API | Accepted |
 | [0007](0007-kitchen-login.md) | The kitchen board at /kitchen, behind a Caddy login and a token | Accepted |
 | [0008](0008-one-gated-pipeline.md) | One pipeline: lint, then tests, then images, and only tested commits are published | Accepted |
-| [0009](0009-staging-then-production.md) | The pipeline deploys: staging first, then production, by moving image tags | Accepted |
+| [0009](0009-numbered-versions.md) | Numbered versions: production runs the newest release, and the server fetches it | Accepted (its files superseded by 0010) |
+| [0010](0010-releases-file.md) | The versions live in releases.toml, like the other projects | Accepted |

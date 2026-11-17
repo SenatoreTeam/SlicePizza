@@ -5,3 +5,5 @@
 !frontend/menu
 !frontend/kitchen
 !infra/caddy
+!releases.toml
+!.github/scripts/releases.py

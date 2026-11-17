@@ -11,8 +11,6 @@ explains its stages and why they are in this order; the reasoning is in
 lint ──► tests ─────┐   API on SQLite and Postgres, worker with RabbitMQ,
                     │   Telegram end to end, docker compose smoke test
 lock files ─────────┴─► images (api, web, worker) ──► pipeline passed
-                                                          │ main only
-                              deploy (staging) ──► deploy (production)
 ```
 
 1. **Lint.** [ruff](https://docs.astral.sh/ruff/) reads the Python code
@@ -35,16 +33,26 @@ lock files ─────────┴─► images (api, web, worker) ──
 | | Pull Request | `main` |
 |---|---|---|
 | Lint and tests | Run | Run |
-| Images | Built, to prove they build | Built **and published** to GHCR as `sha-<commit>` |
-| Deploy | — | Staging, then production: see [Deploying](./deploy.md) |
+| Images | Built, to prove they build | Built **and published** to GHCR |
+| Tags | — | `sha-<commit>`; when the merge adds a version to `releases.toml`, also the version (`1.4.3`) |
 
-A merge whose pipeline fails publishes nothing, and both environments keep
-running the last good version. Runs on `main` go one at a time, so an older run can never
-publish `latest` after a newer one.
+A merge whose pipeline fails publishes nothing, and production keeps its
+version. Runs on `main` go one at a time, so an older run can never publish
+after a newer one.
 
-Every Monday the pipeline also runs on `main` by itself and republishes and deploys the
-images, so the security fixes that the official Python and Caddy images get
-under the same tag reach the server.
+Production runs **numbered versions**: a merge reaches it only when it adds a
+version at the top of `releases.toml`, with an item per change (its kind, its
+area and its text in English and Portuguese). The pipeline's last job,
+**release**, then tags the images it just tested with the version and writes
+the GitHub release from that file, and the server installs the new version by
+itself ([ADR 0009](../../../docs/adr/0009-numbered-versions.md),
+[ADR 0010](../../../docs/adr/0010-releases-file.md),
+[Versions and releases](./versions.md)).
+
+Every Monday the pipeline also runs on `main` by itself and republishes the
+`sha-<commit>` images, with the security fixes that the official Python and
+Caddy images get under the same tag. A version never changes once published,
+so those fixes reach production with the next version.
 
 ## Which version is running?
 
