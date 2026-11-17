@@ -23,6 +23,18 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.1.1"
+date = 2026-11-17
+title.en = "Each new version is checked in production"
+title.pt-br = "Cada versão nova é conferida na produção"
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "After a new version goes live, the pipeline waits for production to report it and checks the site, reading only, so no test order reaches the kitchen."
+text.pt-br = "Depois que uma versão nova entra no ar, o pipeline espera a produção informar a versão e confere o site, só lendo, para nenhum pedido de teste chegar à cozinha."
+
+[[release]]
 version = "1.1.0"
 date = 2026-11-17
 title.en = "The version and what's new, in the system"
