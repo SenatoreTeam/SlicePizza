@@ -1,7 +1,7 @@
 # The Prometheus container: the official image with SlicePizza's scrape
 # configuration inside it (ADR 0013), the same way the web image carries the
 # site. The server's compose then needs no copy of this repository's files.
-FROM prom/prometheus:v3.15.1
+FROM prom/prometheus:v3.16.0
 
 COPY prometheus.yml /etc/prometheus/prometheus.yml
 
