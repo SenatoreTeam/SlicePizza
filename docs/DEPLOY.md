@@ -5,7 +5,7 @@ SlicePizza runs on a shared server at **`https://slicepizza.senatore.tech`**: th
 ```
 PR merged into main ──► pipeline: lint ─► tests ─► images slicepizza-{api,web,worker}:sha-<commit>
                                                         │
-                              VERSION raised? ── no ──► nothing else: production keeps its version
+                     new version in releases.toml? ── no ──► nothing else: production keeps its version
                                                         │ yes
                               release: the same images tagged 1.4.3, GitHub release v1.4.3
                                                         │
@@ -102,15 +102,30 @@ How to create the bot and find the chat id: [worker/README.md](../worker/README.
 
 ## Releasing a version
 
-Production runs the newest version ([ADR 0009](adr/0009-numbered-versions.md)). To release one, in the Pull Request:
+Production runs the newest version ([ADR 0009](adr/0009-numbered-versions.md)), and the versions live in [`releases.toml`](../releases.toml) ([ADR 0010](adr/0010-releases-file.md)). To release one, in the Pull Request:
 
-1. Raise [`VERSION`](../VERSION), following [Semantic Versioning](https://semver.org/):
+1. Add a `[[release]]` block at the **top** of `releases.toml`, with a version higher than the one below, following [Semantic Versioning](https://semver.org/):
    - **PATCH** (1.4.2 → 1.4.3): fixes, and base image or dependency updates, with nothing new for the people who use it.
    - **MINOR** (1.4.2 → 1.5.0): something new, and everything that worked keeps working (a new route, a new page, a new message).
    - **MAJOR** (1.4.2 → 2.0.0): something that worked now works differently (a route or an event's format changes, or the database needs a change by hand).
-2. Add its section at the top of [`CHANGELOG.md`](../CHANGELOG.md), `## [1.4.3] - YYYY-MM-DD`, with what changes for the people who use the system.
+2. Under it, one `[[release.item]]` per change: its `kind` (`new`, `improvement`, `fix` or `security`), its `area` (`Menu`, `Orders`, `Kitchen`, `Telegram` or `System`) and its text in English and Portuguese (`text.en`, `text.pt-br`), written for the people who use the system. An update proposed by Dependabot adds `source = "dependabot"` and `pr = <its number>`. The comment at the top of the file has a complete example.
+3. Change the `**Current version:**` line of the [README](../README.md) to the new version.
 
-The lint checks that both agree and refuses a version lower than `main`'s; its notice on the Pull Request says whether merging releases a version. After the merge, once the pipeline passed, its **release** job tags the images it just tested with the version and creates the release `v1.4.3` on [GitHub](https://github.com/SenatoreTeam/SlicePizza/releases). Then, within a few minutes, the server:
+```toml
+[[release]]
+version = "1.4.3"
+date = 2026-11-20
+title.en = "Orders can't be placed with an empty cart"
+title.pt-br = "Não dá mais para fazer pedido com o carrinho vazio"
+
+[[release.item]]
+kind = "fix"
+area = "Orders"
+text.en = "Placing an order with no pizzas now shows an error instead of creating an empty order."
+text.pt-br = "Fazer um pedido sem pizzas agora mostra um erro, em vez de criar um pedido vazio."
+```
+
+The lint checks the file and the README line, and refuses a version lower than `main`'s; its notice on the Pull Request says whether merging releases a version. After the merge, once the pipeline passed, its **release** job tags the images it just tested with the version and creates the release `v1.4.3` on [GitHub](https://github.com/SenatoreTeam/SlicePizza/releases), titled `1.4.3 – Orders can't be placed with an empty cart`, with one line per item (`- **Fix · Orders:** …`, and `(Dependabot, #N)` on Dependabot's). Then, within a few minutes, the server:
 
 1. sees the new version in GHCR (it looks every 2 minutes, and only takes a version whose three images exist);
 2. backs up the database;
@@ -118,7 +133,7 @@ The lint checks that both agree and refuses a version lower than `main`'s; its n
 4. checks that the containers run those images and are healthy, and that `/api/health` and `/version` answer with the version's commit;
 5. if any of that fails, puts the previous version back and doesn't try that version again: release the fix as a new version.
 
-A merge that keeps `VERSION` is published as `sha-<commit>` only, and production doesn't change: several merges can go out together in one version. The server never goes to a lower version by itself: to go back, revert the change and release it as a new version (e.g. 1.4.4 with 1.4.2's code). In an emergency the server's administrator can hold production at an earlier version.
+A merge that adds no version is published as `sha-<commit>` only, and production doesn't change: several merges can go out together in one version. The server never goes to a lower version by itself: to go back, revert the change and release it as a new version (e.g. 1.4.4 with 1.4.2's code). In an emergency the server's administrator can hold production at an earlier version.
 
 ## Checking the deploy
 

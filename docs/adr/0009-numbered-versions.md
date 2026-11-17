@@ -1,6 +1,6 @@
 # 0009: Numbered versions: production runs the newest release, and the server fetches it
 
-- **Status:** Accepted
+- **Status:** Accepted. Its `VERSION` and `CHANGELOG.md` files: superseded by [0010](0010-releases-file.md) (`releases.toml`)
 - **Date:** 2026-11-17
 - **Phase:** 4
 

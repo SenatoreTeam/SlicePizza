@@ -1,7 +1,8 @@
 # Builds one Docker image; called by the pipeline (ci.yml) once for each image,
 # after the lint and the tests passed (ADR 0008). With `push`, it publishes
 # `sha-<commit>` to GHCR; the pipeline's `release` job adds the version's tag
-# when VERSION changes (ADR 0009). Without it, it only checks the image builds.
+# when releases.toml gets a new version (ADR 0009). Without it, it only checks
+# the image builds.
 name: Build image
 
 on:

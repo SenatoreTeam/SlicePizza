@@ -1,4 +1,4 @@
-# The pipeline (ADR 0008, ADR 0009): every change goes through the same
+# The pipeline (ADR 0008, ADR 0009, ADR 0010): every change goes through the same
 # stages, and an image is published only when everything before it passed.
 #
 #   lint ──► tests ─────┐   API on SQLite and Postgres, worker, Telegram
@@ -8,8 +8,8 @@
 #                                                          release
 #
 # On a Pull Request the images are only built, to check they build. On main
-# they are published to GHCR as `sha-<commit>`; when the merge brings a new
-# VERSION, `release` also tags them with the version (`1.4.2`) and creates the
+# they are published to GHCR as `sha-<commit>`; when the merge adds a version
+# to releases.toml, `release` also tags them with it (`1.4.2`) and creates the
 # GitHub release, and the server puts the newest version in production by
 # itself (docs/DEPLOY.md). "pipeline passed" is the one check branch
 # protection needs to require.
@@ -64,18 +64,22 @@ jobs:
       - name: Shell scripts (shellcheck)
         run: git ls-files -z '*.sh' | xargs -0 shellcheck
 
-      # VERSION and CHANGELOG.md agree (ADR 0009). On a Pull Request it also
-      # refuses a version lower than main's, and says whether merging releases
-      # a new version (which then goes to production) or not.
-      - name: Version and changelog
+      # releases.toml is right and README.md says its newest version (ADR 0010).
+      # On a Pull Request it also refuses a version lower than main's, and says
+      # whether merging releases a new version (which then goes to production).
+      - name: Versions (releases.toml)
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
           base=
-          if [ -n "$BASE_REF" ] && git fetch -q --depth=1 origin "$BASE_REF" && git cat-file -e FETCH_HEAD:VERSION 2>/dev/null; then
-            base=$(git show FETCH_HEAD:VERSION)
+          if [ -n "$BASE_REF" ] && git fetch -q --depth=1 origin "$BASE_REF"; then
+            if git show FETCH_HEAD:releases.toml > "$RUNNER_TEMP/main-releases.toml" 2>/dev/null; then
+              base=$(python3 -I .github/scripts/releases.py --version --file "$RUNNER_TEMP/main-releases.toml")
+            elif git cat-file -e FETCH_HEAD:VERSION 2>/dev/null; then
+              base=$(git show FETCH_HEAD:VERSION)  # main before ADR 0010
+            fi
           fi
-          python3 -I .github/scripts/check_version.py ${base:+--base "$base"}
+          python3 -I .github/scripts/releases.py ${base:+--base "$base"}
 
   tests:
     # The same suite on SQLite (fast) and on real Postgres, which catches what
@@ -456,9 +460,9 @@ jobs:
           done
 
   release:
-    # A merge that raises VERSION publishes that version (ADR 0009): the
-    # images this run just tested get the version's tag, nothing is rebuilt,
-    # and the GitHub release vX.Y.Z is created with its CHANGELOG.md notes.
+    # A merge that adds a version to releases.toml publishes it (ADR 0009,
+    # ADR 0010): the images this run just tested get the version's tag,
+    # nothing is rebuilt, and the GitHub release vX.Y.Z is written from it.
     # The server sees the new version and puts it in production by itself.
     # Not on the Monday rebuild: a version's tag never moves.
     name: release
