@@ -24,8 +24,9 @@ Esta fase está **concluída**: no ar desde 17/11/2026. Um merge que acrescenta 
 - **Um deploy conferido**: o servidor encontra sozinho cada versão nova no GHCR, faz o backup do
   banco, faz o deploy, confere e volta a versão anterior se as verificações falharem. O GitHub
   nunca acessa o servidor, então nenhum segredo de deploy fica no GitHub.
-- Não foi feito: um ambiente de **staging**. As verificações e a volta automática protegem a
-  produção; o staging continua sendo uma opção.
+- **Sem staging**: cada versão vai direto para a produção, onde o servidor a confere e volta a
+  versão anterior se as verificações falharem. Uma cópia separada para testes (QA) ficou de fora
+  de propósito: neste tamanho, as verificações e a volta automática bastam.
 
 ## Por que automatizar
 

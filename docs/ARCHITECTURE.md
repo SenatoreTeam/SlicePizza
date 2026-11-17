@@ -71,7 +71,8 @@ received ──► preparing ──► out_for_delivery ──► delivered
 |---|---|---|
 | `slicepizza.senatore.tech` | A | The shared server (site and API, see [DEPLOY.md](DEPLOY.md)) |
 | `slicepizza-docs.senatore.tech` | CNAME | `senatoreteam.github.io` (docs site) |
-| `staging…` | | To be decided in Phase 4 |
+
+There is no staging name: each version goes straight to production (Phase 4, [ROADMAP](ROADMAP.md#phase-4-every-time-you-change-something-something-breaks)).
 
 ## Planned local ports (Docker Compose)
 

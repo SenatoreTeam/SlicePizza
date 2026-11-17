@@ -28,8 +28,10 @@ into the server. See the [roadmap](../../../docs/ROADMAP.md).
   backs up the database, deploys it, checks it, and puts the previous version
   back if the checks fail. GitHub never reaches the server, so no deploy secret
   lives on GitHub.
-- Not built: a **staging** environment. The checks and the automatic rollback
-  protect production; staging remains an option.
+- **No staging**: each version goes straight to production, where the server
+  checks it and puts the previous version back if the checks fail. A separate
+  copy for testing (QA) was left out on purpose: at this size, the checks and
+  the automatic rollback are enough.
 
 ## Why automate this
 
