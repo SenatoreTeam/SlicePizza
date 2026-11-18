@@ -102,7 +102,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 - [x] Expose API metrics to Prometheus: orders, latency, errors and the outbox backlog at `/metrics`, private ([ADR 0012](adr/0012-api-metrics.md))
 - [x] Grafana dashboards: the SlicePizza overview, provisioned from Git ([ADR 0013](adr/0013-prometheus-and-grafana.md)). Prometheus and Grafana run locally with `docker compose --profile monitoring up`; published as images by the pipeline; **not on the server yet**
 - [x] Centralize container logs in Loki, collected by Alloy through a read-only Docker proxy, 7 days, shown in Grafana ([ADR 0014](adr/0014-loki-and-alloy.md)); **not on the server yet**
-- [ ] Telegram alerts: API down, queue piling up
+- [x] Telegram alerts from Grafana: API down, 5xx, stuck outbox, queue backlog, error logs ([ADR 0015](adr/0015-grafana-telegram-alerts.md)); **needs the two `ALERT_TELEGRAM_*` variables on the server**
 
 **Done when:** you take the API down on purpose and get the alert within 2 minutes.
 
