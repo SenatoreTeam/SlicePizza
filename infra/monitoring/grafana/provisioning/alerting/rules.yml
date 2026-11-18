@@ -5,17 +5,17 @@ groups:
   - orgId: 1
     name: slicepizza
     folder: SlicePizza
-    interval: 1m
+    interval: 30s
     rules:
       - uid: api-down
         title: API is down
         condition: C
-        for: 2m
+        for: 30s
         noDataState: Alerting
         execErrState: Error
         labels: { severity: critical }
         annotations:
-          summary: Prometheus cannot read /metrics from the API for 2 minutes.
+          summary: Prometheus cannot read /metrics from the API for 30 seconds.
         data:
           - refId: A
             relativeTimeRange: { from: 300, to: 0 }
