@@ -225,8 +225,8 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
-      # Alerts to Telegram (ADR 0015). Use a bot and chat for the team, not the
-      # customers' bot. Grafana refuses an empty token, so the defaults are placeholders: alerts then fail to send (logged), nothing else breaks.
+      # Alerts to Telegram (ADR 0015). The worker's bot works; use a
+      # separate ops chat, not the pizzeria's. Grafana refuses an empty token, so the defaults are placeholders: alerts then fail to send (logged), nothing else breaks.
       ALERT_TELEGRAM_BOT_TOKEN: ${ALERT_TELEGRAM_BOT_TOKEN:-0:unset}
       ALERT_TELEGRAM_CHAT_ID: ${ALERT_TELEGRAM_CHAT_ID:-0}
     volumes:
