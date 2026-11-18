@@ -1,0 +1,23 @@
+# Where alerts go (ADR 0015): one Telegram chat. The token and the chat id are
+# not in the repo: they come from the environment of the Grafana container.
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: telegram-ops
+    receivers:
+      - uid: telegram-ops
+        type: telegram
+        settings:
+          bottoken: $__env{ALERT_TELEGRAM_BOT_TOKEN}
+          chatid: $__env{ALERT_TELEGRAM_CHAT_ID}
+          parse_mode: None
+          message: |-
+            {{ template "default.message" . }}
+        disableResolveMessage: false
+policies:
+  - orgId: 1
+    receiver: telegram-ops
+    group_by: ["alertname"]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
