@@ -117,7 +117,7 @@ Prometheus and Grafana ([ADR 0013](adr/0013-prometheus-and-grafana.md)) and, for
 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.5.0` | **No** | Env `CONTAINERS=1`, `NETWORKS=1`, `POST=0`; `/var/run/docker.sock` mounted `:ro`; read-only filesystem with tmpfs on `/run` and `/tmp`. The only container that sees the socket |
 | `alloy` | `ghcr.io/senatoreteam/slicepizza-alloy:sha-<commit>` | **No** | Runs as the `alloy` user, `cap_drop: ALL`, a named volume on `/var/lib/alloy/data`. Reaches `socket-proxy:2375` and `loki:3100` |
 
-Alerts ([ADR 0015](adr/0015-grafana-telegram-alerts.md)): set `ALERT_TELEGRAM_BOT_TOKEN` and `ALERT_TELEGRAM_CHAT_ID` on `grafana` (a team bot and chat, not the customers' bot) and the five alert rules message that chat.
+Alerts ([ADR 0015](adr/0015-grafana-telegram-alerts.md)): set `ALERT_TELEGRAM_BOT_TOKEN` and `ALERT_TELEGRAM_CHAT_ID` on `grafana` (the same bot as the worker works; use a separate ops chat with the bot added, not the pizzeria's chat, so the kitchen does not get alerts) and the five alert rules message that chat.
 
 Grafana (the same container as above) must be on the same network as `loki`. Make the `loki` and `alloy` packages public, add the three containers, and the **Recent logs** panel of the overview dashboard fills in. **Never give `loki` a domain**, and never mount the Docker socket in anything but `socket-proxy`.
 
