@@ -125,6 +125,14 @@ Grafana (the same container as above) must be on the same network as `loki`. Mak
 
 To set it up: make the two packages public (like in [One-time setup](#one-time-setup)), add the two containers to the project's compose, create the DNS record `A grafana.slicepizza → 179.66.139.4`, and add the domain to `grafana` with HTTPS. Then open the domain, log in, and the **SlicePizza overview** dashboard shows the live numbers. **Never give `prometheus` a domain**: anyone who reached it could read every number without logging in.
 
+### External uptime check
+
+Grafana's alerts run on the same server, so they cannot say "the server is gone". Add one check from **outside** (a hosted uptime service with a free tier, for example UptimeRobot or Better Stack), which is done in that service's website by the project owner, not by the pipeline:
+
+- Monitor `https://slicepizza.senatore.tech/api/health` (expects HTTP 200 and `"status":"ok"`), every 1 to 5 minutes, and `https://slicepizza.senatore.tech/` for the menu site.
+- Send its alerts to the same ops Telegram chat (or e-mail). No secret of the project is shared with the service: both URLs are public.
+- Do not point it at Grafana, Prometheus or Loki.
+
 ## Releasing a version
 
 Production runs the newest version ([ADR 0009](adr/0009-numbered-versions.md)), and the versions live in [`releases.toml`](../releases.toml) ([ADR 0010](adr/0010-releases-file.md)). To release one, in the Pull Request:

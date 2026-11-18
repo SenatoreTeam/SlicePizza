@@ -104,6 +104,8 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 - [x] Centralize container logs in Loki, collected by Alloy through a read-only Docker proxy, 7 days, shown in Grafana ([ADR 0014](adr/0014-loki-and-alloy.md)); **not on the server yet**
 - [x] Telegram alerts from Grafana: API down, 5xx, stuck outbox, queue backlog, error logs ([ADR 0015](adr/0015-grafana-telegram-alerts.md)); **needs the two `ALERT_TELEGRAM_*` variables on the server**
 
+- [ ] An external uptime check on `/api/health` and `/`, set up by the project owner (steps in [`DEPLOY.md`](DEPLOY.md#external-uptime-check)); the down-on-purpose test passed locally
+
 **Done when:** you take the API down on purpose and get the alert within 2 minutes.
 
 _Local test passed (2026-11-18): the alert fires 56 seconds after the API stops; the Telegram delivery is verified once the bot is set on the server._
