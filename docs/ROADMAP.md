@@ -106,6 +106,8 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 **Done when:** you take the API down on purpose and get the alert within 2 minutes.
 
+_Local test passed (2026-11-18): the alert fires 56 seconds after the API stops; the Telegram delivery is verified once the bot is set on the server._
+
 **You learn:** observability, metrics, logs and alerting.
 
 ---
