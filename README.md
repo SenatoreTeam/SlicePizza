@@ -55,7 +55,7 @@ Details for each component in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | CI/CD | GitHub Actions + GHCR | 4 |
 | Observability | Health checks; monitoring is the server's own | 5 |
 | Backups and disaster recovery | Whole-VPS backup, by the server's owner | 6 |
-| Cache | Redis | 7 |
+| Cache | Redis (optional menu cache) | 7 |
 | Scaling | Docker (replicas behind Caddy) + k6 load tests | 7 |
 | Security | Trivy, secrets kept out of Git | 8 |
 
@@ -174,7 +174,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 4 | "Every time you change something, something breaks" | ✅ Done |
 | 5 | "The site went down Friday night and nobody noticed" | ✅ Done |
 | 6 | "The server died and we lost the orders" | ✅ Done |
-| 7 | "We're running a R$20 pizza promo on Friday" | 🚧 In progress |
+| 7 | "We're running a R$20 pizza promo on Friday" | ✅ Done |
 | 8 | "I heard hackers attack pizzerias" | ⏳ Not started |
 
 Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md).

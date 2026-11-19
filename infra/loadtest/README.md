@@ -29,3 +29,14 @@ It passes when under 1% of requests fail and 95% answer in under 500 ms.
 | Through Caddy (`BASE_URL=http://127.0.0.1:18080/api`), `SCALE=8 PAUSE=0`, with 1 / 2 / 4 API copies ([ADR 0020](../../docs/adr/0020-api-replicas.md)) | 80, no pause | 708 / 1212 / 1572 | 165 / 130 / 142 ms | 0% |
 
 **What it says:** the "10 times normal traffic" goal of Phase 7 is reached without changes on this machine, and the limit is far above it (hundreds of requests per second, with the API using about a third of one core). A real pizzeria promo is nowhere near that, so Redis and replicas are a learning exercise, not an emergency. The VPS is slower than a laptop and shares its cores with other projects: **repeat the stress run's numbers as a ratio** (how much faster the menu gets with Redis), not as absolute values.
+
+## Capacity notes (Phase 7)
+
+What one VPS can take, from the numbers above (a laptop; the VPS is slower and shared, so treat them as ratios):
+
+- **A normal Friday** is on the order of 10 requests per second at most. One API copy handles about 70 times that in stress mode.
+- **"The R$20 promo" (10x)** is covered by one copy with a large margin, so replicas are for **availability** (a copy can restart without dropping requests) more than for speed.
+- **The first thing to run out** is the API's processor (one Uvicorn worker per copy, 1 CPU limit): copies scale it almost linearly until the machine's cores are shared with Postgres, Caddy and other projects (1.7x with 2 copies, 2.2x with 4 here).
+- **After that**: Postgres' 100 connections (about 5 copies at the default pool), then Postgres itself. Orders (writes) cost more than menu reads, which Redis takes off the database.
+- **The next step if one VPS is not enough**: a bigger VPS first (cheapest and needs no change), then a second server with the database moved off it. Both are decisions for the server's owner; nothing in the code blocks them.
+- **Not tested**: the VPS itself, the network from outside, and the kitchen and Telegram flows under load. Run this test against the server only with its owner's agreement and without placing real orders.
