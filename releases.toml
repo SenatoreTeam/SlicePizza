@@ -23,6 +23,24 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.3.0"
+date = 2026-11-19
+title.en = "Ready for a busy Friday"
+title.pt-br = "Pronto para uma sexta movimentada"
+
+[[release.item]]
+kind = "improvement"
+area = "Menu"
+text.en = "The menu can be served from a short-lived cache when the server has one, so it opens faster when many people look at it at once. Without the cache, nothing changes."
+text.pt-br = "O cardápio pode ser servido de um cache de curta duração quando o servidor tem um, e abre mais rápido quando muita gente olha ao mesmo tempo. Sem o cache, nada muda."
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "The system can run several copies of the order service and share the requests among them, so one copy restarting does not interrupt customers. The server keeps running one copy until it is told otherwise."
+text.pt-br = "O sistema pode rodar várias cópias do serviço de pedidos e dividir as requisições entre elas, então uma cópia reiniciando não interrompe os clientes. O servidor continua com uma cópia até que se diga o contrário."
+
+[[release]]
 version = "1.2.1"
 date = 2026-11-19
 title.en = "Monitoring is the server's own"
