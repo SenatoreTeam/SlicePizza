@@ -114,20 +114,19 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 6: "The server died and we lost the orders"
 
-**Status:** ⏸ Postponed (2026-11-19): the offsite backup destination is decided later, so this phase waits
+**Status:** ✅ Done (2026-11-19), by the server's owner, not by this repository ([ADR 0018](adr/0018-server-backups.md))
 
-**Goal:** be able to rebuild everything from scratch, with the data, quickly. The server is a VPS with Docker and Dokploy, so this phase is **all Docker**: no Terraform and no Ansible ([ADR 0017](adr/0017-docker-only-infrastructure.md)).
+**Goal:** be able to rebuild everything from scratch, with the data, quickly.
 
-- [ ] A backup container in `infra/backup/`: daily `pg_dump` of Postgres, compressed and **encrypted**, with the key kept off the server
-- [ ] An **offsite** copy: a place that survives the VPS dying (an S3-compatible bucket or another machine; chosen in its own ADR). Credentials with the least power possible: write-only to that one place
-- [ ] Retention rule (e.g. keep 30 days, then delete)
-- [ ] Test restoring the backup into an empty Postgres, and repeat it on a schedule
-- [ ] A runbook in `infra/server/`: rebuild SlicePizza on a **fresh VPS** (Docker, Dokploy, firewall, DNS, `.env`, restore), with every Dokploy setting that is not in Git written down
-- [ ] Time the rebuild once, for real
+The whole VPS is backed up by the server's owner, Postgres and RabbitMQ volumes included, the same way monitoring is the server's job ([ADR 0016](adr/0016-server-monitoring.md)). Nothing for this repository to build.
 
-**Done when:** on a new empty VPS, following only the runbook, you restore the latest backup and the whole system is back in under 30 minutes.
+- [x] ~~Daily encrypted Postgres backup, offsite copy, retention~~ Covered by the backup of the whole VPS (server owner)
+- [x] ~~Restore test and rebuild runbook~~ Restoring is done from the VPS backup (server owner). The rebuild steps that belong to SlicePizza are in [`DEPLOY.md`](DEPLOY.md): the compose file and `.env.example` are in Git
+- [x] ~~Terraform and Ansible~~ Not used: Docker and Dokploy on a VPS ([ADR 0017](adr/0017-docker-only-infrastructure.md))
 
-**You learn:** backups and disaster recovery, encryption and key custody, least-privilege credentials, and restore drills.
+**Done when:** the server's owner can bring the VPS back, with the data, from its backup. This repository only has to stay reproducible from Git.
+
+**You learn:** why backups and disaster recovery sit at the layer that owns the disk, and what the application must keep reproducible (config in Git, secrets in `.env`).
 
 ---
 
