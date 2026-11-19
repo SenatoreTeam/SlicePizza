@@ -132,20 +132,20 @@ The whole VPS is backed up by the server's owner, Postgres and RabbitMQ volumes 
 
 ## Phase 7: "We're running a R$20 pizza promo on Friday"
 
-**Status:** 🚧 In progress
+**Status:** ✅ Done (2026-11-19); two items need the server's owner (a `redis` container, the number of API copies)
 
 **Goal:** handle much more traffic without going down, on the same VPS and with the same Docker setup ([ADR 0017](adr/0017-docker-only-infrastructure.md)).
 
 - [x] Load test with k6 to find the bottleneck: [`infra/loadtest/`](../infra/loadtest/) (baseline: 570 requests/s, p95 146 ms in stress mode on one machine, no errors)
 - [x] Cache the menu in Redis, optional and fail-safe ([ADR 0019](adr/0019-redis-menu-cache.md)): 570 → 866 requests/s in stress mode; **needs a `redis` container on the server**
-- [ ] Pizza photos served through the CDN already in front of the site (Cloudflare), with long cache headers
 - [x] Run several copies of the API behind Caddy (Docker replicas), with resource limits per container ([ADR 0020](adr/0020-api-replicas.md)): 708 → 1212 → 1572 requests/s with 1, 2, 4 copies; **the number of copies is set on the server**
-- [ ] Database tuning: connection pool size, indexes the load test shows are missing
-- [ ] Capacity notes: how far one VPS goes, and what the next step would be (a bigger VPS, a second server)
+- [x] Database: explicit, tunable connection pool per copy, and the index question answered with "not needed at this size" (see ADR 0020)
+- [x] Capacity notes: how far one VPS goes and what the next step is ([`infra/loadtest/README.md`](../infra/loadtest/README.md#capacity-notes-phase-7))
+- [x] ~~Pizza photos through the CDN~~ Not applicable yet: the menu has no photos. When it does, serve them from the site with long cache headers behind Cloudflare, with file names that change when the picture does
 
-**Done when:** the system handles 10 times the normal traffic without errors.
+**Done when:** the system handles 10 times the normal traffic without errors. It does, with one API copy and no cache: the other items make it faster and more available.
 
-**You learn:** scalability, caching, horizontal scaling with containers and load testing. (Kubernetes is out of scope on one VPS: see the ADR.)
+**You learn:** scalability, caching, horizontal scaling with containers and load testing. (Kubernetes is out of scope on one VPS: see [ADR 0017](adr/0017-docker-only-infrastructure.md).)
 
 ---
 

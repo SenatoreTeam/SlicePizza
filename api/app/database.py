@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine, text
@@ -37,6 +38,12 @@ else:
     connect_args["connect_timeout"] = CONNECT_TIMEOUT
     # Recycle connections before Postgres or a proxy drops them silently.
     engine_kwargs["pool_recycle"] = 1800
+    # Connections each API copy may open: DB_POOL_SIZE kept ready plus up to
+    # DB_MAX_OVERFLOW extra under load (SQLAlchemy's own defaults, 5 and 10,
+    # now explicit). Postgres allows 100 in all: copies x (size + overflow)
+    # must stay well below that (ADR 0020).
+    engine_kwargs["pool_size"] = int(os.getenv("DB_POOL_SIZE") or "5")
+    engine_kwargs["max_overflow"] = int(os.getenv("DB_MAX_OVERFLOW") or "10")
 
 engine = create_engine(settings.database_url, connect_args=connect_args, **engine_kwargs)
 

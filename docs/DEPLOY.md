@@ -96,7 +96,7 @@ From Phase 7 the API can run as several containers of the same service ([ADR 002
 | Port | The API is never published on the server: only `web` reaches it. (The 8000-8009 range is for the laptop stack) |
 | `web` | Finds every copy through the service name: `API_HOST` (default `api`) and `API_PORT` (default `8000`), or the older `API_UPSTREAM=host:port` |
 
-Keep Postgres' connection limit in mind: each copy has its own pool.
+Keep Postgres' connection limit (100) in mind: each copy has its own pool of at most `DB_POOL_SIZE` (5) + `DB_MAX_OVERFLOW` (10) connections, so 4 copies use at most 60. Past about 5 copies, lower those or raise `max_connections`.
 
 ## Redis (menu cache)
 
