@@ -151,7 +151,7 @@ The whole VPS is backed up by the server's owner, Postgres and RabbitMQ volumes 
 
 ## Phase 8 (bonus): "I heard hackers attack pizzerias"
 
-**Status:** ✅ Done (2026-11-19) ([ADR 0021](adr/0021-hardening.md)); released with the next version
+**Status:** ✅ Done and released in 1.4.0 (2026-11-19) ([ADR 0021](adr/0021-hardening.md))
 
 **Goal:** close the most obvious doors.
 
