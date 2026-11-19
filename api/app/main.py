@@ -15,13 +15,11 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
-from . import metrics
 from .auth import require_kitchen
 from .config import settings
 from .database import Base, SessionLocal, engine, get_db, wait_for_database
 from .events import ORDER_CREATED, ORDER_STATUS_CHANGED, record_event
 from .internal import router as internal_router
-from .metrics import METRICS_PATH, MetricsMiddleware
 from .models import ALLOWED_TRANSITIONS, Order, OrderItem, OrderStatus, Pizza
 from .outbox import OutboxRelay, RabbitMQPublisher
 from .schemas import OrderCreate, OrderOut, OrderStatusUpdate, PizzaOut
@@ -93,8 +91,6 @@ app = FastAPI(
     version=os.getenv("APP_VERSION") or "unknown",
     lifespan=lifespan,
 )
-# Counts every request, whichever route answers it.
-app.add_middleware(MetricsMiddleware)
 
 
 class UnhandledErrorAsJSON:
@@ -245,15 +241,6 @@ def health(db: Session = Depends(get_db)) -> dict[str, str]:
     }
 
 
-@app.get(METRICS_PATH, include_in_schema=False)
-def prometheus_metrics(db: Session = Depends(get_db)) -> Response:
-    """Prometheus' scrape target (ADR 0012). Reached on the project network only:
-    the web container answers 404 for /api/metrics, like /api/internal."""
-    return Response(
-        metrics.render(db), media_type="text/plain; version=0.0.4; charset=utf-8"
-    )
-
-
 @app.get("/menu", response_model=list[PizzaOut])
 def get_menu(db: Session = Depends(get_db)) -> list[Pizza]:
     """List the pizzas on the menu."""
@@ -311,7 +298,6 @@ def create_order(payload: OrderCreate, db: Session = Depends(get_db)) -> Order:
     # The INSERT ... RETURNING already fills created_at/updated_at, and the
     # items and pizzas are in memory, so no refresh is needed.
     db.commit()
-    metrics.order_created()
     _events_committed()
     return order
 

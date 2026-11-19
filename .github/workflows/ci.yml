@@ -333,9 +333,6 @@ jobs:
         run: |
           curl -fsS http://127.0.0.1:8000/health
           curl -fsS http://127.0.0.1:8000/menu
-          # The API's private metrics (ADR 0012), on its own port; through Caddy
-          # they answer 404 (checked below).
-          curl -fsS http://127.0.0.1:8000/metrics | grep -q '^slicepizza_build_info{'
 
       # The way customers come in: Caddy on 8080 serves the site and forwards /api to the API.
       - name: Check the site and the API through Caddy
@@ -367,8 +364,6 @@ jobs:
           curl -fsS http://127.0.0.1:8080/api/openapi.json > /dev/null
           # The worker-only /internal routes must never be reachable through Caddy (ADR 0006).
           test "$(curl -s -o /dev/null -w '%{http_code}' -X PUT http://127.0.0.1:8080/api/internal/orders/x/telegram-subscriptions/1)" = 404
-          # Same for the metrics: they stay on the project network (ADR 0012).
-          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/metrics)" = 404
 
       - name: Check the kitchen login (ADR 0007)
         run: |

@@ -26,7 +26,7 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0009](0009-numbered-versions.md) | Numbered versions: production runs the newest release, and the server fetches it | Accepted (its files superseded by 0010) |
 | [0010](0010-releases-file.md) | The versions live in releases.toml, like the other projects | Accepted |
 | [0011](0011-production-check.md) | The pipeline checks each new version in production, from the outside | Accepted |
-| [0012](0012-api-metrics.md) | The API reports its own metrics, with no new dependency | Accepted |
+| [0012](0012-api-metrics.md) | The API reports its own metrics, with no new dependency | Superseded by 0016 |
 | [0013](0013-prometheus-and-grafana.md) | Prometheus and Grafana, on the same server, from files in Git | Superseded by 0016 |
 | [0014](0014-loki-and-alloy.md) | Container logs in Loki, collected by Alloy through a read-only Docker proxy | Superseded by 0016 |
 | [0015](0015-grafana-telegram-alerts.md) | Alerts to Telegram through Grafana's own alerting | Superseded by 0016 |

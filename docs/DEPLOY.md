@@ -29,7 +29,7 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 | Container | Image | Public? | Settings |
 |---|---|---|---|
 | `web` | `slicepizza-web` (Caddy + the site, [`infra/caddy/`](../infra/caddy/)) | **Yes**: the domain points here, port 8080 | `API_UPSTREAM`: the API's `host:port` on the project network (default `api:8000`). `TELEGRAM_BOT_USERNAME`: the bot for the "Follow on Telegram" button, without the @ (unset: no button). `KITCHEN_PASSWORD_HASH`, `KITCHEN_USERNAME` and `KITCHEN_API_TOKEN` for the kitchen board (see [Kitchen](#kitchen)). `TRUSTED_PROXIES` if the server's proxy is outside the private ranges (see below) |
-| `api` | `slicepizza-api` ([`api/`](../api/)) | No: only `web` reaches it | `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`, plus the database variables below. `INTERNAL_API_TOKEN` for the worker's routes ([ADR 0006](adr/0006-customer-telegram-opt-in.md)). `KITCHEN_API_TOKEN` for the kitchen's routes ([ADR 0007](adr/0007-kitchen-login.md)). Its `/metrics` (Prometheus, [ADR 0012](adr/0012-api-metrics.md)) is reachable on the project network only: the web container answers 404 for `/api/metrics` |
+| `api` | `slicepizza-api` ([`api/`](../api/)) | No: only `web` reaches it | `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`, plus the database variables below. `INTERNAL_API_TOKEN` for the worker's routes ([ADR 0006](adr/0006-customer-telegram-opt-in.md)). `KITCHEN_API_TOKEN` for the kitchen's routes ([ADR 0007](adr/0007-kitchen-login.md)) |
 
 | `db` | `postgres:16-alpine` | No: only `api` reaches it | See [Database](#database) |
 | `rabbitmq` | `rabbitmq:4.4.0-management-alpine` | No: only `api` and `worker` reach it | See [RabbitMQ](#rabbitmq) |
@@ -102,14 +102,12 @@ How to create the bot and find the chat id: [worker/README.md](../worker/README.
 
 ## Monitoring
 
-The server's own monitoring watches SlicePizza ([ADR 0016](adr/0016-server-monitoring.md)). It is shared by every project on the server and kept by the server's owner outside this repository, so **nothing to deploy from here**. It looks from outside the project's network:
+The server's own monitoring watches SlicePizza ([ADR 0016](adr/0016-server-monitoring.md)). It is shared by every project on the server and kept by the server's owner outside this repository, so **nothing to deploy from here**, and this repository implements no monitoring of its own. It looks from outside the project's network:
 
 - each container: running, healthy, restarts, memory and processor;
 - the notifications queue and its dead letters, the outbox and the order counts;
 - the backups and the version that is live;
 - the public sites.
-
-The API's `/metrics` ([ADR 0012](adr/0012-api-metrics.md)) stays private on the project network. For now nothing on the server reads it: the server's panels are general ones.
 
 ### External uptime check
 

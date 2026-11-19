@@ -99,7 +99,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 **Goal:** know something broke before a customer complains.
 
 - [x] `/health` route on every service (each container has a health check; the API's `/health` is the full-path one)
-- [x] Expose API metrics to Prometheus: orders, latency, errors and the outbox backlog at `/metrics`, private ([ADR 0012](adr/0012-api-metrics.md))
+- [x] ~~Expose API metrics to Prometheus: orders, latency, errors and the outbox backlog at `/metrics`, private ([ADR 0012](adr/0012-api-metrics.md))~~ Removed with [ADR 0016](adr/0016-server-monitoring.md) (version 1.2.1): this repository implements no monitoring, the server's monitoring watches the system
 - [x] ~~Grafana dashboards: the SlicePizza overview, provisioned from Git ([ADR 0013](adr/0013-prometheus-and-grafana.md))~~ Replaced (decided 2026-11-19, [ADR 0016](adr/0016-server-monitoring.md)): the server's own monitoring, shared by every project on it, already shows SlicePizza's containers, queue, outbox, orders, backups, version and sites. For now it has general panels only, none for one service
 - [x] ~~Centralize container logs in Loki, collected by Alloy through a read-only Docker proxy, 7 days, shown in Grafana ([ADR 0014](adr/0014-loki-and-alloy.md))~~ Removed with [ADR 0016](adr/0016-server-monitoring.md): monitoring belongs to the server, not to this repository
 - [x] ~~Telegram alerts from Grafana: API down, 5xx, stuck outbox, queue backlog, error logs ([ADR 0015](adr/0015-grafana-telegram-alerts.md))~~ Removed with [ADR 0016](adr/0016-server-monitoring.md): alerts, like the dashboards, belong to the server's monitoring
@@ -110,7 +110,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 _Local test passed (2026-11-18) with this repository's former alerts: the alert fired 56 seconds after the API stopped. Since [ADR 0016](adr/0016-server-monitoring.md) the alerts belong to the server's monitoring, so this check waits for it._
 
-**You learn:** observability, metrics, logs and alerting.
+**You learn:** health checks, and why on a shared server the monitoring belongs to the server ([ADR 0016](adr/0016-server-monitoring.md)).
 
 ---
 

@@ -10,7 +10,7 @@ The system starts small and grows in **phases**. In each phase, the "pizzeria ow
 
 📖 **Documentation / Documentação:** https://slicepizza-docs.senatore.tech/ (English · Português)
 
-**Current version:** 1.2.0 · [what changed in each version](https://github.com/SenatoreTeam/SlicePizza/releases) ([`releases.toml`](releases.toml))
+**Current version:** 1.2.1 · [what changed in each version](https://github.com/SenatoreTeam/SlicePizza/releases) ([`releases.toml`](releases.toml))
 
 ![The menu site: pizzas, prices and quantity pickers](docs-site/static/img/screenshots/menu.png)
 
@@ -53,7 +53,7 @@ Details for each component in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Queue | RabbitMQ | 3 |
 | Notifications | Telegram bot | 3 |
 | CI/CD | GitHub Actions + GHCR | 4 |
-| Observability | Health checks, the API's metrics; dashboards on the server's monitoring | 5 |
+| Observability | Health checks; monitoring is the server's own | 5 |
 | Infrastructure as code | Terraform + Ansible | 6 |
 | Cache | Redis | 7 |
 | Orchestration | Kubernetes (k3s) + Helm | 7 |
