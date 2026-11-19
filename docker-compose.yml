@@ -81,8 +81,19 @@ services:
         APP_VERSION: ${APP_VERSION:-unknown}
     restart: unless-stopped
     # Bind to the loopback interface only: this is a laptop dev stack.
+    # A range, so more than one copy can run (API_REPLICAS, ADR 0020): each
+    # gets a free port from it, the first one 8000.
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8000-8009:8000"
+    # How many API containers run, and how much each may use (ADR 0020). The
+    # copies share the work: the outbox relay uses a database lock, so events
+    # are published once however many there are.
+    deploy:
+      replicas: ${API_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
     environment:
       # Passed as separate variables (not a URL), so the password needs no encoding.
       POSTGRES_HOST: db
@@ -194,7 +205,8 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     environment:
-      API_UPSTREAM: api:8000
+      API_HOST: api
+      API_PORT: "8000"
       # The bot behind "Follow on Telegram" on the order page; unset: no button.
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
       # The kitchen board at /kitchen (ADR 0007): its login, and the token it

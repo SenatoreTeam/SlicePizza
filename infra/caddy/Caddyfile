@@ -10,7 +10,7 @@
 # only listens on :8080 and does not try to get certificates itself.
 #
 # Settings from the environment:
-#   API_UPSTREAM       where the API listens, as host:port   (default api:8000)
+#   API_HOST, API_PORT where the API listens                 (default api, 8000)
 #   SITE_ROOT          folder with the site's files          (default /srv)
 #   EXTRA_CONNECT_SRC  other origins the page may call, space-separated
 #                      (default none: the page only calls its own /api).
@@ -44,6 +44,24 @@
 		trusted_proxies static {$TRUSTED_PROXIES:private_ranges}
 		client_ip_headers X-Forwarded-For
 	}
+}
+
+# Where the API is (Phase 7, ADR 0020). "dynamic a" asks Docker's DNS for every
+# address behind the name, every 5 seconds, so several API containers (replicas)
+# share the requests, and one that disappears is dropped without a restart.
+# With a single API container it behaves as before.
+#   API_HOST   the API's service name   (default api)
+#   API_PORT   its port                  (default 8000)
+(api_upstream) {
+	dynamic a {
+		name {$API_HOST:api}
+		port {$API_PORT:8000}
+		refresh 5s
+	}
+	lb_policy round_robin
+	# If a copy is gone, try another one instead of failing the request.
+	lb_try_duration 3s
+	lb_try_interval 250ms
 }
 
 # Headers for the pages: the menu site and the kitchen.
@@ -124,7 +142,8 @@
 		# this container and the API know: browsers never see it, and a call
 		# straight to /api/... without it is refused by the API.
 		handle_path /kitchen/api/* {
-			reverse_proxy {$API_UPSTREAM:api:8000} {
+			reverse_proxy {
+				import api_upstream
 				header_up Authorization "Bearer {$KITCHEN_API_TOKEN}"
 			}
 		}
@@ -140,7 +159,9 @@
 	# UVICORN_ROOT_PATH=/api, so the links it generates (the interactive docs
 	# at /api/docs) include the prefix.
 	handle_path /api/* {
-		reverse_proxy {$API_UPSTREAM:api:8000}
+		reverse_proxy {
+			import api_upstream
+		}
 	}
 
 	handle {

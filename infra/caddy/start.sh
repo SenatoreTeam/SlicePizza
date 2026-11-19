@@ -36,6 +36,14 @@ fi
 if [ -z "${KITCHEN_USERNAME:-}" ]; then
 	unset KITCHEN_USERNAME
 fi
+# The API's address. API_UPSTREAM (host:port) is the old setting, still honoured
+# so a server that has it keeps working; API_HOST and API_PORT are the new ones
+# (the Caddyfile needs them apart to find every API copy, ADR 0020).
+if [ -n "${API_UPSTREAM:-}" ]; then
+	API_HOST="${API_UPSTREAM%:*}"
+	API_PORT="${API_UPSTREAM##*:}"
+	export API_HOST API_PORT
+fi
 if [ -z "${TRUSTED_PROXIES:-}" ]; then
 	unset TRUSTED_PROXIES
 fi

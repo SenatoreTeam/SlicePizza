@@ -28,7 +28,7 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 
 | Container | Image | Public? | Settings |
 |---|---|---|---|
-| `web` | `slicepizza-web` (Caddy + the site, [`infra/caddy/`](../infra/caddy/)) | **Yes**: the domain points here, port 8080 | `API_UPSTREAM`: the API's `host:port` on the project network (default `api:8000`). `TELEGRAM_BOT_USERNAME`: the bot for the "Follow on Telegram" button, without the @ (unset: no button). `KITCHEN_PASSWORD_HASH`, `KITCHEN_USERNAME` and `KITCHEN_API_TOKEN` for the kitchen board (see [Kitchen](#kitchen)). `TRUSTED_PROXIES` if the server's proxy is outside the private ranges (see below) |
+| `web` | `slicepizza-web` (Caddy + the site, [`infra/caddy/`](../infra/caddy/)) | **Yes**: the domain points here, port 8080 | `API_HOST` and `API_PORT`: the API's service name and port on the project network (default `api` and `8000`; with several API containers Caddy shares the requests among them). The older `API_UPSTREAM=host:port` still works. `TELEGRAM_BOT_USERNAME`: the bot for the "Follow on Telegram" button, without the @ (unset: no button). `KITCHEN_PASSWORD_HASH`, `KITCHEN_USERNAME` and `KITCHEN_API_TOKEN` for the kitchen board (see [Kitchen](#kitchen)). `TRUSTED_PROXIES` if the server's proxy is outside the private ranges (see below) |
 | `api` | `slicepizza-api` ([`api/`](../api/)) | No: only `web` reaches it | `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`, plus the database variables below. `INTERNAL_API_TOKEN` for the worker's routes ([ADR 0006](adr/0006-customer-telegram-opt-in.md)). `KITCHEN_API_TOKEN` for the kitchen's routes ([ADR 0007](adr/0007-kitchen-login.md)) |
 
 | `db` | `postgres:16-alpine` | No: only `api` reaches it | See [Database](#database) |
@@ -84,6 +84,19 @@ Order events go from the API to RabbitMQ through the outbox ([ADR 0004](adr/0004
 | API variables | `RABBITMQ_HOST` (the service name), `RABBITMQ_USER`, `RABBITMQ_PASSWORD`; optionally `RABBITMQ_PORT` (5672) and `RABBITMQ_VHOST` (`/`) |
 
 **Deploy RabbitMQ and the worker together.** Until the worker has declared its queue, events have nowhere to go: nothing is lost (they wait in `order_events`), but with `RABBITMQ_HOST` set the API logs a warning on every retry.
+
+## API copies
+
+From Phase 7 the API can run as several containers of the same service ([ADR 0020](adr/0020-api-replicas.md)). One copy (the default) behaves as before.
+
+| Item | On the server |
+|---|---|
+| How many | `API_REPLICAS` in the compose (`deploy.replicas`), or the number of copies in Dokploy. Start with 2 |
+| Limits | 1 processor and 512 MB per copy |
+| Port | The API is never published on the server: only `web` reaches it. (The 8000-8009 range is for the laptop stack) |
+| `web` | Finds every copy through the service name: `API_HOST` (default `api`) and `API_PORT` (default `8000`), or the older `API_UPSTREAM=host:port` |
+
+Keep Postgres' connection limit in mind: each copy has its own pool.
 
 ## Redis (menu cache)
 
@@ -201,7 +214,7 @@ To change the password, set a new hash and restart `web`. Everyone then logs in 
 2. On the server (in the project's compose in Dokploy):
    - Postgres: the `db` container and its volume (see [Database](#database)).
    - `api`: `ghcr.io/senatoreteam/slicepizza-api:<version>` (the newest version, e.g. `1.0.0`; the server's automatic update writes each new one here), with the database variables, `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`. **No domain.**
-   - `web`: `ghcr.io/senatoreteam/slicepizza-web:<version>`, the same version, on the same network as `api`, with `API_UPSTREAM` set to the API's service name and port (e.g. `api:8000`).
+   - `web`: `ghcr.io/senatoreteam/slicepizza-web:<version>`, the same version, on the same network as `api`, with `API_HOST`/`API_PORT` (or the older `API_UPSTREAM=api:8000`) pointing at the API's service name and port.
    - Route `slicepizza.senatore.tech` to `web` on port **8080** (`senatore.tech` and `www.senatore.tech` too, if they should keep showing the system).
    - The automatic update follows the versions of the three images (`api`, `web` and `worker`) together.
    - `rabbitmq` with a fixed hostname and its volume, and `RABBITMQ_*` on `api` (see [RabbitMQ](#rabbitmq)).

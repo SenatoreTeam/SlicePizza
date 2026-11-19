@@ -51,7 +51,7 @@ Caddy runs as uid 10001, so the files must be readable by others: with a umask o
 Without Docker, run the API with Uvicorn on port 8000 (see [api/README.md](../api/README.md#running)) and Caddy with the same Caddyfile, pointing it at your folders:
 
 ```bash
-SITE_ROOT=frontend/menu API_UPSTREAM=localhost:8000 caddy run --config infra/caddy/Caddyfile
+SITE_ROOT=frontend/menu API_HOST=localhost API_PORT=8000 caddy run --config infra/caddy/Caddyfile
 ```
 
 ### Talking to the API
