@@ -1,6 +1,6 @@
 # 0015: Alerts to Telegram through Grafana's own alerting
 
-- **Status:** Accepted
+- **Status:** Superseded by [0016](0016-server-monitoring.md): the server's own monitoring replaces this stack
 - **Date:** 2026-11-17
 - **Phase:** 5
 
@@ -17,7 +17,7 @@ Dashboards ([ADR 0013](0013-prometheus-and-grafana.md)) and logs ([ADR 0014](001
 
 ## Decision
 
-Option 1, in [`infra/monitoring/grafana/provisioning/alerting/`](../../infra/monitoring/grafana/provisioning/alerting/):
+Option 1, in [`infra/monitoring/grafana/provisioning/alerting/`](https://github.com/SenatoreTeam/SlicePizza/tree/42d4bf78dcaba0cb6145556758ec11b9c9373002/infra/monitoring/grafana/provisioning/alerting) (removed by ADR 0016; the link shows the last version):
 
 - **Contact point** `telegram-ops`: bot token and chat id come from `ALERT_TELEGRAM_BOT_TOKEN` and `ALERT_TELEGRAM_CHAT_ID` on the Grafana container, never from the repo. The **same bot** as the worker can be used (same token, set in both places; rotating it means updating both); send to a **separate ops chat**, not the pizzeria's, so the kitchen does not get alerts. Tradeoff: if Telegram rejects that bot, orders and alerts fail together. Grafana refuses an empty token, so the compose defaults are placeholders; with them alerts fail to send (logged) and nothing else breaks.
 - **Rules** (checked every 30 seconds, each must hold for a while so a blip stays quiet): API down (`up{job="api"}`, 30 s, also fires when there is no data), more than 5% of requests are 5xx (5 min), oldest outbox event older than 5 minutes (2 min), a RabbitMQ queue above 50 waiting messages (10 min), more than 20 error lines from the API in 5 minutes (from Loki).

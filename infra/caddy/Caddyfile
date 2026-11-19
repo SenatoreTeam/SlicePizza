@@ -61,7 +61,7 @@
 :8080 {
 	encode zstd gzip
 
-	# One access log line per request, on stdout (Phase 5 collects it).
+	# One access log line per request, on stdout (docker compose logs web).
 	log
 
 	header {
@@ -91,9 +91,7 @@
 	# The API's /internal routes are for the notification worker only, on the
 	# project network (ADR 0006): never reachable from the internet. The API
 	# also requires a token there; this keeps them out of reach either way.
-	# /api/metrics (Prometheus' scrape target, ADR 0012) is the same: Prometheus
-	# reaches the API directly on the project network, so the internet never needs it.
-	@internal path /api/internal /api/internal/* /api/metrics /api/metrics/*
+	@internal path /api/internal /api/internal/*
 	handle @internal {
 		respond "Not Found" 404
 	}

@@ -23,6 +23,18 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.2.1"
+date = 2026-11-19
+title.en = "Monitoring is the server's own"
+title.pt-br = "O monitoramento é do servidor"
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "The API no longer reports its own numbers at a private address: the server's monitoring, shared by every project on it, already watches the system. Nothing changes for customers or the kitchen."
+text.pt-br = "A API não informa mais os próprios números em um endereço privado: o monitoramento do servidor, compartilhado por todos os projetos dele, já acompanha o sistema. Nada muda para os clientes nem para a cozinha."
+
+[[release]]
 version = "1.2.0"
 date = 2026-11-17
 title.en = "The API reports how it is doing"

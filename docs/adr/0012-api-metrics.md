@@ -1,6 +1,6 @@
 # 0012: The API reports its own metrics, with no new dependency
 
-- **Status:** Accepted
+- **Status:** Superseded by [0016](0016-server-monitoring.md): the API no longer reports metrics, monitoring belongs to the server
 - **Date:** 2026-11-17
 - **Phase:** 5
 

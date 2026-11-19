@@ -1,8 +1,0 @@
-apiVersion: 1
-providers:
-  - name: SlicePizza
-    type: file
-    # Read-only: change a dashboard in the file (Git), not in the browser.
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards

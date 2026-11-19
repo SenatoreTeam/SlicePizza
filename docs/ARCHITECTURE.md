@@ -82,4 +82,3 @@ There is no staging name: each version goes straight to production (Phase 4, [RO
 | API | 8000 |
 | Postgres | 5432 |
 | RabbitMQ (Phase 3) | 5672, management UI on 15672 |
-| Grafana (Phase 5) | 3000 |

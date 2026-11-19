@@ -329,44 +329,6 @@ jobs:
       - name: Start the stack and wait for health
         run: docker compose up -d --wait
 
-      # Monitoring (ADR 0013): the same images the server runs, reading the live stack.
-      - name: Check Prometheus and Grafana
-        run: |
-          docker compose --profile monitoring up -d --build prometheus grafana loki socket-proxy alloy
-          for i in $(seq 1 30); do
-            up=$(curl -fsS http://127.0.0.1:9090/api/v1/targets | python3 -c "import sys,json;print(sorted(t['labels']['job'] for t in json.load(sys.stdin)['data']['activeTargets'] if t['health']=='up'))") || up=
-            [ "$up" = "['api', 'prometheus', 'rabbitmq']" ] && break
-            sleep 2
-          done
-          echo "targets up: $up"
-          test "$up" = "['api', 'prometheus', 'rabbitmq']"
-          for i in $(seq 1 30); do
-            curl -fsS -u admin:admin http://127.0.0.1:3000/api/datasources/uid/prometheus/health && break
-            sleep 2
-          done
-          curl -fsS -u admin:admin "http://127.0.0.1:3000/api/search?query=SlicePizza" | grep -q slicepizza-overview
-
-      # Logs (ADR 0014): Alloy reads the containers' logs through the socket
-      # proxy and Loki answers for them; the proxy refuses anything but reading.
-      - name: Check Loki and the log collection
-        run: |
-          for i in $(seq 1 30); do
-            curl -fsS -u admin:admin http://127.0.0.1:3000/api/datasources/uid/loki/health && break
-            sleep 2
-          done
-          for i in $(seq 1 45); do
-            services=$(curl -fsS -u admin:admin http://127.0.0.1:3000/api/datasources/proxy/uid/loki/loki/api/v1/label/service/values) || services=
-            echo "$services" | grep -q '"api"' && break
-            sleep 2
-          done
-          echo "services with logs: $services"
-          echo "$services" | grep -q '"api"'
-          # The proxy lets Alloy read containers and nothing else (no exec, no images).
-          code() { docker run --rm --network slicepizza_default curlimages/curl:8.11.1 -s -o /dev/null -w '%{http_code}' "$@"; }
-          test "$(code http://socket-proxy:2375/containers/json)" = 200
-          test "$(code http://socket-proxy:2375/images/json)" = 403
-          test "$(code -X POST http://socket-proxy:2375/containers/x/exec)" = 403
-
       - name: Check health and menu
         run: |
           curl -fsS http://127.0.0.1:8000/health
@@ -402,8 +364,6 @@ jobs:
           curl -fsS http://127.0.0.1:8080/api/openapi.json > /dev/null
           # The worker-only /internal routes must never be reachable through Caddy (ADR 0006).
           test "$(curl -s -o /dev/null -w '%{http_code}' -X PUT http://127.0.0.1:8080/api/internal/orders/x/telegram-subscriptions/1)" = 404
-          # Same for the metrics: Prometheus reads them on the project network (ADR 0012).
-          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/metrics)" = 404
 
       - name: Check the kitchen login (ADR 0007)
         run: |
@@ -459,7 +419,7 @@ jobs:
 
       - name: Stop the stack
         if: always()
-        run: docker compose --profile monitoring down -v
+        run: docker compose down -v
 
   images:
     # Only after everything above passed: a commit that fails a check never
@@ -479,20 +439,6 @@ jobs:
           - name: worker
             context: worker
             file: worker/Dockerfile
-          # Monitoring (ADR 0013): published as sha-<commit> only, outside the
-          # versions: they change rarely, and the server pins the one it runs.
-          - name: prometheus
-            context: infra/monitoring/prometheus
-            file: infra/monitoring/prometheus/Dockerfile
-          - name: grafana
-            context: infra/monitoring/grafana
-            file: infra/monitoring/grafana/Dockerfile
-          - name: loki
-            context: infra/monitoring/loki
-            file: infra/monitoring/loki/Dockerfile
-          - name: alloy
-            context: infra/monitoring/alloy
-            file: infra/monitoring/alloy/Dockerfile
     permissions:
       contents: read
       packages: write
