@@ -60,6 +60,35 @@ jobs:
         id: version
         run: echo "version=$(python3 -I .github/scripts/releases.py --version)" >> "$GITHUB_OUTPUT"
 
+      # Phase 8 (ADR 0021): scan the image before anything is published. The image is
+      # built once into the local Docker (layers come from the cache), scanned with Trivy
+      # (HIGH and CRITICAL with a fix available, plus secrets left in the image), and
+      # only then built again for real, which is a cache hit. An accepted finding goes
+      # in .trivyignore.yaml with a reason and an expiry date.
+      - name: Build for the scan
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.file }}
+          platforms: linux/amd64
+          pull: true
+          load: true
+          push: false
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            APP_VERSION=${{ steps.version.outputs.version }}
+          tags: scan-target:local
+          cache-from: type=gha,scope=${{ inputs.image }}
+
+      - name: Scan the image (Trivy)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD/.trivyignore.yaml:/.trivyignore.yaml:ro" \
+            aquasec/trivy:0.76.2 image \
+            --scanners vuln,secret --severity HIGH,CRITICAL --ignore-unfixed \
+            --ignorefile /.trivyignore.yaml --exit-code 1 scan-target:local
+
       - name: Build (and publish, from main)
         uses: docker/build-push-action@v7
         with:

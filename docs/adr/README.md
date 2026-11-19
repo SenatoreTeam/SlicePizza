@@ -35,3 +35,4 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0018](0018-server-backups.md) | Backups are of the whole VPS, by the server's owner | Accepted |
 | [0019](0019-redis-menu-cache.md) | An optional Redis cache for the menu, that can never make the API worse | Accepted |
 | [0020](0020-api-replicas.md) | Several API containers behind Caddy, with resource limits | Accepted |
+| [0021](0021-hardening.md) | Hardening: image scans, secret scans, an order rate limit, no root, a credential review | Accepted |

@@ -1,0 +1,15 @@
+# Secret scan of the whole Git history (Phase 8, ADR 0021). The default rules plus a
+# short list of things that look like secrets and are not.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Not secrets"
+regexes = [
+  # CI used Grafana's default admin:admin against a throwaway local container (removed since).
+  '''^admin:admin$''',
+]
+paths = [
+  # A made-up token that the worker's configuration tests set on purpose.
+  '''worker/tests/test_config\.py''',
+]

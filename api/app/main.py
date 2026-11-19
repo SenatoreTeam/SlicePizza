@@ -23,6 +23,7 @@ from .events import ORDER_CREATED, ORDER_STATUS_CHANGED, record_event
 from .internal import router as internal_router
 from .models import ALLOWED_TRANSITIONS, Order, OrderItem, OrderStatus, Pizza
 from .outbox import OutboxRelay, RabbitMQPublisher
+from .ratelimit import limit_orders
 from .schemas import OrderCreate, OrderOut, OrderStatusUpdate, PizzaOut
 from .seed import seed_menu
 
@@ -255,7 +256,13 @@ def get_menu(db: Session = Depends(get_db)) -> list[dict]:
     return menu
 
 
-@app.post("/orders", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/orders",
+    response_model=OrderOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(limit_orders)],
+    responses={429: {"description": "Too many orders from this address (ADR 0021)"}},
+)
 def create_order(payload: OrderCreate, db: Session = Depends(get_db)) -> Order:
     """Create an order, pricing it from the menu in the database."""
     pizza_ids = {item.pizza_id for item in payload.items}
