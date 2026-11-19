@@ -16,3 +16,6 @@ pika>=1.4.4,<2.0
 uvicorn>=0.54.0,<1.0
 uvloop>=0.23.0,<1.0 ; sys_platform != "win32" and platform_python_implementation == "CPython"
 httptools>=0.9.0,<1.0
+
+# Redis client for the optional menu cache (app/cache.py, ADR 0019).
+redis>=7.0,<8.0
