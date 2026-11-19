@@ -3,44 +3,39 @@
 **Zé's request:** _"The site went down Friday night and nobody noticed."_
 
 After Phase 4 a change reaches production safely, but nobody was watching what
-the system does once it is running. Phase 5 makes the system **say what is
-wrong before a customer does**.
+the system does once it is running. Phase 5 makes sure **someone is told when
+something breaks**.
 
 :::info Status
-This phase is **in progress**. Built and merged: health checks. The metrics,
-dashboards, logs and alerts first built here were removed: monitoring belongs
-to the server, which watches every project on it
-([ADR 0016](../../../docs/adr/0016-server-monitoring.md)). Not done yet: the
-external uptime check. See the [roadmap](../../../docs/ROADMAP.md).
+This phase is **in progress**. The repository first built its own monitoring
+(metrics, Prometheus, Grafana, Loki, alerts), then **removed it** in version
+1.2.1 ([ADR 0016](../../../docs/adr/0016-server-monitoring.md)): monitoring
+belongs to the server SlicePizza runs on, not to this repository. See the
+[roadmap](../../../docs/ROADMAP.md).
 :::
 
-## What Phase 5 delivers
+## What stayed in this repository
 
-- **Health checks** on every service, so Docker and the deploy know what is
-  alive.
-- **The server's monitoring**
-  ([ADR 0016](../../../docs/adr/0016-server-monitoring.md)): the server
-  SlicePizza runs on has one monitoring stack for all its projects. It shows
-  SlicePizza's containers (running, healthy, memory, processor), the
-  notifications queue, the outbox, the order counts, the backups, the version
-  that is live and the public sites. For now its panels are general ones, none
-  for one service. This repository implements no monitoring of its own.
+- **Health checks** on every service (`/health`, `/api/health`, `/version`, and
+  the containers' own checks), so Docker, the deploy and any outside monitor
+  know what is alive.
 
-## Tried and removed
+## Why monitoring moved to the server
 
-This repository first had monitoring of its own
-([ADR 0012](../../../docs/adr/0012-api-metrics.md),
-[0013](../../../docs/adr/0013-prometheus-and-grafana.md),
-[0014](../../../docs/adr/0014-loki-and-alloy.md) and
-[0015](../../../docs/adr/0015-grafana-telegram-alerts.md)): the API's own
-metrics at a private `/metrics`, Prometheus, Grafana with a SlicePizza
-dashboard, Loki and Alloy for the logs, and Telegram alerts. It ran locally and
-in CI, never on the server, and was removed when the server's monitoring took
-that role (version 1.2.1 takes `/metrics` out of the API). The files are in the
-Git history.
+SlicePizza is a guest on a server shared by several projects. That server
+already has one monitoring stack for the whole machine, kept in the server
+owner's own repository. It already watches SlicePizza from outside its network:
+containers, the notifications queue and dead letters, the outbox, order counts,
+backups, the live version and the public sites. A second Prometheus and Grafana
+for one project would repeat all of that, add versions to review, and put a
+Docker socket proxy and a second public Grafana domain on a guest.
 
-## Good to know
+The ADRs [0012](../../../docs/adr/0012-api-metrics.md) to
+[0015](../../../docs/adr/0015-grafana-telegram-alerts.md) stay as the record of
+what was built and tried (including a down-on-purpose test where the alert
+fired 56 seconds after the API stopped), and of why it was removed.
 
-- Monitoring that runs on the server cannot say the server is gone. That is why
-  an outside uptime check, from a hosted service, is the next step
-  ([DEPLOY.md](../../../docs/DEPLOY.md#external-uptime-check)).
+## What is still open
+
+The "take the API down on purpose and get the alert" check now depends on the
+server's own monitoring, so it waits for it.
