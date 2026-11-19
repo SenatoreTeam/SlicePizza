@@ -1,0 +1,16 @@
+# Findings accepted on purpose (Phase 8, ADR 0021). Each entry says why, and expires:
+# once the date passes, the scan fails again and someone has to look. Remove an entry
+# as soon as a fixed image is available. Format: https://trivy.dev/docs/latest/configuration/filtering/
+vulnerabilities:
+  - id: CVE-2026-78661
+    statement: >-
+      golang.org/x/net inside the Caddy binary. The fixed version needs a new Caddy
+      build, which the official image has not published (2.11.9 still has it).
+      Caddy only serves the site and forwards /api behind the server's own proxy.
+      Remove when a Caddy image with golang.org/x/net 0.62 or newer exists.
+    expired_at: 2026-12-20
+  - id: CVE-2026-97054
+    statement: >-
+      Go standard library inside the Caddy binary (fixed in Go 1.26.11 / 1.27.4). Same
+      reason as above: waiting for an official Caddy image built with the fixed Go.
+    expired_at: 2026-12-20

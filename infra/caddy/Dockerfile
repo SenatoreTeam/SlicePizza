@@ -23,7 +23,7 @@ RUN python3 -I /src/.github/scripts/releases.py --json > /releases.json \
 # A full version, so Dependabot proposes each update as a Pull Request
 # (.github/dependabot.yml). The pipeline also rebuilds every week (ADR 0008),
 # which picks up the Alpine fixes the official image gets under the same tag.
-FROM caddy:2.11.8-alpine
+FROM caddy:2.11.9-alpine
 
 # The official image gives the caddy binary the capability to bind ports below
 # 1024. This image listens on 8080 and runs with all capabilities dropped and

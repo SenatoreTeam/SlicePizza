@@ -42,6 +42,9 @@ os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["INTERNAL_API_TOKEN"] = "test-internal-token-0123456789abcdef"
 # Turns on the kitchen's routes: the order list and status changes (ADR 0007).
 os.environ["KITCHEN_API_TOKEN"] = "test-kitchen-token-0123456789abcdef0"
+# The tests place far more orders than a customer would, all from one address: the
+# order rate limit is off by default and test_ratelimit.py turns it on (ADR 0021).
+os.environ["ORDER_RATE_LIMIT"] = "0"
 # The origin the CORS tests treat as "the frontend" (see test_cors.py).
 os.environ["CORS_ORIGINS"] = "https://menu.slicepizza.test"
 

@@ -85,6 +85,10 @@ Order events go from the API to RabbitMQ through the outbox ([ADR 0004](adr/0004
 
 **Deploy RabbitMQ and the worker together.** Until the worker has declared its queue, events have nowhere to go: nothing is lost (they wait in `order_events`), but with `RABBITMQ_HOST` set the API logs a warning on every retry.
 
+## Order rate limit
+
+From Phase 8 the API answers `429` when one address places more than `ORDER_RATE_LIMIT` orders (default 30) in `ORDER_RATE_WINDOW` seconds (default 60) ([ADR 0021](adr/0021-hardening.md)). It uses the customer's address from `X-Forwarded-For`, so **after deploying, check that it is the customer's and not the proxy's**: `docker logs` of `web` must show different, real addresses. If every line shows the same one (the proxy's), add its range to `TRUSTED_PROXIES` on `web` (the live Traefik was at `100.80.1.0/24`), or set `ORDER_RATE_LIMIT=0` on the API until it is fixed. A refused order is logged by the API as "Order rate limit reached for <address>".
+
 ## API copies
 
 From Phase 7 the API can run as several containers of the same service ([ADR 0020](adr/0020-api-replicas.md)). One copy (the default) behaves as before.
@@ -194,7 +198,7 @@ The kitchen board is at `https://slicepizza.senatore.tech/kitchen/`, behind a lo
 To make the hash, run this on any machine with Docker. It asks for the password twice and prints the value:
 
 ```bash
-docker run --rm -it caddy:2.11.8-alpine sh -c 'caddy hash-password | base64 -w0; echo'
+docker run --rm -it caddy:2.11.9-alpine sh -c 'caddy hash-password | base64 -w0; echo'
 ```
 
 Only the hash goes on the server; keep the password in the team's password manager. Use a long one: the login is the only thing between the internet and customers' phone numbers and addresses.

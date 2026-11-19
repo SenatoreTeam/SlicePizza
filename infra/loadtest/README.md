@@ -2,10 +2,10 @@
 
 `orders.js` simulates customers: every visitor reads the menu (`GET /menu`), one in ten also places an order (`POST /orders`). It uses [k6](https://k6.io) from its Docker image, so nothing is installed.
 
-**Run it only against a local stack, never production**: it creates real orders (named "Load test").
+**Run it only against a local stack, never production**: it creates real orders (named "Load test"). Start the API with `ORDER_RATE_LIMIT=0` (the order rate limit, [ADR 0021](../../docs/adr/0021-hardening.md), would otherwise answer 429 to the test).
 
 ```bash
-docker compose up -d --wait db rabbitmq api        # the API on 127.0.0.1:8000
+ORDER_RATE_LIMIT=0 docker compose up -d --wait db rabbitmq api        # the API on 127.0.0.1:8000
 docker run --rm --network host -e SCALE=1 -v "$PWD/infra/loadtest":/t:ro grafana/k6:2.4.0 run /t/orders.js
 ```
 

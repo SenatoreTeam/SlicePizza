@@ -151,14 +151,14 @@ The whole VPS is backed up by the server's owner, Postgres and RabbitMQ volumes 
 
 ## Phase 8 (bonus): "I heard hackers attack pizzerias"
 
-**Status:** ⏳ Not started
+**Status:** ✅ Done (2026-11-19) ([ADR 0021](adr/0021-hardening.md)); released with the next version
 
 **Goal:** close the most obvious doors.
 
-- [ ] Passwords and keys kept out of Git (Dokploy environment, GitHub secrets), with a rotation routine written down
-- [ ] Scan images for vulnerabilities with Trivy in the pipeline
-- [ ] Limit requests per client on the API (rate limiting)
-- [ ] Containers running as a non-root user
-- [ ] Review the permissions of every token and credential (GitHub, Dokploy, backup storage, Telegram)
+- [x] Passwords and keys kept out of Git: `.env` is ignored, the whole history is scanned by Gitleaks on every change, and [`docs/SECRETS.md`](SECRETS.md) lists every credential with its rotation routine
+- [x] Scan images for vulnerabilities with Trivy in the pipeline, before anything is published; first findings fixed (pip removed from the images, zlib1g, Caddy 2.11.9), two in Caddy accepted with an expiry date
+- [x] Limit requests per client on the API: 30 orders per minute per address, 429 with `Retry-After`
+- [x] Containers running as a non-root user: `api`, `worker`, `web` and now `redis`; Postgres and RabbitMQ drop to their own user after fixing their folders (how the official images work)
+- [x] Review the permissions of every token and credential: [`docs/SECRETS.md`](SECRETS.md#review-phase-8-2026-11-19). The server-side items (SSH, Dokploy, Cloudflare, backups) are for the server's owner to confirm
 
 **You learn:** the basics of DevSecOps.

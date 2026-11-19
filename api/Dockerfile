@@ -14,6 +14,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r requirements.txt
 
+# Hardening (Phase 8, ADR 0021). The image's own pip is not needed to run the
+# app, and carries copies of libraries (urllib3, msgpack, setuptools) that
+# vulnerability scans flag: remove it. zlib1g is upgraded when Debian has a
+# security fix newer than the base image (a no-op once the base catches up).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip uninstall -y pip
+
 COPY app ./app
 
 # Run as an unprivileged user instead of root.

@@ -175,7 +175,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 5 | "The site went down Friday night and nobody noticed" | ✅ Done |
 | 6 | "The server died and we lost the orders" | ✅ Done |
 | 7 | "We're running a R$20 pizza promo on Friday" | ✅ Done |
-| 8 | "I heard hackers attack pizzerias" | ⏳ Not started |
+| 8 | "I heard hackers attack pizzerias" | ✅ Done |
 
 Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md).
 

@@ -54,6 +54,11 @@ const sidebars = {
       label: 'Phase 7',
       items: ['phase-7/overview'],
     },
+    {
+      type: 'category',
+      label: 'Phase 8',
+      items: ['phase-8/overview'],
+    },
   ],
 };
 
