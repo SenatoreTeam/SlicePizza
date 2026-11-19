@@ -2,7 +2,7 @@
 
 Each phase starts with a **request from Zé**, the pizzeria owner. The request is the problem; the tasks are the solution; the **definition of done** tells you when the phase is over.
 
-Check the boxes as you make progress, and keep each phase's **Status** line in step with the roadmap table in the [README](../README.md#roadmap): ✅ Done, 🚧 In progress or ⏳ Not started.
+Check the boxes as you make progress, and keep each phase's **Status** line in step with the roadmap table in the [README](../README.md#roadmap): ✅ Done, 🚧 In progress, ⏸ Postponed or ⏳ Not started.
 
 ---
 
@@ -114,7 +114,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 6: "The server died and we lost the orders"
 
-**Status:** ⏳ Not started
+**Status:** ⏸ Postponed (2026-11-19): the offsite backup destination is decided later, so this phase waits
 
 **Goal:** be able to rebuild everything from scratch, with the data, quickly. The server is a VPS with Docker and Dokploy, so this phase is **all Docker**: no Terraform and no Ansible ([ADR 0017](adr/0017-docker-only-infrastructure.md)).
 
@@ -133,11 +133,11 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 7: "We're running a R$20 pizza promo on Friday"
 
-**Status:** ⏳ Not started
+**Status:** 🚧 In progress
 
 **Goal:** handle much more traffic without going down, on the same VPS and with the same Docker setup ([ADR 0017](adr/0017-docker-only-infrastructure.md)).
 
-- [ ] Load test with k6 to find the bottleneck
+- [x] Load test with k6 to find the bottleneck: [`infra/loadtest/`](../infra/loadtest/) (baseline: 570 requests/s, p95 146 ms in stress mode on one machine, no errors)
 - [ ] Cache the menu in Redis
 - [ ] Pizza photos served through the CDN already in front of the site (Cloudflare), with long cache headers
 - [ ] Run several copies of the API behind Caddy (Docker replicas), with resource limits per container
