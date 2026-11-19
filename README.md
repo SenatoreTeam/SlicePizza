@@ -173,8 +173,8 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 3 | "Customers want to know when their pizza is on the way" | ✅ Done |
 | 4 | "Every time you change something, something breaks" | ✅ Done |
 | 5 | "The site went down Friday night and nobody noticed" | ✅ Done |
-| 6 | "The server died and we lost the orders" | ⏳ Not started |
-| 7 | "We're running a R$20 pizza promo on Friday" | ⏳ Not started |
+| 6 | "The server died and we lost the orders" | ⏸ Postponed |
+| 7 | "We're running a R$20 pizza promo on Friday" | 🚧 In progress |
 | 8 | "I heard hackers attack pizzerias" | ⏳ Not started |
 
 Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md).
