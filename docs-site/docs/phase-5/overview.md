@@ -7,7 +7,7 @@ the system does once it is running. Phase 5 makes sure **someone is told when
 something breaks**.
 
 :::info Status
-This phase is **in progress**. The repository first built its own monitoring
+This phase is **done** (2026-11-19). The repository first built its own monitoring
 (metrics, Prometheus, Grafana, Loki, alerts), then **removed it** in version
 1.2.1 ([ADR 0016](../../../docs/adr/0016-server-monitoring.md)): monitoring
 belongs to the server SlicePizza runs on, not to this repository. See the
@@ -34,8 +34,3 @@ The ADRs [0012](../../../docs/adr/0012-api-metrics.md) to
 [0015](../../../docs/adr/0015-grafana-telegram-alerts.md) stay as the record of
 what was built and tried (including a down-on-purpose test where the alert
 fired 56 seconds after the API stopped), and of why it was removed.
-
-## What is still open
-
-The "take the API down on purpose and get the alert" check now depends on the
-server's own monitoring, so it waits for it.

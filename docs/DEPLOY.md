@@ -109,14 +109,6 @@ The server's own monitoring watches SlicePizza ([ADR 0016](adr/0016-server-monit
 - the backups and the version that is live;
 - the public sites.
 
-### External uptime check
-
-The server's monitoring runs on the server itself, so it cannot say "the server is gone". Add one check from **outside** (a hosted uptime service with a free tier, for example UptimeRobot or Better Stack), which is done in that service's website by the project owner, not by the pipeline:
-
-- Monitor `https://slicepizza.senatore.tech/api/health` (expects HTTP 200 and `"status":"ok"`), every 1 to 5 minutes, and `https://slicepizza.senatore.tech/` for the menu site.
-- Send its alerts to an ops Telegram chat (not the pizzeria's) or by e-mail. No secret of the project is shared with the service: both URLs are public.
-- Point it only at these two public URLs.
-
 ## Releasing a version
 
 Production runs the newest version ([ADR 0009](adr/0009-numbered-versions.md)), and the versions live in [`releases.toml`](../releases.toml) ([ADR 0010](adr/0010-releases-file.md)). To release one, in the Pull Request:

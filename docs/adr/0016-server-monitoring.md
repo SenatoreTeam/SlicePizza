@@ -49,6 +49,6 @@ Option 3, decided by the server's owner on 2026-11-19:
 - This ADR supersedes 0012, 0013, 0014 and 0015.
 - Version 1.2.1 takes `/metrics` out of production. Nothing read it, so nothing changes for customers, the kitchen or the server's monitoring.
 - This repository sends no Telegram alerts. Phase 5's "done when" (the alert within 2 minutes) now depends on the server's monitoring.
-- The external uptime check (`docs/DEPLOY.md`) is still the project owner's to set up in a hosted service. It runs outside the server, so this decision does not change it.
+- The external uptime check once proposed for this repository was dropped (2026-11-19, by the project owner): the server's monitoring already watches `/api/health` and the public sites.
 - The images already published to GHCR stay there until an organization admin deletes them. Nothing pulls them.
 - To run the old stack locally (to learn Prometheus or Grafana, for example), use the commit before this ADR: [its `infra/monitoring/`](https://github.com/SenatoreTeam/SlicePizza/tree/42d4bf78dcaba0cb6145556758ec11b9c9373002/infra/monitoring) and [`api/app/metrics.py`](https://github.com/SenatoreTeam/SlicePizza/blob/42d4bf78dcaba0cb6145556758ec11b9c9373002/api/app/metrics.py) are in the Git history.
