@@ -47,17 +47,17 @@ Details for each component in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Orders API | Python + FastAPI | 1 |
 | Database | PostgreSQL | 1 |
 | Containers | Docker + Docker Compose | 1 |
-| Cloud | AWS or Oracle Cloud (free tier) | 2 |
+| Server | A VPS with Docker, managed with Dokploy | 2 |
 | DNS | Cloudflare | 2 |
 | Reverse proxy + HTTPS | Caddy | 2 |
 | Queue | RabbitMQ | 3 |
 | Notifications | Telegram bot | 3 |
 | CI/CD | GitHub Actions + GHCR | 4 |
 | Observability | Health checks; monitoring is the server's own | 5 |
-| Infrastructure as code | Terraform + Ansible | 6 |
+| Backups and disaster recovery | `pg_dump` + encryption + offsite copy, all in containers | 6 |
 | Cache | Redis | 7 |
-| Orchestration | Kubernetes (k3s) + Helm | 7 |
-| Security | Trivy, secrets manager | 8 |
+| Scaling | Docker (replicas behind Caddy) + k6 load tests | 7 |
+| Security | Trivy, secrets kept out of Git | 8 |
 
 ## Repository structure
 
@@ -66,7 +66,7 @@ SlicePizza/
 ├── api/            # Orders API (FastAPI)               → Phase 1
 ├── worker/         # Notification worker                → Phase 3
 ├── frontend/       # Menu website + kitchen board       → Phases 2 and 3
-├── infra/          # Terraform, Ansible, Kubernetes     → Phases 6 and 7
+├── infra/          # Caddy, backup job, server runbook  → Phases 2 and 6
 ├── docs/           # Documentation, roadmap and ADRs
 ├── docs-site/      # Documentation website (Docusaurus)
 ├── .github/        # Templates and CI/CD pipelines      → Phase 4
@@ -172,7 +172,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 2 | "I want the site live on my own domain" | ✅ Done |
 | 3 | "Customers want to know when their pizza is on the way" | ✅ Done |
 | 4 | "Every time you change something, something breaks" | ✅ Done |
-| 5 | "The site went down Friday night and nobody noticed" | ⏳ Not started |
+| 5 | "The site went down Friday night and nobody noticed" | ✅ Done |
 | 6 | "The server died and we lost the orders" | ⏳ Not started |
 | 7 | "We're running a R$20 pizza promo on Friday" | ⏳ Not started |
 | 8 | "I heard hackers attack pizzerias" | ⏳ Not started |
@@ -181,7 +181,7 @@ Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md
 
 ## Ground rules
 
-1. **Everything lives in Git.** From Phase 6 on, making changes directly on the server is not allowed.
+1. **Everything lives in Git.** From Phase 6 on, making changes directly on the server is not allowed: what runs there is described in Git (compose files, the backup job, the runbook), and the few Dokploy settings that cannot be in Git are listed in the runbook.
 2. **Nothing goes straight to `main`.** Every change goes through a Pull Request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 3. **Every important decision becomes an ADR** in [docs/adr/](docs/adr/). For example: "why RabbitMQ and not Redis?".
 4. **Secrets never go into Git.** Use the `.env` file (it's in `.gitignore`).

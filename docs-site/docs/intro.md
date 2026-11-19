@@ -5,7 +5,7 @@ online ordering system for a fictional pizzeria, **Zé's Pizzeria**.
 
 The system starts small and grows in phases. In each phase, the "pizzeria owner"
 asks for something new, and that request forces you to learn a new technology:
-Docker, DNS, cloud, queues, CI/CD, observability, Terraform and Kubernetes.
+Docker, DNS, servers, queues, CI/CD, observability, backups and scaling.
 
 > The idea is to **feel the problem before using the tool**.
 

@@ -5,7 +5,7 @@ sistema de pedidos online para uma pizzaria fictícia, a **Pizzaria do Zé**.
 
 O sistema começa pequeno e cresce em fases. A cada fase, o "dono da pizzaria"
 pede algo novo, e esse pedido obriga você a aprender uma nova tecnologia:
-Docker, DNS, nuvem, filas, CI/CD, observabilidade, Terraform e Kubernetes.
+Docker, DNS, servidores, filas, CI/CD, observabilidade, backups e escala.
 
 > A ideia é **sentir o problema antes de usar a ferramenta**.
 

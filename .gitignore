@@ -19,11 +19,10 @@ venv/
 # Logs
 *.log
 
-# Terraform (Phase 6)
-.terraform/
-*.tfstate
-*.tfstate.*
-*.tfvars
+# Backups and dumps (Phase 6): never commit data
+*.dump
+*.sql.gz
+*.age
 
 # Editors and OS
 .idea/
