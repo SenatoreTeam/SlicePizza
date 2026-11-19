@@ -23,6 +23,24 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.4.0"
+date = 2026-11-19
+title.en = "Safer against abuse"
+title.pt-br = "Mais protegido contra abusos"
+
+[[release.item]]
+kind = "security"
+area = "Orders"
+text.en = "Placing orders is limited to 30 per minute from one address, so a script cannot flood the kitchen and Telegram. Customers ordering normally will not notice."
+text.pt-br = "Fazer pedidos é limitado a 30 por minuto vindos de um mesmo endereço, para que um script não inunde a cozinha e o Telegram. Quem pede normalmente não vai notar."
+
+[[release.item]]
+kind = "security"
+area = "System"
+text.en = "Every image is now checked for known security problems and for forgotten secrets before it is published, and the whole history of the code is scanned for secrets. Unneeded tools were removed from the images and the web server was updated."
+text.pt-br = "Cada imagem agora é conferida atrás de problemas de segurança conhecidos e de segredos esquecidos antes de ser publicada, e todo o histórico do código é varrido atrás de segredos. Ferramentas desnecessárias foram removidas das imagens e o servidor web foi atualizado."
+
+[[release]]
 version = "1.3.0"
 date = 2026-11-19
 title.en = "Ready for a busy Friday"
