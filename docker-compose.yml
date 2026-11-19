@@ -54,6 +54,23 @@ services:
       retries: 12
       start_period: 20s
 
+  # Menu cache (Phase 7, ADR 0019). Optional: the API works without it and
+  # falls back to Postgres if it is down. Nothing is saved to disk (a cache can
+  # be lost), memory is capped, and no port is published: only containers on
+  # this project's network reach it.
+  redis:
+    image: redis:8.2.11-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   api:
     build:
       context: ./api
@@ -87,6 +104,9 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      # The menu cache (ADR 0019). Unset: no cache, every menu read goes to
+      # Postgres. Redis being down is not an error for the API.
+      REDIS_HOST: redis
       # Turns on the routes the worker calls to link customers' Telegram chats
       # to their orders (ADR 0006). Unset: those routes answer 404.
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-}

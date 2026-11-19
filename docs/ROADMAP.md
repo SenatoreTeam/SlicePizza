@@ -137,7 +137,7 @@ The whole VPS is backed up by the server's owner, Postgres and RabbitMQ volumes 
 **Goal:** handle much more traffic without going down, on the same VPS and with the same Docker setup ([ADR 0017](adr/0017-docker-only-infrastructure.md)).
 
 - [x] Load test with k6 to find the bottleneck: [`infra/loadtest/`](../infra/loadtest/) (baseline: 570 requests/s, p95 146 ms in stress mode on one machine, no errors)
-- [ ] Cache the menu in Redis
+- [x] Cache the menu in Redis, optional and fail-safe ([ADR 0019](adr/0019-redis-menu-cache.md)): 570 → 866 requests/s in stress mode; **needs a `redis` container on the server**
 - [ ] Pizza photos served through the CDN already in front of the site (Cloudflare), with long cache headers
 - [ ] Run several copies of the API behind Caddy (Docker replicas), with resource limits per container
 - [ ] Database tuning: connection pool size, indexes the load test shows are missing

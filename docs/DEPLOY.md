@@ -33,6 +33,7 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 
 | `db` | `postgres:16-alpine` | No: only `api` reaches it | See [Database](#database) |
 | `rabbitmq` | `rabbitmq:4.4.0-management-alpine` | No: only `api` and `worker` reach it | See [RabbitMQ](#rabbitmq) |
+| `redis` | `redis:8.2.11-alpine` | No: only `api` reaches it | Optional menu cache, see [Redis](#redis-menu-cache) |
 | `worker` | `slicepizza-worker` ([`worker/`](../worker/)) | No: no port at all, it only connects out (RabbitMQ, Telegram) | `RABBITMQ_HOST`, `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_PIZZERIA_CHAT_ID`. See [Worker](#worker) |
 
 Both trust the forwarding headers of the proxy in front of them: Caddy those of the server's proxy (from private addresses, see the Caddyfile), and the API those of Caddy (also from private addresses only). That way the access logs show the customer's IP, and links and redirects the API generates keep `https`.
@@ -83,6 +84,19 @@ Order events go from the API to RabbitMQ through the outbox ([ADR 0004](adr/0004
 | API variables | `RABBITMQ_HOST` (the service name), `RABBITMQ_USER`, `RABBITMQ_PASSWORD`; optionally `RABBITMQ_PORT` (5672) and `RABBITMQ_VHOST` (`/`) |
 
 **Deploy RabbitMQ and the worker together.** Until the worker has declared its queue, events have nowhere to go: nothing is lost (they wait in `order_events`), but with `RABBITMQ_HOST` set the API logs a warning on every retry.
+
+## Redis (menu cache)
+
+Optional, from Phase 7 ([ADR 0019](adr/0019-redis-menu-cache.md)). Without it the API reads the menu from Postgres, as before; with it, the menu comes from memory for up to 60 seconds.
+
+| Item | On the server |
+|---|---|
+| Image | `redis:8.2.11-alpine`, the same as `docker-compose.yml`. Command: `redis-server --save "" --appendonly no --maxmemory 64mb --maxmemory-policy allkeys-lru` |
+| Network | The project's network only. **No published port**, no domain, no password (set one with `--requirepass` if the network is ever shared) |
+| Data | None: a cache can be lost. No volume |
+| API variables | `REDIS_HOST` (the service name, e.g. `redis`); optionally `REDIS_PORT` (6379) and `REDIS_PASSWORD`. Unset `REDIS_HOST` to turn the cache off |
+
+The API does not wait for Redis: if it is missing or down, every request goes to Postgres.
 
 ## Worker
 

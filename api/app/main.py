@@ -15,6 +15,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
+from . import cache
 from .auth import require_kitchen
 from .config import settings
 from .database import Base, SessionLocal, engine, get_db, wait_for_database
@@ -60,6 +61,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         seed_menu(db)
+    cache.clear_menu()  # the menu may have changed: never serve the old one
 
     if settings.rabbitmq is not None:
         rabbitmq = settings.rabbitmq
@@ -242,9 +244,15 @@ def health(db: Session = Depends(get_db)) -> dict[str, str]:
 
 
 @app.get("/menu", response_model=list[PizzaOut])
-def get_menu(db: Session = Depends(get_db)) -> list[Pizza]:
-    """List the pizzas on the menu."""
-    return list(db.scalars(select(Pizza).order_by(Pizza.id)))
+def get_menu(db: Session = Depends(get_db)) -> list[dict]:
+    """List the pizzas on the menu (from Redis when it is on, ADR 0019)."""
+    cached = cache.get_menu()
+    if cached is not None:
+        return cached
+    pizzas = db.scalars(select(Pizza).order_by(Pizza.id))
+    menu = [PizzaOut.model_validate(pizza).model_dump(mode="json") for pizza in pizzas]
+    cache.set_menu(menu)
+    return menu
 
 
 @app.post("/orders", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
