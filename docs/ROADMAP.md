@@ -100,15 +100,15 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 - [x] `/health` route on every service (each container has a health check; the API's `/health` is the full-path one)
 - [x] Expose API metrics to Prometheus: orders, latency, errors and the outbox backlog at `/metrics`, private ([ADR 0012](adr/0012-api-metrics.md))
-- [x] Grafana dashboards: the SlicePizza overview, provisioned from Git ([ADR 0013](adr/0013-prometheus-and-grafana.md)). Prometheus and Grafana run locally with `docker compose --profile monitoring up`; published as images by the pipeline; **not on the server yet**
-- [x] Centralize container logs in Loki, collected by Alloy through a read-only Docker proxy, 7 days, shown in Grafana ([ADR 0014](adr/0014-loki-and-alloy.md)); **not on the server yet**
-- [x] Telegram alerts from Grafana: API down, 5xx, stuck outbox, queue backlog, error logs ([ADR 0015](adr/0015-grafana-telegram-alerts.md)); **needs the two `ALERT_TELEGRAM_*` variables on the server**
+- [x] ~~Grafana dashboards: the SlicePizza overview, provisioned from Git ([ADR 0013](adr/0013-prometheus-and-grafana.md))~~ Replaced (decided 2026-11-19, [ADR 0016](adr/0016-server-monitoring.md)): the server's own monitoring, shared by every project on it, already shows SlicePizza's containers, queue, outbox, orders, backups, version and sites. For now it has general panels only, none for one service
+- [x] ~~Centralize container logs in Loki, collected by Alloy through a read-only Docker proxy, 7 days, shown in Grafana ([ADR 0014](adr/0014-loki-and-alloy.md))~~ Removed with [ADR 0016](adr/0016-server-monitoring.md): monitoring belongs to the server, not to this repository
+- [x] ~~Telegram alerts from Grafana: API down, 5xx, stuck outbox, queue backlog, error logs ([ADR 0015](adr/0015-grafana-telegram-alerts.md))~~ Removed with [ADR 0016](adr/0016-server-monitoring.md): alerts, like the dashboards, belong to the server's monitoring
 
 - [ ] An external uptime check on `/api/health` and `/`, set up by the project owner (steps in [`DEPLOY.md`](DEPLOY.md#external-uptime-check)); the down-on-purpose test passed locally
 
 **Done when:** you take the API down on purpose and get the alert within 2 minutes.
 
-_Local test passed (2026-11-18): the alert fires 56 seconds after the API stops; the Telegram delivery is verified once the bot is set on the server._
+_Local test passed (2026-11-18) with this repository's former alerts: the alert fired 56 seconds after the API stopped. Since [ADR 0016](adr/0016-server-monitoring.md) the alerts belong to the server's monitoring, so this check waits for it._
 
 **You learn:** observability, metrics, logs and alerting.
 

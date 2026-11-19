@@ -102,36 +102,22 @@ How to create the bot and find the chat id: [worker/README.md](../worker/README.
 
 ## Monitoring
 
-Prometheus and Grafana ([ADR 0013](adr/0013-prometheus-and-grafana.md)) and, for logs, Loki and Alloy ([ADR 0014](adr/0014-loki-and-alloy.md)) run next to the system, from images the pipeline publishes with their configuration inside. They are **not** part of the numbered versions: use the newest `sha-<commit>` tag of `main` that has them, and move it by hand only when [`infra/monitoring/`](../infra/monitoring/) changes.
+The server's own monitoring watches SlicePizza ([ADR 0016](adr/0016-server-monitoring.md)). It is shared by every project on the server and kept by the server's owner outside this repository, so **nothing to deploy from here**. It looks from outside the project's network:
 
-| Container | Image | Public? | Settings |
-|---|---|---|---|
-| `prometheus` | `ghcr.io/senatoreteam/slicepizza-prometheus:sha-<commit>` | **No**: no domain and no published port. It has no login of its own | A named volume on `/prometheus` (15 days, at most 2 GB). Same project network as `api` and `rabbitmq`: it reads `api:8000/metrics` and `rabbitmq:15692` |
-| `grafana` | `ghcr.io/senatoreteam/slicepizza-grafana:sha-<commit>` | **Yes, behind its login**: `https://grafana.slicepizza.senatore.tech` → `grafana` port **3000** | `GF_SECURITY_ADMIN_PASSWORD`: strong and random, stored on the server (the user is `admin`). `GF_SERVER_ROOT_URL=https://grafana.slicepizza.senatore.tech`. A named volume on `/var/lib/grafana`. Same network as `prometheus` |
+- each container: running, healthy, restarts, memory and processor;
+- the notifications queue and its dead letters, the outbox and the order counts;
+- the backups and the version that is live;
+- the public sites.
 
-### Logs (Loki)
-
-| Container | Image | Public? | Settings |
-|---|---|---|---|
-| `loki` | `ghcr.io/senatoreteam/slicepizza-loki:sha-<commit>` | **No**: no domain, no published port, no login of its own | A named volume on `/loki` (7 days). Same network as `grafana` and `alloy` |
-| `socket-proxy` | `tecnativa/docker-socket-proxy:v0.5.0` | **No** | Env `CONTAINERS=1`, `NETWORKS=1`, `POST=0`; `/var/run/docker.sock` mounted `:ro`; read-only filesystem with tmpfs on `/run` and `/tmp`. The only container that sees the socket |
-| `alloy` | `ghcr.io/senatoreteam/slicepizza-alloy:sha-<commit>` | **No** | Runs as the `alloy` user, `cap_drop: ALL`, a named volume on `/var/lib/alloy/data`. Reaches `socket-proxy:2375` and `loki:3100` |
-
-Alerts ([ADR 0015](adr/0015-grafana-telegram-alerts.md)): set `ALERT_TELEGRAM_BOT_TOKEN` and `ALERT_TELEGRAM_CHAT_ID` on `grafana` (the same bot as the worker works; use a separate ops chat with the bot added, not the pizzeria's chat, so the kitchen does not get alerts) and the five alert rules message that chat.
-
-Grafana (the same container as above) must be on the same network as `loki`. Make the `loki` and `alloy` packages public, add the three containers, and the **Recent logs** panel of the overview dashboard fills in. **Never give `loki` a domain**, and never mount the Docker socket in anything but `socket-proxy`.
-
-### Setting it up
-
-To set it up: make the two packages public (like in [One-time setup](#one-time-setup)), add the two containers to the project's compose, create the DNS record `A grafana.slicepizza → 179.66.139.4`, and add the domain to `grafana` with HTTPS. Then open the domain, log in, and the **SlicePizza overview** dashboard shows the live numbers. **Never give `prometheus` a domain**: anyone who reached it could read every number without logging in.
+The API's `/metrics` ([ADR 0012](adr/0012-api-metrics.md)) stays private on the project network. For now nothing on the server reads it: the server's panels are general ones.
 
 ### External uptime check
 
-Grafana's alerts run on the same server, so they cannot say "the server is gone". Add one check from **outside** (a hosted uptime service with a free tier, for example UptimeRobot or Better Stack), which is done in that service's website by the project owner, not by the pipeline:
+The server's monitoring runs on the server itself, so it cannot say "the server is gone". Add one check from **outside** (a hosted uptime service with a free tier, for example UptimeRobot or Better Stack), which is done in that service's website by the project owner, not by the pipeline:
 
 - Monitor `https://slicepizza.senatore.tech/api/health` (expects HTTP 200 and `"status":"ok"`), every 1 to 5 minutes, and `https://slicepizza.senatore.tech/` for the menu site.
-- Send its alerts to the same ops Telegram chat (or e-mail). No secret of the project is shared with the service: both URLs are public.
-- Do not point it at Grafana, Prometheus or Loki.
+- Send its alerts to an ops Telegram chat (not the pizzeria's) or by e-mail. No secret of the project is shared with the service: both URLs are public.
+- Point it only at these two public URLs.
 
 ## Releasing a version
 

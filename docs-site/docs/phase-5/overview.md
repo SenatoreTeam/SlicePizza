@@ -7,10 +7,11 @@ the system does once it is running. Phase 5 makes the system **say what is
 wrong before a customer does**.
 
 :::info Status
-This phase is **in progress**. Built and merged: health checks, metrics,
-dashboards, logs and Telegram alerts. Not done yet: the down-on-purpose test,
-the external uptime check, and putting the monitoring on the server. See the
-[roadmap](../../../docs/ROADMAP.md).
+This phase is **in progress**. Built and merged: health checks and the API's
+metrics. The dashboards, logs and alerts first built here were removed:
+monitoring belongs to the server, which watches every project on it
+([ADR 0016](../../../docs/adr/0016-server-monitoring.md)). Not done yet: the
+external uptime check. See the [roadmap](../../../docs/ROADMAP.md).
 :::
 
 ## What Phase 5 delivers
@@ -20,23 +21,27 @@ the external uptime check, and putting the monitoring on the server. See the
 - **Metrics** ([ADR 0012](../../../docs/adr/0012-api-metrics.md)): the API
   reports orders, latency, errors and the outbox backlog on a private
   `/metrics`.
-- **Dashboards** ([ADR 0013](../../../docs/adr/0013-prometheus-and-grafana.md)):
-  Prometheus stores the numbers, Grafana shows a SlicePizza overview that lives
-  in Git.
-- **Logs** ([ADR 0014](../../../docs/adr/0014-loki-and-alloy.md)): Loki keeps 7
-  days of every container's logs, Alloy collects them through a read-only Docker
-  proxy, and they are searchable in the same Grafana.
-- **Alerts** ([ADR 0015](../../../docs/adr/0015-grafana-telegram-alerts.md)):
-  Grafana messages a Telegram chat when the API is down, more than 5% of
-  requests fail, an order waits more than 5 minutes to reach the kitchen, a
-  queue backs up, or the API logs many errors. Each rule must hold for a few
-  minutes, so a blip stays quiet. The bot token and chat id are never in the
-  repository.
+- **The server's monitoring**
+  ([ADR 0016](../../../docs/adr/0016-server-monitoring.md)): the server
+  SlicePizza runs on has one monitoring stack for all its projects. It shows
+  SlicePizza's containers (running, healthy, memory, processor), the
+  notifications queue, the outbox, the order counts, the backups, the version
+  that is live and the public sites. For now its panels are general ones, none
+  for one service.
+
+## Tried and removed
+
+This repository first had a monitoring stack of its own
+([ADR 0013](../../../docs/adr/0013-prometheus-and-grafana.md),
+[0014](../../../docs/adr/0014-loki-and-alloy.md) and
+[0015](../../../docs/adr/0015-grafana-telegram-alerts.md)): Prometheus, Grafana
+with a SlicePizza dashboard, Loki and Alloy for the logs, and Telegram alerts.
+It ran locally and in CI, never on the server, and was removed when the
+server's monitoring took that role. The files are in the Git history.
 
 ## Good to know
 
-- Prometheus and Loki have no login of their own and **never get a domain**;
-  only Grafana is public, behind its login.
-- Alerts live inside the same server: if the server is gone, no message. That
-  is why an outside uptime check is the next step.
-- Logs can contain personal data; they stay on the server and are kept 7 days.
+- Monitoring that runs on the server cannot say the server is gone. That is why
+  an outside uptime check, from a hosted service, is the next step
+  ([DEPLOY.md](../../../docs/DEPLOY.md#external-uptime-check)).
+- `/metrics` never gets a public address: Caddy answers 404 for `/api/metrics`.

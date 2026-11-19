@@ -112,55 +112,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Base images of the monitoring containers (ADR 0013).
-  - package-ecosystem: docker
-    directory: /infra/monitoring/prometheus
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: America/Sao_Paulo
-    cooldown:
-      default-days: 7
-    commit-message:
-      prefix: "chore(deps)"
-
-  - package-ecosystem: docker
-    directory: /infra/monitoring/grafana
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: America/Sao_Paulo
-    cooldown:
-      default-days: 7
-    commit-message:
-      prefix: "chore(deps)"
-
-  - package-ecosystem: docker
-    directory: /infra/monitoring/loki
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: America/Sao_Paulo
-    cooldown:
-      default-days: 7
-    commit-message:
-      prefix: "chore(deps)"
-
-  - package-ecosystem: docker
-    directory: /infra/monitoring/alloy
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: America/Sao_Paulo
-    cooldown:
-      default-days: 7
-    commit-message:
-      prefix: "chore(deps)"
-
   # Images in docker-compose.yml (postgres, rabbitmq). Dependabot only edits that file: when
   # it bumps rabbitmq, also bump the CI service in .github/workflows/ci.yml (worker tests)
   # and docs/DEPLOY.md, so the worker is tested against the version it runs with.

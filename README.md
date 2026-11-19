@@ -53,7 +53,7 @@ Details for each component in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Queue | RabbitMQ | 3 |
 | Notifications | Telegram bot | 3 |
 | CI/CD | GitHub Actions + GHCR | 4 |
-| Observability | Prometheus, Grafana, Loki | 5 |
+| Observability | Health checks, the API's metrics; dashboards on the server's monitoring | 5 |
 | Infrastructure as code | Terraform + Ansible | 6 |
 | Cache | Redis | 7 |
 | Orchestration | Kubernetes (k3s) + Helm | 7 |

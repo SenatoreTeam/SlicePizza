@@ -1,6 +1,6 @@
 # 0013: Prometheus and Grafana, on the same server, from files in Git
 
-- **Status:** Accepted
+- **Status:** Superseded by [0016](0016-server-monitoring.md): the server's own monitoring replaces this stack
 - **Date:** 2026-11-17
 - **Phase:** 5
 
@@ -16,7 +16,7 @@
 
 ## Decision
 
-Option 1, in [`infra/monitoring/`](../../infra/monitoring/):
+Option 1, in [`infra/monitoring/`](https://github.com/SenatoreTeam/SlicePizza/tree/42d4bf78dcaba0cb6145556758ec11b9c9373002/infra/monitoring) (removed by ADR 0016; the link shows the last version):
 
 - **Prometheus** (`prom/prometheus`, pinned) scrapes every 15 s: the API (`api:8000/metrics`), RabbitMQ's built-in exporter (`rabbitmq:15692`, on by default in the official image) and itself. It keeps **15 days and at most 2 GB**: a full disk would take the whole server down.
 - **Grafana** (`grafana/grafana`, pinned) with the datasource and the **SlicePizza overview** dashboard **provisioned from files**: services up, orders per minute, the release running, requests by status, 5xx per minute, latency p95 by route, the outbox backlog and its oldest event, and RabbitMQ's messages. Dashboards are read-only in the browser: to change one, change the file in Git, like the rest of the project. Sign-up and anonymous access are off, and Grafana's reporting to its vendor is off.

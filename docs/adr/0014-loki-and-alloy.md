@@ -1,6 +1,6 @@
 # 0014: Container logs in Loki, collected by Alloy through a read-only Docker proxy
 
-- **Status:** Accepted
+- **Status:** Superseded by [0016](0016-server-monitoring.md): the server's own monitoring replaces this stack
 - **Date:** 2026-11-17
 - **Phase:** 5
 
@@ -18,7 +18,7 @@
 
 ## Decision
 
-Option 1, in [`infra/monitoring/`](../../infra/monitoring/):
+Option 1, in [`infra/monitoring/`](https://github.com/SenatoreTeam/SlicePizza/tree/42d4bf78dcaba0cb6145556758ec11b9c9373002/infra/monitoring) (removed by ADR 0016; the link shows the last version):
 
 - **Loki** (`grafana/loki`, pinned) as one process on a named volume, **7 days** of retention (the compactor deletes older data), no login of its own. Loki has no "at most N GB" setting, so the limit is age, plus ingestion rate limits per stream so one noisy container cannot fill the disk. Like Prometheus, it must **never get a domain**.
 - **Alloy** (`grafana/alloy`, pinned) discovers every container through the proxy, labels each log line with `service` (the compose service) and `container`, and pushes to Loki. It runs as its own non-root user with `cap_drop: ALL`.
