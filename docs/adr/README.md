@@ -31,3 +31,4 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0014](0014-loki-and-alloy.md) | Container logs in Loki, collected by Alloy through a read-only Docker proxy | Superseded by 0016 |
 | [0015](0015-grafana-telegram-alerts.md) | Alerts to Telegram through Grafana's own alerting | Superseded by 0016 |
 | [0016](0016-server-monitoring.md) | Monitoring belongs to the server, not to this repository | Accepted |
+| [0017](0017-docker-only-infrastructure.md) | The infrastructure is Docker on one VPS, with no Terraform, Ansible or Kubernetes | Accepted |

@@ -116,18 +116,18 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 **Status:** ⏳ Not started
 
-**Goal:** be able to rebuild everything from scratch, with the data, quickly.
+**Goal:** be able to rebuild everything from scratch, with the data, quickly. The server is a VPS with Docker and Dokploy, so this phase is **all Docker**: no Terraform and no Ansible ([ADR 0017](adr/0017-docker-only-infrastructure.md)).
 
-- [ ] Daily Postgres backup, encrypted, uploaded to S3
-- [ ] Retention rule on S3 (e.g. keep 30 days)
-- [ ] Test restoring the backup
-- [ ] Terraform in `infra/terraform/`: network, virtual machine, firewall, DNS records
-- [ ] Ansible in `infra/ansible/`: install Docker and configure the server
-- [ ] IAM user with least privilege for the backup
+- [ ] A backup container in `infra/backup/`: daily `pg_dump` of Postgres, compressed and **encrypted**, with the key kept off the server
+- [ ] An **offsite** copy: a place that survives the VPS dying (an S3-compatible bucket or another machine; chosen in its own ADR). Credentials with the least power possible: write-only to that one place
+- [ ] Retention rule (e.g. keep 30 days, then delete)
+- [ ] Test restoring the backup into an empty Postgres, and repeat it on a schedule
+- [ ] A runbook in `infra/server/`: rebuild SlicePizza on a **fresh VPS** (Docker, Dokploy, firewall, DNS, `.env`, restore), with every Dokploy setting that is not in Git written down
+- [ ] Time the rebuild once, for real
 
-**Done when:** `terraform destroy`, then `terraform apply`, restore the backup, and everything is back in under 30 minutes.
+**Done when:** on a new empty VPS, following only the runbook, you restore the latest backup and the whole system is back in under 30 minutes.
 
-**You learn:** infrastructure as code (IaC), disaster recovery and IAM.
+**You learn:** backups and disaster recovery, encryption and key custody, least-privilege credentials, and restore drills.
 
 ---
 
@@ -135,19 +135,18 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 **Status:** ⏳ Not started
 
-**Goal:** handle much more traffic without going down.
+**Goal:** handle much more traffic without going down, on the same VPS and with the same Docker setup ([ADR 0017](adr/0017-docker-only-infrastructure.md)).
 
 - [ ] Load test with k6 to find the bottleneck
 - [ ] Cache the menu in Redis
-- [ ] Pizza photos on S3 with a CDN
-- [ ] Migrate to Kubernetes (k3s) with manifests in `infra/k8s/`
-- [ ] Ingress + cert-manager (automatic HTTPS)
-- [ ] Autoscaling with HPA
-- [ ] Package with Helm
+- [ ] Pizza photos served through the CDN already in front of the site (Cloudflare), with long cache headers
+- [ ] Run several copies of the API behind Caddy (Docker replicas), with resource limits per container
+- [ ] Database tuning: connection pool size, indexes the load test shows are missing
+- [ ] Capacity notes: how far one VPS goes, and what the next step would be (a bigger VPS, a second server)
 
 **Done when:** the system handles 10 times the normal traffic without errors.
 
-**You learn:** scalability, caching, Kubernetes and load testing.
+**You learn:** scalability, caching, horizontal scaling with containers and load testing. (Kubernetes is out of scope on one VPS: see the ADR.)
 
 ---
 
@@ -157,10 +156,10 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 **Goal:** close the most obvious doors.
 
-- [ ] Passwords and keys in a secrets manager
+- [ ] Passwords and keys kept out of Git (Dokploy environment, GitHub secrets), with a rotation routine written down
 - [ ] Scan images for vulnerabilities with Trivy in the pipeline
 - [ ] Limit requests per client on the API (rate limiting)
 - [ ] Containers running as a non-root user
-- [ ] Review IAM permissions
+- [ ] Review the permissions of every token and credential (GitHub, Dokploy, backup storage, Telegram)
 
 **You learn:** the basics of DevSecOps.

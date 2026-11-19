@@ -22,7 +22,7 @@ A merge reaches production only when it adds a version at the top of [`releases.
 | `feat/` | New feature | `feat/create-order` |
 | `fix/` | Bug fix | `fix/invalid-status` |
 | `docs/` | Documentation only | `docs/adr-rabbitmq` |
-| `infra/` | Docker, Terraform, CI/CD | `infra/api-pipeline` |
+| `infra/` | Docker, backups, CI/CD | `infra/api-pipeline` |
 
 ## Commit messages
 
