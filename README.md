@@ -54,7 +54,7 @@ Details for each component in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Notifications | Telegram bot | 3 |
 | CI/CD | GitHub Actions + GHCR | 4 |
 | Observability | Health checks; monitoring is the server's own | 5 |
-| Backups and disaster recovery | `pg_dump` + encryption + offsite copy, all in containers | 6 |
+| Backups and disaster recovery | Whole-VPS backup, by the server's owner | 6 |
 | Cache | Redis | 7 |
 | Scaling | Docker (replicas behind Caddy) + k6 load tests | 7 |
 | Security | Trivy, secrets kept out of Git | 8 |
@@ -66,7 +66,7 @@ SlicePizza/
 ├── api/            # Orders API (FastAPI)               → Phase 1
 ├── worker/         # Notification worker                → Phase 3
 ├── frontend/       # Menu website + kitchen board       → Phases 2 and 3
-├── infra/          # Caddy, backup job, server runbook  → Phases 2 and 6
+├── infra/          # Caddy, load test                   → Phases 2 and 7
 ├── docs/           # Documentation, roadmap and ADRs
 ├── docs-site/      # Documentation website (Docusaurus)
 ├── .github/        # Templates and CI/CD pipelines      → Phase 4
@@ -173,7 +173,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 3 | "Customers want to know when their pizza is on the way" | ✅ Done |
 | 4 | "Every time you change something, something breaks" | ✅ Done |
 | 5 | "The site went down Friday night and nobody noticed" | ✅ Done |
-| 6 | "The server died and we lost the orders" | ⏸ Postponed |
+| 6 | "The server died and we lost the orders" | ✅ Done |
 | 7 | "We're running a R$20 pizza promo on Friday" | 🚧 In progress |
 | 8 | "I heard hackers attack pizzerias" | ⏳ Not started |
 
@@ -181,7 +181,7 @@ Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md
 
 ## Ground rules
 
-1. **Everything lives in Git.** From Phase 6 on, making changes directly on the server is not allowed: what runs there is described in Git (compose files, the backup job, the runbook), and the few Dokploy settings that cannot be in Git are listed in the runbook.
+1. **Everything lives in Git.** From Phase 6 on, making changes directly on the server is not allowed: what runs there is described in Git (compose files and `.env.example`), and what lives only on the server is backed up with it by the server's owner.
 2. **Nothing goes straight to `main`.** Every change goes through a Pull Request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 3. **Every important decision becomes an ADR** in [docs/adr/](docs/adr/). For example: "why RabbitMQ and not Redis?".
 4. **Secrets never go into Git.** Use the `.env` file (it's in `.gitignore`).

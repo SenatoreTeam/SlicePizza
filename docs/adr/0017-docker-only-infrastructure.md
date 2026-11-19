@@ -18,7 +18,7 @@ The first roadmap assumed a cloud account: Terraform to create the network, the 
 
 Option 2.
 
-- **Phase 6** is backups and disaster recovery with containers: a backup container (dump, encryption, offsite copy, retention), restore tests, and a runbook in `infra/server/` to rebuild on a fresh VPS in under 30 minutes. The offsite destination (an S3-compatible bucket or another machine) gets its own ADR when chosen.
+- **Phase 6** was planned as backups and disaster recovery with containers; it was then taken by the server's owner as a backup of the whole VPS ([ADR 0018](0018-server-backups.md)).
 - **Phase 7** scales with what Docker gives on one machine: Redis, several API replicas behind Caddy, resource limits, a CDN already in front (Cloudflare), and k6 load tests. Kubernetes and Helm are removed: on one VPS they add a control plane and no hardware.
 - **Phase 8** keeps its goals; "IAM" becomes a review of every token and credential the project uses.
 - The rule "no manual changes on the server" stays: what runs is in Git, and what Dokploy keeps outside Git is listed in the runbook.
