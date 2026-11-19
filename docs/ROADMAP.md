@@ -94,7 +94,7 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 
 ## Phase 5: "The site went down Friday night and nobody noticed"
 
-**Status:** 🚧 In progress
+**Status:** ✅ Done (2026-11-19)
 
 **Goal:** know something broke before a customer complains.
 
@@ -104,11 +104,9 @@ Check the boxes as you make progress, and keep each phase's **Status** line in s
 - [x] ~~Centralize container logs in Loki, collected by Alloy through a read-only Docker proxy, 7 days, shown in Grafana ([ADR 0014](adr/0014-loki-and-alloy.md))~~ Removed with [ADR 0016](adr/0016-server-monitoring.md): monitoring belongs to the server, not to this repository
 - [x] ~~Telegram alerts from Grafana: API down, 5xx, stuck outbox, queue backlog, error logs ([ADR 0015](adr/0015-grafana-telegram-alerts.md))~~ Removed with [ADR 0016](adr/0016-server-monitoring.md): alerts, like the dashboards, belong to the server's monitoring
 
-- [ ] An external uptime check on `/api/health` and `/`, set up by the project owner (steps in [`DEPLOY.md`](DEPLOY.md#external-uptime-check)); the down-on-purpose test passed locally
+- [x] ~~External uptime check~~ Not needed: the server's own monitoring already watches `/api/health` and the public sites ([ADR 0016](adr/0016-server-monitoring.md))
 
-**Done when:** you take the API down on purpose and get the alert within 2 minutes.
-
-_Local test passed (2026-11-18) with this repository's former alerts: the alert fired 56 seconds after the API stopped. Since [ADR 0016](adr/0016-server-monitoring.md) the alerts belong to the server's monitoring, so this check waits for it._
+**Done when:** someone is told when SlicePizza breaks. That is the server's monitoring, not this repository ([ADR 0016](adr/0016-server-monitoring.md)); this repository keeps the health checks. (The down-on-purpose test passed locally, 56 s, with the former alerts of ADR 0015.)
 
 **You learn:** health checks, and why on a shared server the monitoring belongs to the server ([ADR 0016](adr/0016-server-monitoring.md)).
 

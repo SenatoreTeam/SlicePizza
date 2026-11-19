@@ -6,7 +6,7 @@ Depois da Fase 4, uma mudança chega à produção com segurança, mas ninguém 
 sistema faz depois de no ar. A Fase 5 garante que **alguém seja avisado quando algo quebra**.
 
 :::info Situação
-Esta fase está **em andamento**. O repositório primeiro construiu o próprio monitoramento
+Esta fase está **concluída** (19/11/2026). O repositório primeiro construiu o próprio monitoramento
 (métricas, Prometheus, Grafana, Loki, alertas) e depois **o removeu** na versão 1.2.1
 ([ADR 0016](/adr/0016-server-monitoring)): o monitoramento pertence ao servidor onde o SlicePizza
 roda, não a este repositório. Veja o
@@ -31,8 +31,3 @@ poria um proxy do socket do Docker e um segundo domínio público do Grafana em 
 Os ADRs [0012](/adr/0012-api-metrics) a [0015](/adr/0015-grafana-telegram-alerts) ficam como
 registro do que foi construído e testado (inclusive um teste de derrubar de propósito em que o
 alerta disparou 56 segundos depois da queda da API) e de por que foi removido.
-
-## O que ainda está em aberto
-
-A verificação "derrubar a API de propósito e receber o alerta" agora depende do monitoramento do
-próprio servidor, então espera por ele.
