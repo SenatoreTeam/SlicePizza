@@ -26,5 +26,6 @@ It passes when under 1% of requests fail and 95% answer in under 500 ms.
 | `SCALE=5 PAUSE=0` (stress) | 50, no pause | 570 | 146 ms | 0% |
 
 | `SCALE=5 PAUSE=0`, with the Redis menu cache ([ADR 0019](../../docs/adr/0019-redis-menu-cache.md)) | 50, no pause | 866 | 76 ms | 0% |
+| Through Caddy (`BASE_URL=http://127.0.0.1:18080/api`), `SCALE=8 PAUSE=0`, with 1 / 2 / 4 API copies ([ADR 0020](../../docs/adr/0020-api-replicas.md)) | 80, no pause | 708 / 1212 / 1572 | 165 / 130 / 142 ms | 0% |
 
 **What it says:** the "10 times normal traffic" goal of Phase 7 is reached without changes on this machine, and the limit is far above it (hundreds of requests per second, with the API using about a third of one core). A real pizzeria promo is nowhere near that, so Redis and replicas are a learning exercise, not an emergency. The VPS is slower than a laptop and shares its cores with other projects: **repeat the stress run's numbers as a ratio** (how much faster the menu gets with Redis), not as absolute values.

@@ -34,3 +34,4 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0017](0017-docker-only-infrastructure.md) | The infrastructure is Docker on one VPS, with no Terraform, Ansible or Kubernetes | Accepted |
 | [0018](0018-server-backups.md) | Backups are of the whole VPS, by the server's owner | Accepted |
 | [0019](0019-redis-menu-cache.md) | An optional Redis cache for the menu, that can never make the API worse | Accepted |
+| [0020](0020-api-replicas.md) | Several API containers behind Caddy, with resource limits | Accepted |
