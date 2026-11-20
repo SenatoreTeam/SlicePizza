@@ -176,8 +176,12 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 6 | "The server died and we lost the orders" | ✅ Done |
 | 7 | "We're running a R$20 pizza promo on Friday" | ✅ Done |
 | 8 | "I heard hackers attack pizzerias" | ✅ Done |
+| 9 | "A customer asked what you do with her phone number" | 📝 Proposed |
+| 10 | "We changed the database and it hurt" | 📝 Proposed |
+| 11 | "How do I know nobody tampered with what we run?" | 📝 Proposed |
+| 12 | "It broke at 7 p.m. on Friday" | 📝 Proposed |
 
-Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md).
+Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md). Phases 9 to 12 are the next stage, proposed after comparing with [Kaladrius](docs/KALADRIUS.md).
 
 ## Ground rules
 

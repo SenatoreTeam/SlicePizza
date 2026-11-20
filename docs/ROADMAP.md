@@ -2,7 +2,7 @@
 
 Each phase starts with a **request from Zé**, the pizzeria owner. The request is the problem; the tasks are the solution; the **definition of done** tells you when the phase is over.
 
-Check the boxes as you make progress, and keep each phase's **Status** line in step with the roadmap table in the [README](../README.md#roadmap): ✅ Done, 🚧 In progress, ⏸ Postponed or ⏳ Not started.
+Check the boxes as you make progress, and keep each phase's **Status** line in step with the roadmap table in the [README](../README.md#roadmap): ✅ Done, 🚧 In progress, ⏸ Postponed, 📝 Proposed or ⏳ Not started.
 
 ---
 
@@ -162,3 +162,100 @@ The whole VPS is backed up by the server's owner, Postgres and RabbitMQ volumes 
 - [x] Review the permissions of every token and credential: [`docs/SECRETS.md`](SECRETS.md#review-phase-8-2026-11-19). The server-side items (SSH, Dokploy, Cloudflare, backups) are for the server's owner to confirm
 
 **You learn:** the basics of DevSecOps.
+
+---
+
+# After Phase 8: the next stage
+
+**Status:** 📝 Proposed (2026-11-20), to be agreed by Ettore and Miguel. Built from a comparison with [Kaladrius](https://github.com/facchini-miguel/kaladrius): [what we learned and what we left out](KALADRIUS.md).
+
+Phases 1 to 8 built the system. This stage is about **running it responsibly**: what we do with customers' data, changing the database safely, trusting what we run, and being able to handle a bad evening. Nothing here adds a feature a customer sees, except a privacy page.
+
+## How we organize
+
+- **Two people, two areas.** Ettore: the application, the pipeline and the docs. Miguel: the server, Dokploy and what runs there. The **Owner** column below is a proposal; changing it is a conversation, not a rule.
+- **One issue per task**, with the label `phase-9` to `phase-12` and the task's id (for example `9.2`), opened when the task starts. A task that needs the server gets its own issue for Miguel (server steps go in issues for him, with the exact steps), with the exact steps.
+- **Size:** S is under an hour, M is a session, L is several PRs. **Depends** says what must come first.
+- **Order:** within a phase, top to bottom. Between phases: 9 and 10 first (they protect customers and the database), then 11, then 12. 11 and 12 can interleave.
+- **Every task ends the same way:** tests, docs in English **and** pt-BR, an ADR when it is a decision, then a PR, a review and a merge. A task that changes what runs in production is released as a version.
+- **Check the boxes here** as tasks finish, and keep the README's table in step.
+
+## Phase 9: "A customer asked what you do with her phone number"
+
+**Status:** ⏳ Not started
+
+**Goal:** know what personal data we keep, keep it only as long as needed, and say it in plain words (LGPD). Use the project's LGPD sources (`goul4rt/lgpd-skills`, `ctresb/leis`).
+
+| Id | Task | Owner | Size | Depends |
+|---|---|---|---|---|
+| 9.1 | **Map the data**: what we keep (customer name, phone, address, order items, the Telegram chat id of customers who follow an order), where (Postgres, RabbitMQ messages, the worker's log, the server's logs and backups), who sees it, why | Ettore | S | |
+| 9.2 | **Privacy policy** in English and pt-BR: controller (the pizzeria), what, why, legal basis, retention, rights and how to use them, the contact. A page on the menu site, linked from the order form | Ettore | M | 9.1 |
+| 9.3 | **Retention**: decide how long an order's personal data is kept (proposal: 12 months, then name, phone and address are replaced, the order and its total stay for the numbers); a job that does it; the Telegram chat link removed when the order is finished and old | Ettore | L | 9.1, an ADR |
+| 9.4 | **A customer's request** (see my data, delete my data): the steps for the pizzeria, as a runbook and a command | Ettore | M | 9.3 |
+| 9.5 | **Logs and backups**: confirm the worker and the proxy do not log phone numbers or addresses; ask how long the server keeps logs and backups, so the policy tells the truth | Miguel | S | 9.1 |
+
+**Done when:** the policy is live on the site, orders older than the retention period no longer hold a name, a phone or an address, and a request from a customer can be answered in a day.
+
+## Phase 10: "We changed the database and it hurt"
+
+**Status:** ⏳ Not started
+
+**Goal:** change the schema without losing orders, and know the tests cover what matters.
+
+| Id | Task | Owner | Size | Depends |
+|---|---|---|---|---|
+| 10.1 | **Migrations with Alembic**: a first migration that matches today's tables, so the server's database is "at version 1"; `create_all` stops being the way ([ADR 0002](adr/0002-sqlalchemy-and-schema-creation.md)). Applied when the API starts | Ettore | L | an ADR; the server's database is checked first |
+| 10.2 | **A migration report on every PR that touches one**: the SQL, the operations that delete data, a test that goes up and back down on Postgres (Kaladrius: decision 139) | Ettore | M | 10.1 |
+| 10.3 | **A rule for the rollback**: the pipeline's automatic rollback puts the old image back but never undoes a migration, so migrations must work with the previous version (add, never rename, in one step). Written in `CONTRIBUTING.md` | Ettore | S | 10.1 |
+| 10.4 | **Measure coverage** in the pipeline and fail below today's number; raise it as tests are added | Ettore | S | |
+| 10.5 | **Tell Miguel** what the server must know: the API now migrates on start, so a restore of an old backup is migrated forward | Miguel | S | 10.1 |
+
+**Done when:** a new column can be added in a PR, the PR shows its SQL, and the server's database gets it on release with no manual step.
+
+## Phase 11: "How do I know nobody tampered with what we run?"
+
+**Status:** ⏳ Not started
+
+**Goal:** make sure only the code we reviewed, and the versions we chose, run in production, and that the repository is a good public citizen.
+
+| Id | Task | Owner | Size | Depends |
+|---|---|---|---|---|
+| 11.1 | **Pin every GitHub Action by commit** (with the version in a comment), and let Dependabot update them | Ettore | S | |
+| 11.2 | **Pin every base image by digest** (`@sha256`): `python`, `caddy`, `postgres`, `rabbitmq`, `redis`; Dependabot proposes the new digests | Ettore | M | |
+| 11.3 | **Dependabot groups**: tools, minor updates, docs; limit open PRs | Ettore | S | |
+| 11.4 | **`CODEOWNERS`**: structural files (`.github/`, Dockerfiles, `docker-compose.yml`, `infra/`, the schema and migrations, `api/app/auth.py`, `ratelimit.py`) need their owner's approval; the rest, any teammate | both | S | agree the list |
+| 11.5 | **`SECURITY.md`** (how to report privately through GitHub's advisories, what is supported, the answer time), **`CODE_OF_CONDUCT.md`**, issue templates (bug, idea) | Ettore | S | |
+| 11.6 | **`X-Robots-Tag: noindex`** on the API and the kitchen; the site and docs stay indexable | Ettore | S | |
+| 11.7 | **Kitchen login protection**: a lockout after wrong passwords (the login moves from Caddy's basic auth into the API or a small login page), a shorter session. An ADR first: this changes how the kitchen logs in | Ettore | L | an ADR |
+| 11.8 | **Confirm the server items** listed as "not verified" in [SECRETS.md](SECRETS.md): SSH keys, Dokploy and Cloudflare two-step, `.env` permissions, who can read backups. Note the date | Miguel | S | |
+| 11.9 | **Rotate the secrets once**, to prove the routine in SECRETS.md works, and fix the doc where it did not | both | M | 11.8 |
+
+**Done when:** every workflow step and image is pinned, a vulnerability report has a place to go, and the kitchen's login stops a password-guessing script.
+
+## Phase 12: "It broke at 7 p.m. on Friday"
+
+**Status:** ⏳ Not started
+
+**Goal:** anyone on the team can handle a bad evening, and a new person can start in an hour.
+
+| Id | Task | Owner | Size | Depends |
+|---|---|---|---|---|
+| 12.1 | **Break a version on purpose** (a release whose `/health` fails) and watch the server put the old one back; write down what happened and how long it took | Miguel + Ettore | M | |
+| 12.2 | **Restore test with SlicePizza's data**: restore the newest VPS backup into a throwaway place and check the orders are there; ask for it to repeat on a schedule | Miguel | M | |
+| 12.3 | **Operations docs** (`docs/operations/`, EN + pt-BR): the upgrade and rollback steps, the restore, who to call, "the kitchen cannot see orders", "orders are not reaching Telegram", "the site is slow" (what to look at, in order) | Ettore | L | 12.1, 12.2 |
+| 12.4 | **Ask what the server's monitoring watches for SlicePizza**, and ask for what is missing: the oldest unpublished event (the outbox) and the queue, an alert when `/api/health` fails | Miguel | S | |
+| 12.5 | **A `/health` that tells about the outbox** (the age of the oldest unpublished event), so any monitor, ours or the server's, can see a stuck queue | Ettore | M | |
+| 12.6 | **Docs for people**: a quick start, a glossary, a FAQ, and a short pt-BR manual for the kitchen (the people who use it) | Ettore | L | |
+| 12.7 | **Maybe: a public demo** of the menu and the kitchen with a demo login, reset every night, as Kaladrius has. Needs Miguel to host it | both | L | agree first |
+
+**Done when:** a failed release was rolled back on purpose and timed, a restore of SlicePizza's data was proven, and the runbooks answer the three evenings above.
+
+## Parked
+
+Not planned, with the reason in [the comparison](KALADRIUS.md#what-we-leave-out-on-purpose): installable packages, a mobile app, multi-tenant, a roles matrix and per-record audit, a third language. Revisit if the project changes shape.
+
+## Ideas to decide before they become tasks
+
+- **Version the API in the URL** (`/api/v1/...`, as Kaladrius does) now, while only our own site calls it? Cheap today, costly after other clients exist.
+- **Who is the "controller"** in the privacy policy: Zé's pizzeria is fictional. For a real deployment the policy names the real business. Decide how the project's copy is worded (a template with placeholders).
+- **A third reviewer**: with two people, every PR needs the other's time. If one is away, `--admin` is the way out; do we want a written rule for it?
