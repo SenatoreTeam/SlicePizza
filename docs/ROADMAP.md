@@ -200,7 +200,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 
 ## Phase 10: "We changed the database and it hurt"
 
-**Status:** ⏳ Not started
+**Status:** 🚧 In progress (10.4 done)
 
 **Goal:** change the schema without losing orders, and know the tests cover what matters.
 
@@ -209,7 +209,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 | 10.1 | **Migrations with Alembic**: a first migration that matches today's tables, so the server's database is "at version 1"; `create_all` stops being the way ([ADR 0002](adr/0002-sqlalchemy-and-schema-creation.md)). Applied when the API starts | Ettore | L | an ADR; the server's database is checked first |
 | 10.2 | **A migration report on every PR that touches one**: the SQL, the operations that delete data, a test that goes up and back down on Postgres (Kaladrius: decision 139) | Ettore | M | 10.1 |
 | 10.3 | **A rule for the rollback**: the pipeline's automatic rollback puts the old image back but never undoes a migration, so migrations must work with the previous version (add, never rename, in one step). Written in `CONTRIBUTING.md` | Ettore | S | 10.1 |
-| 10.4 | **Measure coverage** in the pipeline and fail below today's number; raise it as tests are added | Ettore | S | |
+| 10.4 | ✅ **Measure coverage** in the pipeline and fail below today's number; raise it as tests are added. Done: `pytest --cov` in CI, API floor 85% (87% today), worker 70% (see [api/README.md](../api/README.md#test-coverage)) | Ettore | S | |
 | 10.5 | **Tell Miguel** what the server must know: the API now migrates on start, so a restore of an old backup is migrated forward | Miguel | S | 10.1 |
 
 **Done when:** a new column can be added in a PR, the PR shows its SQL, and the server's database gets it on release with no manual step.

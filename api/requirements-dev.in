@@ -6,6 +6,9 @@
 -c requirements.txt
 -r requirements.in
 pytest>=9.2.0,<10.0
+# Test coverage: CI runs `pytest --cov` and fails under the minimum in
+# pyproject.toml ([tool.coverage.report] fail_under).
+pytest-cov>=7.0.0,<8.0
 # The HTTP client behind FastAPI's TestClient. Starlette deprecated httpx for
 # it and uses httpx2 when installed (issue #24).
 httpx2>=2.16.0,<3.0

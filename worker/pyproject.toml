@@ -4,3 +4,16 @@ pythonpath = ["."]
 testpaths = ["tests"]
 # Any warning fails the tests, as in api/ (see api/pyproject.toml).
 filterwarnings = ["error"]
+
+# Test coverage (roadmap 10.4). CI runs `pytest -q --cov`; locally add --cov
+# to see the report. fail_under is a floor, not a goal: 71% without RabbitMQ, higher in CI where the integration tests run (2026-11-21).
+# Raise it when coverage goes up; never lower it to make a PR pass
+# (see "Test coverage" in api/README.md).
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+skip_covered = true
