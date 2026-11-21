@@ -147,7 +147,7 @@ jobs:
 
       - name: Run tests
         working-directory: api
-        run: pytest -q
+        run: pytest -q --cov
 
   lock-files:
     # requirements*.txt are generated from requirements*.in. If someone edits an .in file
@@ -234,7 +234,7 @@ jobs:
 
       - name: Run tests
         working-directory: worker
-        run: pytest -q
+        run: pytest -q --cov
 
   telegram-e2e:
     # A customer follows their order on Telegram, end to end (ADR 0006): the real API

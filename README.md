@@ -147,6 +147,8 @@ pytest
 
 The worker has its own tests, the same way, from `worker/` (see [worker/README.md](worker/README.md#tests)).
 
+CI also measures test coverage and fails if it drops under a minimum; `pytest --cov` shows it (see [api/README.md](api/README.md#test-coverage)).
+
 The linter, [ruff](https://docs.astral.sh/ruff/), comes with the dev requirements. Run it from the repository root, where its settings are ([`ruff.toml`](ruff.toml)): `ruff check .` (`ruff check --fix .` fixes what it can).
 
 Every Pull Request runs the [pipeline](.github/workflows/ci.yml): lint, then the tests, then the images. On `main`, the images are published only when everything passed ([ADR 0008](docs/adr/0008-one-gated-pipeline.md)).
@@ -177,7 +179,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 7 | "We're running a R$20 pizza promo on Friday" | ✅ Done |
 | 8 | "I heard hackers attack pizzerias" | ✅ Done |
 | 9 | "A customer asked what you do with her phone number" | 🚧 In progress |
-| 10 | "We changed the database and it hurt" | 📝 Proposed |
+| 10 | "We changed the database and it hurt" | 🚧 In progress |
 | 11 | "How do I know nobody tampered with what we run?" | 🚧 In progress |
 | 12 | "It broke at 7 p.m. on Friday" | 📝 Proposed |
 

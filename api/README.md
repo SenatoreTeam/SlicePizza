@@ -154,6 +154,16 @@ pytest
 
 The tests use an in-memory SQLite database (see `tests/conftest.py`), so they need neither Docker nor Postgres.
 
+### Test coverage
+
+CI runs `pytest -q --cov` and **fails if coverage drops under the minimum** in [`pyproject.toml`](pyproject.toml) (`fail_under` under `[tool.coverage.report]`, branches included). To see it locally, with the files and lines not covered:
+
+```bash
+pytest --cov
+```
+
+The minimum is a floor, not a goal: 85% when it was added (the suite was at 87% on SQLite). When a PR raises coverage, raise `fail_under` in the same PR; never lower it to make a PR pass. If code cannot be tested, say why in the PR instead.
+
 To run the same tests against Postgres (CI does both):
 
 ```bash

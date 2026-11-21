@@ -10,3 +10,16 @@ testpaths = ["tests"]
 # To accept a warning on purpose, add a narrow "ignore:<message>:<Category>"
 # line below with a comment saying why.
 filterwarnings = ["error"]
+
+# Test coverage (roadmap 10.4). CI runs `pytest -q --cov`; locally add --cov
+# to see the report. fail_under is a floor, not a goal: 87% when this was added (SQLite leg, 2026-11-21).
+# Raise it when coverage goes up; never lower it to make a PR pass
+# (see "Test coverage" in api/README.md).
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = true

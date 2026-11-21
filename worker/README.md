@@ -140,6 +140,8 @@ RABBITMQ_TEST_HOST=localhost RABBITMQ_TEST_USER=$RABBITMQ_USER RABBITMQ_TEST_PAS
 
 CI runs them against `rabbitmq:4.4.0-management-alpine`, the same version as `docker-compose.yml`.
 
+CI measures coverage (`pytest -q --cov`) and fails under the minimum in [`pyproject.toml`](pyproject.toml), 70% when it was added. That number is what the tests reach **without** RabbitMQ (71%), so `pytest --cov` passes locally too; CI, with the integration tests, is higher. Same rule as the API ([api/README.md](../api/README.md#test-coverage)): raise it with the tests, never lower it to pass.
+
 CI also runs the whole opt-in end to end: the real API and worker against a **fake Telegram Bot API** ([`.github/scripts/fake_telegram.py`](../.github/scripts/fake_telegram.py)) that injects `/start` and `/stop` and records every message ([`e2e_telegram_optin.py`](../.github/scripts/e2e_telegram_optin.py)).
 
 ## Dependencies
