@@ -200,7 +200,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 
 ## Phase 10: "We changed the database and it hurt"
 
-**Status:** 🚧 In progress (10.4 done)
+**Status:** 🚧 In progress (10.4 done). Issues: [#95](https://github.com/SenatoreTeam/SlicePizza/issues/95) to [#97](https://github.com/SenatoreTeam/SlicePizza/issues/97); Miguel's items in [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103)
 
 **Goal:** change the schema without losing orders, and know the tests cover what matters.
 
@@ -216,7 +216,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 
 ## Phase 11: "How do I know nobody tampered with what we run?"
 
-**Status:** 🚧 In progress (started 2026-11-21): 11.1, 11.2, 11.3, 11.5, 11.6 done; 11.4, 11.7, 11.8, 11.9 open
+**Status:** 🚧 In progress (started 2026-11-21): 11.1, 11.2, 11.3, 11.5, 11.6 done; 11.4, 11.7, 11.8, 11.9 open (issues [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98), [#99](https://github.com/SenatoreTeam/SlicePizza/issues/99), [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103))
 
 **Goal:** make sure only the code we reviewed, and the versions we chose, run in production, and that the repository is a good public citizen.
 
@@ -236,7 +236,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 
 ## Phase 12: "It broke at 7 p.m. on Friday"
 
-**Status:** ⏳ Not started
+**Status:** 🚧 In progress (12.5 done). Issues: [#100](https://github.com/SenatoreTeam/SlicePizza/issues/100) to [#102](https://github.com/SenatoreTeam/SlicePizza/issues/102); Miguel's items in [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103)
 
 **Goal:** anyone on the team can handle a bad evening, and a new person can start in an hour.
 
@@ -246,7 +246,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 | 12.2 | **Restore test with SlicePizza's data**: restore the newest VPS backup into a throwaway place and check the orders are there; ask for it to repeat on a schedule | Miguel | M | |
 | 12.3 | **Operations docs** (`docs/operations/`, EN + pt-BR): the upgrade and rollback steps, the restore, who to call, "the kitchen cannot see orders", "orders are not reaching Telegram", "the site is slow" (what to look at, in order) | Ettore | L | 12.1, 12.2 |
 | 12.4 | **Ask what the server's monitoring watches for SlicePizza**, and ask for what is missing: the oldest unpublished event (the outbox) and the queue, an alert when `/api/health` fails | Miguel | S | |
-| 12.5 | **A `/health` that tells about the outbox** (the age of the oldest unpublished event), so any monitor, ours or the server's, can see a stuck queue | Ettore | M | |
+| 12.5 ✅ | **A `/health` that tells about the outbox** (the age of the oldest unpublished event), so any monitor, ours or the server's, can see a stuck queue. Done ([#101](https://github.com/SenatoreTeam/SlicePizza/issues/101)): `outbox` (`ok`/`late`/`off`) and `outbox_oldest_seconds`; still HTTP 200 when late (see [DEPLOY.md](DEPLOY.md)) | Ettore | M | |
 | 12.6 | **Docs for people**: a quick start, a glossary, a FAQ, and a short pt-BR manual for the kitchen (the people who use it) | Ettore | L | |
 | 12.7 | **Maybe: a public demo** of the menu and the kitchen with a demo login, reset every night, as Kaladrius has. Needs Miguel to host it | both | L | agree first |
 

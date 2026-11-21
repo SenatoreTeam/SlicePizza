@@ -5,6 +5,7 @@ import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -21,7 +22,7 @@ from .config import settings
 from .database import Base, SessionLocal, engine, get_db, wait_for_database
 from .events import ORDER_CREATED, ORDER_STATUS_CHANGED, record_event
 from .internal import router as internal_router
-from .models import ALLOWED_TRANSITIONS, Order, OrderItem, OrderStatus, Pizza
+from .models import ALLOWED_TRANSITIONS, Order, OrderEvent, OrderItem, OrderStatus, Pizza
 from .outbox import OutboxRelay, RabbitMQPublisher
 from .ratelimit import limit_orders
 from .retention import RetentionJob
@@ -231,21 +232,59 @@ def _load_order(db: Session, order_id: uuid.UUID, for_update: bool = False) -> O
     return order
 
 
+# An unpublished event older than this means the outbox is stuck: the relay
+# publishes within a second or two, and retries at most every 30 s.
+OUTBOX_LATE_SECONDS = 300
+
+
+def _outbox_oldest_seconds(db: Session) -> int | None:
+    """Age in seconds of the oldest unpublished event, or None when none waits."""
+    created = db.scalar(
+        select(OrderEvent.created_at)
+        .where(OrderEvent.published_at.is_(None))
+        .order_by(OrderEvent.id)  # the partial index on unpublished ids
+        .limit(1)
+    )
+    if created is None:
+        return None
+    if created.tzinfo is None:  # SQLite keeps UTC without a time zone
+        created = created.replace(tzinfo=UTC)
+    return max(0, int((datetime.now(UTC) - created).total_seconds()))
+
+
 @app.get("/health")
-def health(db: Session = Depends(get_db)) -> dict[str, str]:
-    """Report whether the API can reach the database, and which version it runs.
+def health(db: Session = Depends(get_db)) -> dict[str, str | int | None]:
+    """Report whether the API can reach the database, which version it runs,
+    and whether order events are leaving the outbox (roadmap 12.5).
 
     ``version`` is the commit the image was built from (``GIT_COMMIT``, set by
     the pipeline, ADR 0008), and ``release`` the version number (``APP_VERSION``,
     from releases.toml, ADR 0010); each is ``unknown`` outside an image built by CI.
+
+    ``outbox`` is ``ok``, ``late`` (an event has waited more than
+    ``OUTBOX_LATE_SECONDS``: RabbitMQ or the relay is stuck) or ``off``
+    (``RABBITMQ_HOST`` is not set, so events wait on purpose), and
+    ``outbox_oldest_seconds`` the age of the oldest unpublished event (null
+    when none waits). A late outbox does **not** fail the check: the status
+    code only says whether the API works, so the deploy and Docker do not roll
+    back or restart the API over a RabbitMQ problem. Monitors read the field.
     """
     try:
         db.execute(text("SELECT 1"))
+        oldest = _outbox_oldest_seconds(db)
     except SQLAlchemyError:
         raise HTTPException(status_code=503, detail="Database unavailable") from None
+    if settings.rabbitmq is None:
+        outbox = "off"
+    elif oldest is not None and oldest > OUTBOX_LATE_SECONDS:
+        outbox = "late"
+    else:
+        outbox = "ok"
     return {
         "status": "ok",
         "database": "ok",
+        "outbox": outbox,
+        "outbox_oldest_seconds": oldest,
         "version": os.getenv("GIT_COMMIT") or "unknown",
         "release": os.getenv("APP_VERSION") or "unknown",
     }

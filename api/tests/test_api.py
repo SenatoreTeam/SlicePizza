@@ -3,14 +3,14 @@
 import threading
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import event, select, text, update
 
 from app import main
 from app.database import engine
-from app.models import Order, Pizza
+from app.models import Order, OrderEvent, Pizza
 
 ORDER_PAYLOAD = {
     "customer": {
@@ -35,7 +35,66 @@ def test_health(client, monkeypatch):
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "ok", "version": "unknown", "release": "unknown"}
+    assert response.json() == {
+        "status": "ok",
+        "database": "ok",
+        "outbox": "off",  # RABBITMQ_HOST is not set in the tests
+        "outbox_oldest_seconds": None,
+        "version": "unknown",
+        "release": "unknown",
+    }
+
+
+@pytest.fixture
+def rabbitmq_on(monkeypatch):
+    """Pretend RABBITMQ_HOST is set (no relay runs in the tests)."""
+    monkeypatch.setattr(main.settings, "rabbitmq", object())
+
+
+def test_health_outbox_ok_when_nothing_waits(client, rabbitmq_on):
+    body = client.get("/health").json()
+
+    assert body["outbox"] == "ok"
+    assert body["outbox_oldest_seconds"] is None
+
+
+def test_health_outbox_reports_the_oldest_waiting_event(client, rabbitmq_on):
+    create_order(client)  # its order.created event waits: no relay in the tests
+
+    body = client.get("/health").json()
+
+    assert body["outbox"] == "ok"
+    assert 0 <= body["outbox_oldest_seconds"] < main.OUTBOX_LATE_SECONDS
+
+
+def test_health_outbox_late_but_still_healthy(client, rabbitmq_on):
+    create_order(client)
+    with engine.begin() as connection:
+        connection.execute(
+            update(OrderEvent).values(created_at=datetime.now(UTC) - timedelta(minutes=10))
+        )
+
+    response = client.get("/health")
+
+    assert response.status_code == 200  # never fails the deploy over RabbitMQ
+    assert response.json()["outbox"] == "late"
+    assert response.json()["outbox_oldest_seconds"] >= 600
+
+
+def test_health_outbox_ignores_published_events(client, rabbitmq_on):
+    create_order(client)
+    with engine.begin() as connection:
+        connection.execute(
+            update(OrderEvent).values(
+                created_at=datetime.now(UTC) - timedelta(minutes=10),
+                published_at=datetime.now(UTC),
+            )
+        )
+
+    body = client.get("/health").json()
+
+    assert body["outbox"] == "ok"
+    assert body["outbox_oldest_seconds"] is None
 
 
 def test_health_reports_the_commit_of_the_image(client, monkeypatch):

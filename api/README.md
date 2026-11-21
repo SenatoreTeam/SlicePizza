@@ -6,7 +6,7 @@ A **Python + FastAPI** API that serves the menu and receives the pizzeria's orde
 
 | Method | Route | What it does |
 |---|---|---|
-| GET | `/health` | Checks the API and the database connection |
+| GET | `/health` | Checks the API and the database connection, and reports the outbox: `outbox` is `ok`, `late` (an order event has waited over 5 minutes: RabbitMQ or the relay is stuck) or `off` (no `RABBITMQ_HOST`), and `outbox_oldest_seconds` the age of the oldest waiting event. A late outbox still answers 200, so it never rolls back a deploy; monitors read the field |
 | GET | `/menu` | Lists the pizzas |
 | POST | `/orders` | Creates an order |
 | GET | `/orders/{id}` | Gets an order's progress and items (**no name, phone or address**: whoever has the link sees it, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)) |

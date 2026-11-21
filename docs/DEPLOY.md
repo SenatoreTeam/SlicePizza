@@ -192,6 +192,7 @@ A merge that adds no version is published as `sha-<commit>` only, and production
 
 - `https://slicepizza.senatore.tech/` shows the menu, and placing an order from a phone works end to end.
 - `https://slicepizza.senatore.tech/api/health` answers when the API is up and connected to the database. (Before ADR 0003 this was `/health`; update any monitor that still checks the old address.)
+- The same answer tells whether order events reach RabbitMQ: `"outbox":"late"` means an event has waited over 5 minutes (RabbitMQ is down or the relay is stuck: customers stop getting Telegram updates), and `outbox_oldest_seconds` says how long. It stays HTTP 200 on purpose, so a monitor must read the field: alert when `outbox` is `late`.
 - `https://slicepizza.senatore.tech/api/docs` shows the API's interactive docs.
 - `https://slicepizza.senatore.tech/version` (the web image) and the `version` in `/api/health` (the API) show the commit each one was built from; the worker logs it when it starts (`Starting version 1.4.3 (commit ...)`). The [release](https://github.com/SenatoreTeam/SlicePizza/releases) of the version running (the tag of each image in the server's compose, e.g. `1.4.3`) names the same commit.
 - The version number: `release` in `/api/health`, the footer of the menu site and of the kitchen board (with **What's new**), and `/releases.json`, which the pages read. Where it shows: [Versions and releases](https://slicepizza-docs.senatore.tech/docs/phase-4/versions).
