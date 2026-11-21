@@ -216,7 +216,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 
 ## Phase 11: "How do I know nobody tampered with what we run?"
 
-**Status:** 🚧 In progress (started 2026-11-21): 11.1, 11.2, 11.3, 11.5, 11.6 done; 11.4, 11.7, 11.8, 11.9 open (issues [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98), [#99](https://github.com/SenatoreTeam/SlicePizza/issues/99), [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103))
+**Status:** 🚧 In progress (started 2026-11-21): 11.1 to 11.6 done; 11.7 decided (ADR 0024), 11.8, 11.9 open (issues [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98), [#99](https://github.com/SenatoreTeam/SlicePizza/issues/99), [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103))
 
 **Goal:** make sure only the code we reviewed, and the versions we chose, run in production, and that the repository is a good public citizen.
 
@@ -225,10 +225,10 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 | 11.1 ✅ | **Pin every GitHub Action by commit** (with the version in a comment), and let Dependabot update them | Ettore | S | |
 | 11.2 ✅ | **Pin every base image by digest** (`@sha256`): `python`, `caddy`, `postgres`, `rabbitmq`, `redis`; Dependabot proposes the new digests | Ettore | M | |
 | 11.3 ✅ | **Dependabot groups**: tools, minor updates, docs; limit open PRs (already in place since Phase 4; checked) | Ettore | S | |
-| 11.4 | **`CODEOWNERS`**: structural files (`.github/`, Dockerfiles, `docker-compose.yml`, `infra/`, the schema and migrations, `api/app/auth.py`, `ratelimit.py`) need their owner's approval; the rest, any teammate | both | S | agree the list |
+| 11.4 ✅ | **`CODEOWNERS`**: structural files (`.github/`, Dockerfiles, `docker-compose.yml`, `infra/`, the schema and migrations, `api/app/auth.py`, `ratelimit.py`) need their owner's approval; the rest, any teammate. Done: [`.github/CODEOWNERS`](../.github/CODEOWNERS), chosen by Ettore; GitHub requests the owners' review, not yet required (Miguel can propose changes in [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103)) | both | S | |
 | 11.5 ✅ | (**needs the repository's *private vulnerability reporting* turned on in Settings → Security, by a repo admin; it is off today**) **`SECURITY.md`** (how to report privately through GitHub's advisories, what is supported, the answer time), **`CODE_OF_CONDUCT.md`**, issue templates (bug, idea) | Ettore | S | |
 | 11.6 ✅ | **`X-Robots-Tag: noindex`** on the API and the kitchen; the site and docs stay indexable | Ettore | S | |
-| 11.7 | **Kitchen login protection**: a lockout after wrong passwords (the login moves from Caddy's basic auth into the API or a small login page), a shorter session. An ADR first: this changes how the kitchen logs in | Ettore | L | an ADR |
+| 11.7 | **Kitchen login protection**: a lockout after wrong passwords (the login moves from Caddy's basic auth into the API or a small login page), a shorter session. Decided in [ADR 0024](adr/0024-kitchen-login-in-the-api.md): a login page checked by the API, 5 tries per address then 15 minutes locked, 12-hour session. To build ([#98](https://github.com/SenatoreTeam/SlicePizza/issues/98)); before release, the API must see real client addresses | Ettore | L | |
 | 11.8 | **Confirm the server items** listed as "not verified" in [SECRETS.md](SECRETS.md): SSH keys, Dokploy and Cloudflare two-step, `.env` permissions, who can read backups. Note the date | Miguel | S | |
 | 11.9 | **Rotate the secrets once**, to prove the routine in SECRETS.md works, and fix the doc where it did not | both | M | 11.8 |
 

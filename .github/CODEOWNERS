@@ -1,0 +1,22 @@
+# Who reviews what (roadmap 11.4, chosen by Ettore 2026-11-21; Miguel can
+# propose changes in issue #103). GitHub asks the owners below to review any
+# Pull Request that touches their files. The last matching line wins.
+#
+# Today this only REQUESTS their review: "Require review from Code Owners" is
+# off in the branch protection, so any one approval still merges. Turning it
+# on is a separate decision.
+#
+# Files not listed here: any teammate reviews.
+
+# Structural files: the pipeline, the images, the server setup, the versions.
+/.github/              @EttoreCSenatore @facchini-miguel
+**/Dockerfile          @EttoreCSenatore @facchini-miguel
+/docker-compose.yml    @EttoreCSenatore @facchini-miguel
+/infra/                @EttoreCSenatore @facchini-miguel
+/releases.toml         @EttoreCSenatore @facchini-miguel
+
+# Security and data: logins, the rate limit, the database schema.
+/api/app/auth.py       @EttoreCSenatore
+/api/app/ratelimit.py  @EttoreCSenatore
+/api/app/models.py     @EttoreCSenatore
+/api/migrations/       @EttoreCSenatore

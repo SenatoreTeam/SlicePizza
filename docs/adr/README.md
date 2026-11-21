@@ -38,3 +38,4 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0021](0021-hardening.md) | Hardening: image scans, secret scans, an order rate limit, no root, a credential review | Accepted |
 | [0022](0022-order-link-without-personal-data.md) | The order link carries no personal data | Accepted |
 | [0023](0023-retention-of-personal-data.md) | Customers' personal data is replaced after 12 months, by the API itself | Accepted |
+| [0024](0024-kitchen-login-in-the-api.md) | The kitchen logs in through the API, with a lockout and a session that expires | Accepted (not built yet, #98) |
