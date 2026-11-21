@@ -1,0 +1,19 @@
+name: Idea / Ideia
+description: Something that could be better
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Please do not include personal data.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem / O problema
+      description: What is hard or missing today, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea / Sua ideia
+      description: What you would change. Alternatives you considered.

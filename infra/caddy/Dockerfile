@@ -9,7 +9,7 @@
 # kitchen's "What's new" and the version at the bottom of both pages. Made
 # with the script the pipeline checks the file with, on the same Python as
 # the API's image. Only /releases.json leaves this stage.
-FROM python:3.15-slim AS releases
+FROM python:3.15-slim@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928 AS releases
 COPY releases.toml /src/releases.toml
 COPY .github/scripts/releases.py /src/.github/scripts/releases.py
 # The pipeline also passes the version it read (APP_VERSION): they must agree.
@@ -23,7 +23,7 @@ RUN python3 -I /src/.github/scripts/releases.py --json > /releases.json \
 # A full version, so Dependabot proposes each update as a Pull Request
 # (.github/dependabot.yml). The pipeline also rebuilds every week (ADR 0008),
 # which picks up the Alpine fixes the official image gets under the same tag.
-FROM caddy:2.11.9-alpine
+FROM caddy:2.11.9-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
 
 # The official image gives the caddy binary the capability to bind ports below
 # 1024. This image listens on 8080 and runs with all capabilities dropped and
