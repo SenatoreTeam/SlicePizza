@@ -27,8 +27,7 @@
 | Origem | Fornecidos pelo cliente no formulário do pedido |
 | Onde | Postgres: tabelas `orders`, `order_items` |
 | Quem vê | A cozinha (A004); quem tiver o link do pedido (A005); o dono do servidor (banco, backups) |
-| Retenção hoje | **Para sempre**: nada apaga |
-| Retenção proposta | 12 meses após o pedido; depois nome, telefone e endereço são substituídos; totais e itens ficam (tarefa 9.3) |
+| Retenção | **12 meses depois que o pedido termina**; então nome, telefone e endereço viram `[removed]`; itens, totais e datas ficam ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md), tarefa 9.3). **No ar só com a próxima versão**; antes, nada apaga. Pedidos em aberto nunca são tocados |
 | Risco | Telefone e endereço dizem onde a pessoa mora: tratar como dado a proteger, não como "só um bilhete de entrega" |
 
 ### A002. Eventos do pedido (outbox) e a fila
@@ -39,8 +38,7 @@
 | Base legal proposta | Art. 7º, V, como A001 |
 | Dados | Id do pedido, **nome do cliente**, itens, situação e os ids dos chats do Telegram que acompanham o pedido. Telefone e endereço ficam **de fora de propósito** |
 | Onde | Postgres `order_events.payload` (JSON); filas do RabbitMQ até o worker ler |
-| Retenção hoje | **Para sempre** em `order_events` (o outbox guarda as linhas publicadas como histórico); a fila esvazia em segundos |
-| Lacuna | Anonimizar só `orders` deixaria os nomes em `order_events.payload`: **a 9.3 deve cobrir os dois** |
+| Retenção | O nome do cliente em `order_events.payload` é substituído junto com o do pedido (ADR 0023); a fila esvazia em segundos. **No ar só com a próxima versão** |
 
 ### A003. Mensagens no Telegram
 
@@ -51,7 +49,7 @@
 | Dados | O id do chat do Telegram do cliente (tabela `telegram_subscriptions`), o código curto do pedido e o nome do cliente nos textos das mensagens |
 | Terceiro | **Telegram**: recebe e guarda as mensagens e o id do chat. Papel jurídico a confirmar com o advogado (provável controlador independente do próprio serviço) |
 | Transferência internacional | Sim: os servidores do Telegram ficam fora do Brasil. Mecanismo a confirmar (Art. 33; Res. CD/ANPD 19/2024). A política deve dizer |
-| Retenção | Vínculos de chat: para sempre hoje (proposta: removidos junto com a anonimização do pedido). Mensagens no Telegram: fora do nosso controle |
+| Retenção | Vínculos de chat: removidos **7 dias depois que o pedido termina** (ADR 0023, no ar com a próxima versão). Mensagens no Telegram: fora do nosso controle |
 | Observações | O worker registra ids de chat (não os textos) em alguns casos; com o Telegram desligado, em desenvolvimento, registra a mensagem que enviaria (com nomes) |
 
 ### A004. O painel da cozinha
@@ -112,7 +110,7 @@
 ## 4. Achados, por ordem de importância
 
 1. **Sem política de privacidade** e sem como o cliente ver o que guardamos: 9.2, 9.4.
-2. **Sem retenção**: os dados dos clientes ficam para sempre, e o `order_events.payload` repete o nome: 9.3.
+2. **Sem retenção** (dados dos clientes para sempre, e o `order_events.payload` repetindo o nome): corrigido no código pela 9.3, no ar com a próxima versão.
 3. **Fontes do Google** mandavam o IP de cada visitante ao Google: corrigido no código pela 9.6, no ar com a próxima versão.
 4. **O link do pedido mostrava telefone e endereço** a quem o tivesse: corrigido no código pela 9.7, no ar com a próxima versão.
 5. **Logs e backups desconhecidos** no servidor: #81. Uma política não pode prometer o que não confirmamos.

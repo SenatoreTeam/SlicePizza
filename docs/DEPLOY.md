@@ -85,6 +85,17 @@ Order events go from the API to RabbitMQ through the outbox ([ADR 0004](adr/0004
 
 **Deploy RabbitMQ and the worker together.** Until the worker has declared its queue, events have nowhere to go: nothing is lost (they wait in `order_events`), but with `RABBITMQ_HOST` set the API logs a warning on every retry.
 
+## Retention of personal data
+
+From Phase 9 the API itself replaces old customers' names, phones and addresses ([ADR 0023](adr/0023-retention-of-personal-data.md)): 12 months after a finished order, and the Telegram chat links 7 days after it ends. **Nothing to set up on the server**: it runs inside the API.
+
+| Variable (on `api`) | Default | Meaning |
+|---|---|---|
+| `RETENTION_MONTHS` | `12` | Months after an order ends before its personal data is replaced. `0` turns it off |
+| `RETENTION_CHAT_DAYS` | `7` | Days after an order ends before its Telegram chat links are removed. `0` turns it off |
+
+By hand: `docker compose exec api python -m app.retention --dry-run` (counts only), then without `--dry-run`. The logs show counts, never personal data. **Backups of the VPS keep older data until they expire**: the backup retention is the server owner's ([ADR 0018](adr/0018-server-backups.md)) and is what decides how long a replaced name still exists anywhere.
+
 ## Order rate limit
 
 From Phase 8 the API answers `429` when one address places more than `ORDER_RATE_LIMIT` orders (default 30) in `ORDER_RATE_WINDOW` seconds (default 60) ([ADR 0021](adr/0021-hardening.md)). It uses the customer's address from `X-Forwarded-For`, so **after deploying, check that it is the customer's and not the proxy's**: `docker logs` of `web` must show different, real addresses. If every line shows the same one (the proxy's), add its range to `TRUSTED_PROXIES` on `web` (the live Traefik was at `100.80.1.0/24`), or set `ORDER_RATE_LIMIT=0` on the API until it is fixed. A refused order is logged by the API as "Order rate limit reached for <address>".

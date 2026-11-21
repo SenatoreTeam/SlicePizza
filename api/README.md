@@ -285,3 +285,7 @@ The tables are created on startup with `Base.metadata.create_all()` and the menu
 docker compose down -v
 docker compose up --build -d --wait
 ```
+
+## Retention of personal data
+
+The API replaces old finished orders' name, phone and address (12 months, and the same name inside the order's events) and removes Telegram chat links 7 days after an order ends: [ADR 0023](../docs/adr/0023-retention-of-personal-data.md). Settings `RETENTION_MONTHS` and `RETENTION_CHAT_DAYS` (`0` turns each off). By hand: `python -m app.retention --dry-run`.
