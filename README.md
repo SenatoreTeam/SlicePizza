@@ -10,7 +10,7 @@ The system starts small and grows in **phases**. In each phase, the "pizzeria ow
 
 📖 **Documentation / Documentação:** https://slicepizza-docs.senatore.tech/ (English · Português)
 
-**Current version:** 1.5.0 · [what changed in each version](https://github.com/SenatoreTeam/SlicePizza/releases) ([`releases.toml`](releases.toml))
+**Current version:** 1.6.0 · [what changed in each version](https://github.com/SenatoreTeam/SlicePizza/releases) ([`releases.toml`](releases.toml))
 
 ![The menu site: pizzas, prices and quantity pickers](docs-site/static/img/screenshots/menu.png)
 

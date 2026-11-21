@@ -23,6 +23,24 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.6.0"
+date = 2026-11-21
+title.en = "A stuck order queue shows in the health check"
+title.pt-br = "Uma fila de pedidos travada aparece no health check"
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "`/api/health` now says whether order updates are reaching Telegram: `outbox` is `late` when an update has waited more than 5 minutes, so a monitor can warn before customers notice."
+text.pt-br = "O `/api/health` agora diz se as atualizações dos pedidos estão chegando ao Telegram: `outbox` fica `late` quando uma atualização espera mais de 5 minutos, para um monitor avisar antes de os clientes notarem."
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "Every change is now checked for test coverage, and is refused if it would leave less of the code tested than today."
+text.pt-br = "Toda mudança agora tem a cobertura de testes verificada, e é recusada se deixar menos do código testado do que hoje."
+
+[[release]]
 version = "1.5.0"
 date = 2026-11-21
 title.en = "Your data, treated with more care"
