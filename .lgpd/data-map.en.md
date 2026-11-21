@@ -27,7 +27,7 @@
 | Origin | Provided by the customer in the order form |
 | Where | Postgres: tables `orders`, `order_items` |
 | Who sees it | The kitchen (A004); anyone with the order's link (A005); the server's owner (database, backups) |
-| Retention | **12 months after the order ends**, then name, phone and address are replaced by `[removed]`; items, totals and dates stay ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md), task 9.3). **Live only after the next release**; before it, nothing deletes it. Open orders are never touched |
+| Retention | **12 months after the order ends**, then name, phone and address are replaced by `[removed]`; items, totals and dates stay ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md), task 9.3). **Live since 1.5.0 (2026-11-21)**; the first orders reach 12 months in late 2027. Open orders are never touched |
 | Risk | Phone and address identify where a person lives: handle as data to protect, not "just a delivery note" |
 
 ### A002. Order events (the outbox) and the queue
@@ -38,7 +38,7 @@
 | Proposed legal basis | Art. 7, V, as A001 |
 | Data | Order id, **customer name**, items, status, and the ids of the Telegram chats following the order. Phone and address are **left out on purpose** |
 | Where | Postgres `order_events.payload` (JSON); RabbitMQ queues until the worker reads them |
-| Retention | The customer's name in `order_events.payload` is replaced at the same time as the order's (ADR 0023); the queue drains in seconds. **Live only after the next release** |
+| Retention | The customer's name in `order_events.payload` is replaced at the same time as the order's (ADR 0023); the queue drains in seconds. **Live since 1.5.0 (2026-11-21)** |
 
 ### A003. Telegram messages
 
@@ -49,7 +49,7 @@
 | Data | The customer's Telegram chat id (table `telegram_subscriptions`), the order short id and the customer's name in message texts |
 | Third party | **Telegram**: receives and stores the messages and the chat id. Legal role to be confirmed with the lawyer (independent controller for its own service is likely) |
 | International transfer | Yes: Telegram's servers are outside Brazil. Mechanism to be confirmed (Art. 33; ANPD Res. 19/2024). The policy must say it |
-| Retention | Chat links: removed **7 days after the order ends** (ADR 0023, live after the next release). Messages in Telegram: outside our control |
+| Retention | Chat links: removed **7 days after the order ends** (ADR 0023, live since 1.5.0). Messages in Telegram: outside our control |
 | Notes | The worker logs chat ids (not texts) in some cases; with Telegram off, in development, it logs the message it would send (names) |
 
 ### A004. The kitchen board
@@ -67,7 +67,7 @@
 | Field | Value |
 |---|---|
 | Purpose | Let the customer follow their order |
-| Data shown | `GET /orders/<id>` returns the progress and the items to **anyone who has the link** (an unguessable random id; no login). **Fixed in code** (task 9.7, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)): it used to return name, phone and address too. **Live only after the next release** |
+| Data shown | `GET /orders/<id>` returns the progress and the items to **anyone who has the link** (an unguessable random id; no login). **Fixed, live since 1.5.0** (task 9.7, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)): it used to return name, phone and address too. **Live since 1.5.0 (2026-11-21)** |
 | Browser storage | `localStorage` key `slicepizza:last-order` holds the order's id on the customer's own device |
 | Gap closed | The link is a bearer secret, and links get forwarded: the public view now has **no personal data** (items, status, total) |
 
@@ -87,7 +87,7 @@
 |---|---|
 | What | The menu and kitchen pages load fonts from `fonts.googleapis.com` and `fonts.gstatic.com` |
 | Effect | Every visitor's **IP address and browser details go to Google** (outside Brazil) just by opening the page, without being told and without a basis we can defend |
-| Fix | **Done in code** (task 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): the fonts are served from our own domain (`/fonts/`, Instrument Sans and Young Serif under the SIL Open Font License) and the Content-Security-Policy no longer allows Google. **Live only after the next release.** Until then this activity stands; afterwards the page makes no request to a third party |
+| Fix | **Done, live since 1.5.0** (task 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): the fonts are served from our own domain (`/fonts/`, Instrument Sans and Young Serif under the SIL Open Font License) and the Content-Security-Policy no longer allows Google. **Live only after the next release.** Since 1.5.0 the page makes no request to a third party |
 
 ### A008. Backups and the server
 
@@ -102,7 +102,7 @@
 | Third party | What it receives | Proposed role | Outside Brazil? | Open |
 |---|---|---|---|---|
 | Telegram | Chat ids, names in messages | Independent controller (its own service) | Yes | Confirm role and mechanism |
-| Google (Fonts) | Visitor IP, browser details | Independent controller | Yes | Removed in code (9.6); live with the next release |
+| Google (Fonts) | Visitor IP, browser details | Independent controller | Yes | Removed in code (9.6); live since 1.5.0 |
 | VPS provider and the server's owner | Everything stored on the server | Processor (Art. 39) | To confirm (VPS location) | #81; a processing agreement between the pizzeria and the server's owner |
 | Cloudflare | DNS queries; **all requests if proxied** | Processor | Yes | Is it only DNS, or a proxy? (#81) |
 | GitHub | The code, issues, CI logs (no customer data) | n/a | Yes | Keep customer data out of issues and logs |
@@ -110,9 +110,9 @@
 ## 4. Findings, in order of importance
 
 1. **No privacy policy** and no way for a customer to see what we keep: 9.2, 9.4.
-2. **No retention** (customer data kept forever, and `order_events.payload` repeating the name): fixed in code by 9.3, live with the next release.
-3. **Google Fonts** sent every visitor's IP to Google: fixed in code by 9.6, live with the next release.
-4. **The order link showed phone and address** to whoever held it: fixed in code by 9.7, live with the next release.
+2. **No retention** (customer data kept forever, and `order_events.payload` repeating the name): fixed in code by 9.3, live since 1.5.0.
+3. **Google Fonts** sent every visitor's IP to Google: fixed in code by 9.6, live since 1.5.0.
+4. **The order link showed phone and address** to whoever held it: fixed in code by 9.7, live since 1.5.0.
 5. **Unknown logs and backups** on the server: #81. A policy cannot promise what we have not confirmed.
 6. **International transfer** (Telegram, the VPS): Art. 33 must be addressed in the policy.
 7. **Shared kitchen login**: nobody is accountable for a leak; plan in Phase 11 (kitchen login).

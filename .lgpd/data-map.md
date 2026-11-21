@@ -27,7 +27,7 @@
 | Origem | Fornecidos pelo cliente no formulário do pedido |
 | Onde | Postgres: tabelas `orders`, `order_items` |
 | Quem vê | A cozinha (A004); quem tiver o link do pedido (A005); o dono do servidor (banco, backups) |
-| Retenção | **12 meses depois que o pedido termina**; então nome, telefone e endereço viram `[removed]`; itens, totais e datas ficam ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md), tarefa 9.3). **No ar só com a próxima versão**; antes, nada apaga. Pedidos em aberto nunca são tocados |
+| Retenção | **12 meses depois que o pedido termina**; então nome, telefone e endereço viram `[removed]`; itens, totais e datas ficam ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md), tarefa 9.3). **No ar desde a 1.5.0 (21/11/2026)**; os primeiros pedidos chegam a 12 meses no fim de 2027. Pedidos em aberto nunca são tocados |
 | Risco | Telefone e endereço dizem onde a pessoa mora: tratar como dado a proteger, não como "só um bilhete de entrega" |
 
 ### A002. Eventos do pedido (outbox) e a fila
@@ -38,7 +38,7 @@
 | Base legal proposta | Art. 7º, V, como A001 |
 | Dados | Id do pedido, **nome do cliente**, itens, situação e os ids dos chats do Telegram que acompanham o pedido. Telefone e endereço ficam **de fora de propósito** |
 | Onde | Postgres `order_events.payload` (JSON); filas do RabbitMQ até o worker ler |
-| Retenção | O nome do cliente em `order_events.payload` é substituído junto com o do pedido (ADR 0023); a fila esvazia em segundos. **No ar só com a próxima versão** |
+| Retenção | O nome do cliente em `order_events.payload` é substituído junto com o do pedido (ADR 0023); a fila esvazia em segundos. **No ar desde a 1.5.0 (21/11/2026)** |
 
 ### A003. Mensagens no Telegram
 
@@ -49,7 +49,7 @@
 | Dados | O id do chat do Telegram do cliente (tabela `telegram_subscriptions`), o código curto do pedido e o nome do cliente nos textos das mensagens |
 | Terceiro | **Telegram**: recebe e guarda as mensagens e o id do chat. Papel jurídico a confirmar com o advogado (provável controlador independente do próprio serviço) |
 | Transferência internacional | Sim: os servidores do Telegram ficam fora do Brasil. Mecanismo a confirmar (Art. 33; Res. CD/ANPD 19/2024). A política deve dizer |
-| Retenção | Vínculos de chat: removidos **7 dias depois que o pedido termina** (ADR 0023, no ar com a próxima versão). Mensagens no Telegram: fora do nosso controle |
+| Retenção | Vínculos de chat: removidos **7 dias depois que o pedido termina** (ADR 0023, no ar desde a 1.5.0). Mensagens no Telegram: fora do nosso controle |
 | Observações | O worker registra ids de chat (não os textos) em alguns casos; com o Telegram desligado, em desenvolvimento, registra a mensagem que enviaria (com nomes) |
 
 ### A004. O painel da cozinha
@@ -67,7 +67,7 @@
 | Campo | Valor |
 |---|---|
 | Finalidade | Deixar o cliente acompanhar o pedido |
-| Dados mostrados | `GET /orders/<id>` devolve o andamento e os itens a **quem tiver o link** (um id aleatório impossível de adivinhar; sem login). **Corrigido no código** (tarefa 9.7, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)): antes devolvia também nome, telefone e endereço. **No ar só com a próxima versão** |
+| Dados mostrados | `GET /orders/<id>` devolve o andamento e os itens a **quem tiver o link** (um id aleatório impossível de adivinhar; sem login). **Corrigido, no ar desde a 1.5.0** (tarefa 9.7, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)): antes devolvia também nome, telefone e endereço. **No ar desde a 1.5.0 (21/11/2026)** |
 | Armazenamento no navegador | A chave `slicepizza:last-order` do `localStorage` guarda o id do pedido no aparelho do próprio cliente |
 | Lacuna fechada | O link é um segredo ao portador, e links são encaminhados: a visão pública agora **não tem dado pessoal** (itens, situação, total) |
 
@@ -87,7 +87,7 @@
 |---|---|
 | O quê | As páginas do cardápio e da cozinha carregam fontes de `fonts.googleapis.com` e `fonts.gstatic.com` |
 | Efeito | O **IP e os dados do navegador de cada visitante vão para o Google** (fora do Brasil) só por abrir a página, sem aviso e sem uma base que possamos defender |
-| Correção | **Feita no código** (tarefa 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): as fontes são servidas do nosso próprio domínio (`/fonts/`, Instrument Sans e Young Serif sob a Licença de Fonte Aberta SIL) e a Content-Security-Policy não permite mais o Google. **No ar só com a próxima versão.** Até lá esta atividade vale; depois a página não faz requisição a terceiros |
+| Correção | **Feita, no ar desde a 1.5.0** (tarefa 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): as fontes são servidas do nosso próprio domínio (`/fonts/`, Instrument Sans e Young Serif sob a Licença de Fonte Aberta SIL) e a Content-Security-Policy não permite mais o Google. **No ar desde a 1.5.0.** Desde a 1.5.0 a página não faz requisição a terceiros |
 
 ### A008. Backups e o servidor
 
@@ -102,7 +102,7 @@
 | Terceiro | O que recebe | Papel proposto | Fora do Brasil? | Em aberto |
 |---|---|---|---|---|
 | Telegram | Ids de chat, nomes nas mensagens | Controlador independente (serviço próprio) | Sim | Confirmar papel e mecanismo |
-| Google (Fontes) | IP e dados do navegador do visitante | Controlador independente | Sim | Removido no código (9.6); no ar com a próxima versão |
+| Google (Fontes) | IP e dados do navegador do visitante | Controlador independente | Sim | Removido no código (9.6); no ar desde a 1.5.0 |
 | Provedor da VPS e o dono do servidor | Tudo que está guardado no servidor | Operador (Art. 39) | A confirmar (local da VPS) | #81; um contrato de tratamento entre a pizzaria e o dono do servidor |
 | Cloudflare | Consultas de DNS; **todas as requisições, se houver proxy** | Operador | Sim | É só DNS ou proxy? (#81) |
 | GitHub | O código, issues, logs de CI (sem dados de clientes) | n/a | Sim | Manter dados de clientes fora de issues e logs |
@@ -110,9 +110,9 @@
 ## 4. Achados, por ordem de importância
 
 1. **Sem política de privacidade** e sem como o cliente ver o que guardamos: 9.2, 9.4.
-2. **Sem retenção** (dados dos clientes para sempre, e o `order_events.payload` repetindo o nome): corrigido no código pela 9.3, no ar com a próxima versão.
-3. **Fontes do Google** mandavam o IP de cada visitante ao Google: corrigido no código pela 9.6, no ar com a próxima versão.
-4. **O link do pedido mostrava telefone e endereço** a quem o tivesse: corrigido no código pela 9.7, no ar com a próxima versão.
+2. **Sem retenção** (dados dos clientes para sempre, e o `order_events.payload` repetindo o nome): corrigido no código pela 9.3, no ar desde a 1.5.0.
+3. **Fontes do Google** mandavam o IP de cada visitante ao Google: corrigido no código pela 9.6, no ar desde a 1.5.0.
+4. **O link do pedido mostrava telefone e endereço** a quem o tivesse: corrigido no código pela 9.7, no ar desde a 1.5.0.
 5. **Logs e backups desconhecidos** no servidor: #81. Uma política não pode prometer o que não confirmamos.
 6. **Transferência internacional** (Telegram, a VPS): o Art. 33 deve ser tratado na política.
 7. **Login compartilhado da cozinha**: ninguém responde por um vazamento; plano na Fase 11 (login da cozinha).
