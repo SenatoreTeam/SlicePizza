@@ -9,7 +9,7 @@ A **Python + FastAPI** API that serves the menu and receives the pizzeria's orde
 | GET | `/health` | Checks the API and the database connection |
 | GET | `/menu` | Lists the pizzas |
 | POST | `/orders` | Creates an order |
-| GET | `/orders/{id}` | Gets an order |
+| GET | `/orders/{id}` | Gets an order's progress and items (**no name, phone or address**: whoever has the link sees it, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)) |
 | GET | `/orders` | **Kitchen only.** Lists orders: the open ones by default, oldest first |
 | PATCH | `/orders/{id}/status` | **Kitchen only.** Changes an order's status |
 

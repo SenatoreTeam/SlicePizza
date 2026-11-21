@@ -153,6 +153,24 @@ def test_get_order(client):
     assert response.json()["id"] == order_id
 
 
+def test_get_order_has_no_personal_data(client):
+    """The order link is shared and logged: it must not carry who the customer is (ADR 0022)."""
+    order_id = create_order(client).json()["id"]
+
+    body = client.get(f"/orders/{order_id}").json()
+
+    assert set(body) == {"id", "status", "total_cents", "created_at", "updated_at", "items"}
+    assert "customer_name" not in body and "customer_phone" not in body
+    assert "delivery_address" not in body
+    assert body["items"]
+
+
+def test_creating_an_order_still_answers_the_customer_with_their_details(client):
+    body = create_order(client).json()
+
+    assert body["customer_name"] and body["customer_phone"] and body["delivery_address"]
+
+
 def test_get_unknown_order(client):
     response = client.get(f"/orders/{uuid.uuid4()}")
 

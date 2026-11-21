@@ -69,9 +69,9 @@
 | Field | Value |
 |---|---|
 | Purpose | Let the customer follow their order |
-| Data shown | `GET /orders/<id>` returns **name, phone and address** to **anyone who has the link** (an unguessable random id; no login) |
+| Data shown | `GET /orders/<id>` returns the progress and the items to **anyone who has the link** (an unguessable random id; no login). **Fixed in code** (task 9.7, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)): it used to return name, phone and address too. **Live only after the next release** |
 | Browser storage | `localStorage` key `slicepizza:last-order` holds the order's id on the customer's own device |
-| Gap | The link is a bearer secret: anyone it is forwarded to sees the phone and address. A **minimized** status view (items, status, no phone or address) would serve the purpose with less exposure (task 9.7) |
+| Gap closed | The link is a bearer secret, and links get forwarded: the public view now has **no personal data** (items, status, total) |
 
 ### A006. Access and security logs
 
@@ -114,7 +114,7 @@
 1. **No privacy policy** and no way for a customer to see what we keep: 9.2, 9.4.
 2. **No retention**: customer data is kept forever, and `order_events.payload` repeats the name: 9.3.
 3. **Google Fonts** sent every visitor's IP to Google: fixed in code by 9.6, live with the next release.
-4. **The order link shows phone and address** to whoever holds it: 9.7.
+4. **The order link showed phone and address** to whoever held it: fixed in code by 9.7, live with the next release.
 5. **Unknown logs and backups** on the server: #81. A policy cannot promise what we have not confirmed.
 6. **International transfer** (Telegram, the VPS): Art. 33 must be addressed in the policy.
 7. **Shared kitchen login**: nobody is accountable for a leak; plan in Phase 11 (kitchen login).

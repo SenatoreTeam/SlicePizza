@@ -414,7 +414,6 @@ function renderOrder(order) {
     ),
   );
   $("order-total").textContent = formatPrice(order.total_cents);
-  $("order-address").textContent = order.delivery_address;
 }
 
 // --- Version ------------------------------------------------------------------

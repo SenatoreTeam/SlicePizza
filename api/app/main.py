@@ -24,7 +24,7 @@ from .internal import router as internal_router
 from .models import ALLOWED_TRANSITIONS, Order, OrderItem, OrderStatus, Pizza
 from .outbox import OutboxRelay, RabbitMQPublisher
 from .ratelimit import limit_orders
-from .schemas import OrderCreate, OrderOut, OrderStatusUpdate, PizzaOut
+from .schemas import OrderCreate, OrderOut, OrderPublicOut, OrderStatusUpdate, PizzaOut
 from .seed import seed_menu
 
 logger = logging.getLogger(__name__)
@@ -350,9 +350,13 @@ def list_orders(
     return list(db.scalars(query))
 
 
-@app.get("/orders/{order_id}", response_model=OrderOut)
+@app.get("/orders/{order_id}", response_model=OrderPublicOut)
 def get_order(order_id: uuid.UUID, db: Session = Depends(get_db)) -> Order:
-    """Get a single order and its items."""
+    """Get an order's progress and items, for whoever has its link (ADR 0022).
+
+    No name, phone or address: those are only in the answer to the request that
+    created the order, and in the kitchen's routes.
+    """
     return _load_order(db, order_id)
 
 
