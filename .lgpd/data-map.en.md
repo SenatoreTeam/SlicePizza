@@ -87,7 +87,7 @@
 |---|---|
 | What | The menu and kitchen pages load fonts from `fonts.googleapis.com` and `fonts.gstatic.com` |
 | Effect | Every visitor's **IP address and browser details go to Google** (outside Brazil) just by opening the page, without being told and without a basis we can defend |
-| Fix | **Done, live since 1.5.0** (task 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): the fonts are served from our own domain (`/fonts/`, Instrument Sans and Young Serif under the SIL Open Font License) and the Content-Security-Policy no longer allows Google. **Live only after the next release.** Since 1.5.0 the page makes no request to a third party |
+| Fix | **Done, live since 1.5.0** (task 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): the fonts are served from our own domain (`/fonts/`, Instrument Sans and Young Serif under the SIL Open Font License) and the Content-Security-Policy no longer allows Google. Since 1.5.0 the page makes no request to a third party |
 
 ### A008. Backups and the server
 
