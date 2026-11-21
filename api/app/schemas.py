@@ -95,6 +95,22 @@ class OrderItemOut(BaseModel):
     unit_price_cents: int
 
 
+class OrderPublicOut(BaseModel):
+    """What anyone holding an order's link may see (ADR 0022): the progress, never
+    the customer's name, phone or address. The link is a secret only by being hard
+    to guess, and customers forward links, so it must not carry personal data.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    status: OrderStatus
+    total_cents: int
+    created_at: datetime
+    updated_at: datetime
+    items: list[OrderItemOut]
+
+
 class OrderOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

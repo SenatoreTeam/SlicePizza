@@ -486,10 +486,6 @@ main.wrap {
   color: var(--muted);
 }
 
-.deliver-to span {
-  color: var(--ink);
-}
-
 /* --- Footer ---------------------------------------------------------------- */
 
 .footer {

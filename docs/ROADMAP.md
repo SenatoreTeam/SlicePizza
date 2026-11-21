@@ -194,7 +194,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 | 9.4 | **A customer's request** (see my data, delete my data): the steps for the pizzeria, as a runbook and a command | Ettore | M | 9.3 |
 | 9.5 | **Logs and backups** ([#81](https://github.com/SenatoreTeam/SlicePizza/issues/81)): confirm the worker and the proxy do not log phone numbers or addresses; ask how long the server keeps logs and backups, so the policy tells the truth | Miguel | S | 9.1 |
 | 9.6 ✅ | **Self-host the fonts** ([#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): the pages send every visitor's IP to Google Fonts; serve them from our domain and tighten the Content-Security-Policy. Done in code; **live with the next release** | Ettore | S | |
-| 9.7 | **Minimize the order link**: `GET /orders/<id>` shows name, phone and address to anyone with the link; show items and status only (the kitchen keeps the full view). Changes the API's answer, so check the order page and the worker first | Ettore | M | 9.1 |
+| 9.7 ✅ | **Minimize the order link** ([#83](https://github.com/SenatoreTeam/SlicePizza/issues/83), [ADR 0022](adr/0022-order-link-without-personal-data.md)): `GET /orders/<id>` shows name, phone and address to anyone with the link; show items and status only (the kitchen keeps the full view). Done in code; **live with the next release** (with 9.6) | Ettore | M | 9.1 |
 
 **Done when:** the policy is live on the site, orders older than the retention period no longer hold a name, a phone or an address, and a request from a customer can be answered in a day.
 

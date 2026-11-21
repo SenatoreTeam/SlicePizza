@@ -69,9 +69,9 @@
 | Campo | Valor |
 |---|---|
 | Finalidade | Deixar o cliente acompanhar o pedido |
-| Dados mostrados | `GET /orders/<id>` devolve **nome, telefone e endereço** a **quem tiver o link** (um id aleatório impossível de adivinhar; sem login) |
+| Dados mostrados | `GET /orders/<id>` devolve o andamento e os itens a **quem tiver o link** (um id aleatório impossível de adivinhar; sem login). **Corrigido no código** (tarefa 9.7, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)): antes devolvia também nome, telefone e endereço. **No ar só com a próxima versão** |
 | Armazenamento no navegador | A chave `slicepizza:last-order` do `localStorage` guarda o id do pedido no aparelho do próprio cliente |
-| Lacuna | O link é um segredo ao portador: quem o receber encaminhado vê telefone e endereço. Uma visão **minimizada** (itens, situação, sem telefone nem endereço) cumpriria a finalidade com menos exposição (tarefa 9.7) |
+| Lacuna fechada | O link é um segredo ao portador, e links são encaminhados: a visão pública agora **não tem dado pessoal** (itens, situação, total) |
 
 ### A006. Logs de acesso e de segurança
 
@@ -114,7 +114,7 @@
 1. **Sem política de privacidade** e sem como o cliente ver o que guardamos: 9.2, 9.4.
 2. **Sem retenção**: os dados dos clientes ficam para sempre, e o `order_events.payload` repete o nome: 9.3.
 3. **Fontes do Google** mandavam o IP de cada visitante ao Google: corrigido no código pela 9.6, no ar com a próxima versão.
-4. **O link do pedido mostra telefone e endereço** a quem o tiver: 9.7.
+4. **O link do pedido mostrava telefone e endereço** a quem o tivesse: corrigido no código pela 9.7, no ar com a próxima versão.
 5. **Logs e backups desconhecidos** no servidor: #81. Uma política não pode prometer o que não confirmamos.
 6. **Transferência internacional** (Telegram, a VPS): o Art. 33 deve ser tratado na política.
 7. **Login compartilhado da cozinha**: ninguém responde por um vazamento; plano na Fase 11 (login da cozinha).
