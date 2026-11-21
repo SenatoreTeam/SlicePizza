@@ -1,0 +1,33 @@
+/* Instrument Sans (400, 500, 600) and Young Serif (400), Latin subset, served from
+   this site instead of Google Fonts: a visitor's IP address no longer goes to Google
+   (LGPD, task 9.6). Files from the Fontsource packages @fontsource/instrument-sans
+   and @fontsource/young-serif 5.3.0; both fonts are under the SIL Open Font License
+   1.1 (OFL-*.txt next to them). The Latin subset covers Portuguese. */
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Young Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/young-serif-latin-400-normal.woff2") format("woff2");
+}

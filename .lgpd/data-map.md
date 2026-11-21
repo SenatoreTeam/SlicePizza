@@ -89,7 +89,7 @@
 |---|---|
 | O quê | As páginas do cardápio e da cozinha carregam fontes de `fonts.googleapis.com` e `fonts.gstatic.com` |
 | Efeito | O **IP e os dados do navegador de cada visitante vão para o Google** (fora do Brasil) só por abrir a página, sem aviso e sem uma base que possamos defender |
-| Correção | Servir as fontes do nosso próprio domínio (tarefa 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)) |
+| Correção | **Feita no código** (tarefa 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): as fontes são servidas do nosso próprio domínio (`/fonts/`, Instrument Sans e Young Serif sob a Licença de Fonte Aberta SIL) e a Content-Security-Policy não permite mais o Google. **No ar só com a próxima versão.** Até lá esta atividade vale; depois a página não faz requisição a terceiros |
 
 ### A008. Backups e o servidor
 
@@ -104,7 +104,7 @@
 | Terceiro | O que recebe | Papel proposto | Fora do Brasil? | Em aberto |
 |---|---|---|---|---|
 | Telegram | Ids de chat, nomes nas mensagens | Controlador independente (serviço próprio) | Sim | Confirmar papel e mecanismo |
-| Google (Fontes) | IP e dados do navegador do visitante | Controlador independente | Sim | Remover (9.6) |
+| Google (Fontes) | IP e dados do navegador do visitante | Controlador independente | Sim | Removido no código (9.6); no ar com a próxima versão |
 | Provedor da VPS e o dono do servidor | Tudo que está guardado no servidor | Operador (Art. 39) | A confirmar (local da VPS) | #81; um contrato de tratamento entre a pizzaria e o dono do servidor |
 | Cloudflare | Consultas de DNS; **todas as requisições, se houver proxy** | Operador | Sim | É só DNS ou proxy? (#81) |
 | GitHub | O código, issues, logs de CI (sem dados de clientes) | n/a | Sim | Manter dados de clientes fora de issues e logs |
@@ -113,7 +113,7 @@
 
 1. **Sem política de privacidade** e sem como o cliente ver o que guardamos: 9.2, 9.4.
 2. **Sem retenção**: os dados dos clientes ficam para sempre, e o `order_events.payload` repete o nome: 9.3.
-3. **Fontes do Google** mandam o IP de cada visitante ao Google: 9.6.
+3. **Fontes do Google** mandavam o IP de cada visitante ao Google: corrigido no código pela 9.6, no ar com a próxima versão.
 4. **O link do pedido mostra telefone e endereço** a quem o tiver: 9.7.
 5. **Logs e backups desconhecidos** no servidor: #81. Uma política não pode prometer o que não confirmamos.
 6. **Transferência internacional** (Telegram, a VPS): o Art. 33 deve ser tratado na política.
