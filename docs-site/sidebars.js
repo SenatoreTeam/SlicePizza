@@ -59,6 +59,26 @@ const sidebars = {
       label: 'Phase 8',
       items: ['phase-8/overview'],
     },
+    {
+      type: 'category',
+      label: 'Phase 9',
+      items: ['phase-9/overview'],
+    },
+    {
+      type: 'category',
+      label: 'Phase 10',
+      items: ['phase-10/overview'],
+    },
+    {
+      type: 'category',
+      label: 'Phase 11',
+      items: ['phase-11/overview'],
+    },
+    {
+      type: 'category',
+      label: 'Phase 12',
+      items: ['phase-12/overview'],
+    },
   ],
 };
 
