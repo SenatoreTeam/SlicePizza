@@ -176,7 +176,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 6 | "The server died and we lost the orders" | ✅ Done |
 | 7 | "We're running a R$20 pizza promo on Friday" | ✅ Done |
 | 8 | "I heard hackers attack pizzerias" | ✅ Done |
-| 9 | "A customer asked what you do with her phone number" | 📝 Proposed |
+| 9 | "A customer asked what you do with her phone number" | 🚧 In progress |
 | 10 | "We changed the database and it hurt" | 📝 Proposed |
 | 11 | "How do I know nobody tampered with what we run?" | 📝 Proposed |
 | 12 | "It broke at 7 p.m. on Friday" | 📝 Proposed |
