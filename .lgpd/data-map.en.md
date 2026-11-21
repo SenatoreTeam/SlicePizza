@@ -89,7 +89,7 @@
 |---|---|
 | What | The menu and kitchen pages load fonts from `fonts.googleapis.com` and `fonts.gstatic.com` |
 | Effect | Every visitor's **IP address and browser details go to Google** (outside Brazil) just by opening the page, without being told and without a basis we can defend |
-| Fix | Serve the fonts from our own domain (task 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)) |
+| Fix | **Done in code** (task 9.6, [#82](https://github.com/SenatoreTeam/SlicePizza/issues/82)): the fonts are served from our own domain (`/fonts/`, Instrument Sans and Young Serif under the SIL Open Font License) and the Content-Security-Policy no longer allows Google. **Live only after the next release.** Until then this activity stands; afterwards the page makes no request to a third party |
 
 ### A008. Backups and the server
 
@@ -104,7 +104,7 @@
 | Third party | What it receives | Proposed role | Outside Brazil? | Open |
 |---|---|---|---|---|
 | Telegram | Chat ids, names in messages | Independent controller (its own service) | Yes | Confirm role and mechanism |
-| Google (Fonts) | Visitor IP, browser details | Independent controller | Yes | Remove it (9.6) |
+| Google (Fonts) | Visitor IP, browser details | Independent controller | Yes | Removed in code (9.6); live with the next release |
 | VPS provider and the server's owner | Everything stored on the server | Processor (Art. 39) | To confirm (VPS location) | #81; a processing agreement between the pizzeria and the server's owner |
 | Cloudflare | DNS queries; **all requests if proxied** | Processor | Yes | Is it only DNS, or a proxy? (#81) |
 | GitHub | The code, issues, CI logs (no customer data) | n/a | Yes | Keep customer data out of issues and logs |
@@ -113,7 +113,7 @@
 
 1. **No privacy policy** and no way for a customer to see what we keep: 9.2, 9.4.
 2. **No retention**: customer data is kept forever, and `order_events.payload` repeats the name: 9.3.
-3. **Google Fonts** sends every visitor's IP to Google: 9.6.
+3. **Google Fonts** sent every visitor's IP to Google: fixed in code by 9.6, live with the next release.
 4. **The order link shows phone and address** to whoever holds it: 9.7.
 5. **Unknown logs and backups** on the server: #81. A policy cannot promise what we have not confirmed.
 6. **International transfer** (Telegram, the VPS): Art. 33 must be addressed in the policy.

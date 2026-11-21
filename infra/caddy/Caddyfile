@@ -72,7 +72,7 @@
 		Cache-Control "no-cache"
 		# Only this site's own files, plus the fonts from Google Fonts.
 		# The swagger page at /api/docs is not covered (different handle).
-		Content-Security-Policy "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' {$EXTRA_CONNECT_SRC}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		Content-Security-Policy "default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' {$EXTRA_CONNECT_SRC}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 	}
 }
 
@@ -162,6 +162,14 @@
 		reverse_proxy {
 			import api_upstream
 		}
+	}
+
+	# The fonts (task 9.6): ours, not Google's. They never change under the same
+	# name, so browsers may keep them for 30 days.
+	handle /fonts/* {
+		root * {$SITE_ROOT:/srv}
+		file_server
+		header Cache-Control "public, max-age=2592000"
 	}
 
 	handle {

@@ -113,3 +113,6 @@ What it does:
 
 To try it locally, set `KITCHEN_API_TOKEN` and `KITCHEN_PASSWORD_HASH` in `.env` (see `.env.example`), run `docker compose up -d`, and open <http://localhost:8080/kitchen/>. The user name is `kitchen`. The page is served from the `web` image; `docker-compose.site-dev.yml` mounts `frontend/kitchen/` too, for live edits.
 
+## Fonts
+
+The fonts (Instrument Sans and Young Serif) are served from `menu/fonts/`, not from Google Fonts: a visitor's IP address must not go to a third party just for opening the page (LGPD, [`.lgpd/`](../.lgpd/data-map.en.md)). Both are under the SIL Open Font License (the licenses are next to the files). The Content-Security-Policy in `infra/caddy/Caddyfile` allows only this site's own fonts and styles, so adding a font from a CDN will be blocked on purpose: put the file in `menu/fonts/` and add it to `fonts/fonts.css` instead.
