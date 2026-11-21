@@ -119,8 +119,11 @@ def test_cors_is_off_by_default():
     # this process, so check the default in a fresh interpreter.
     script = """
 from fastapi.testclient import TestClient
+from app.database import Base, engine
 from app.main import app
 
+# No lifespan here, so create the tables /health reads (the outbox).
+Base.metadata.create_all(engine)
 client = TestClient(app)
 get = client.get("/health", headers={"Origin": "http://localhost:8080"})
 preflight = client.options(

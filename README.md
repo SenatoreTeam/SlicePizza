@@ -181,7 +181,7 @@ The site is served at http://localhost:3000/, or at http://localhost:3000/pt-BR/
 | 9 | "A customer asked what you do with her phone number" | 🚧 In progress |
 | 10 | "We changed the database and it hurt" | 🚧 In progress |
 | 11 | "How do I know nobody tampered with what we run?" | 🚧 In progress |
-| 12 | "It broke at 7 p.m. on Friday" | 📝 Proposed |
+| 12 | "It broke at 7 p.m. on Friday" | 🚧 In progress |
 
 Tasks and definition of done for each phase in [docs/ROADMAP.md](docs/ROADMAP.md). Phases 9 to 12 are the next stage, proposed after comparing with [Kaladrius](docs/KALADRIUS.md).
 
