@@ -23,6 +23,36 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.5.0"
+date = 2026-11-21
+title.en = "Your data, treated with more care"
+title.pt-br = "Seus dados, tratados com mais cuidado"
+
+[[release.item]]
+kind = "security"
+area = "Orders"
+text.en = "The link to follow an order no longer shows the customer's name, phone or address, so forwarding it does not reveal who ordered or where. The order page says \"Delivering to the address you gave us\"."
+text.pt-br = "O link para acompanhar um pedido não mostra mais o nome, o telefone nem o endereço do cliente, então encaminhá-lo não revela quem pediu nem onde. A página do pedido diz \"Entregando no endereço que você informou\"."
+
+[[release.item]]
+kind = "security"
+area = "System"
+text.en = "Names, phones and addresses of old orders are now replaced 12 months after the order ends (and Telegram chat links 7 days after), keeping only the items and totals. The pizzeria can also answer a customer who asks what we keep or asks to be erased."
+text.pt-br = "Nomes, telefones e endereços de pedidos antigos agora são trocados 12 meses depois que o pedido termina (e os vínculos do Telegram 7 dias depois), ficando só os itens e os valores. A pizzaria também pode atender um cliente que pergunta o que guardamos ou pede para ser apagado."
+
+[[release.item]]
+kind = "security"
+area = "Menu"
+text.en = "The site no longer loads fonts from Google, so a visitor's address is not sent to a third party just for opening the menu."
+text.pt-br = "O site não carrega mais fontes do Google, então o endereço de quem visita não é enviado a terceiros só por abrir o cardápio."
+
+[[release.item]]
+kind = "security"
+area = "System"
+text.en = "Search engines no longer index the API or the kitchen board. Every GitHub automation step and every base image is now pinned to an exact, checked version."
+text.pt-br = "Os buscadores não indexam mais a API nem o painel da cozinha. Cada etapa de automação do GitHub e cada imagem base agora é fixada em uma versão exata e conferida."
+
+[[release]]
 version = "1.4.0"
 date = 2026-11-19
 title.en = "Safer against abuse"
