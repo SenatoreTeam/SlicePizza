@@ -24,6 +24,7 @@ from .internal import router as internal_router
 from .models import ALLOWED_TRANSITIONS, Order, OrderItem, OrderStatus, Pizza
 from .outbox import OutboxRelay, RabbitMQPublisher
 from .ratelimit import limit_orders
+from .retention import RetentionJob
 from .schemas import OrderCreate, OrderOut, OrderPublicOut, OrderStatusUpdate, PizzaOut
 from .seed import seed_menu
 
@@ -51,11 +52,13 @@ _configure_app_logging()
 
 # Publishes the outbox to RabbitMQ when RABBITMQ_HOST is set (ADR 0004).
 relay: OutboxRelay | None = None
+# Replaces old customers' personal data (ADR 0023).
+retention: RetentionJob | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global relay
+    global relay, retention
     # Phase 1 keeps the schema simple: create the tables on startup and seed
     # the menu. Migrations (Alembic) arrive when the schema starts to evolve.
     await wait_for_database()
@@ -73,12 +76,16 @@ async def lifespan(app: FastAPI):
             "RABBITMQ_HOST is not set: order events are kept in order_events "
             "and published once RabbitMQ is configured."
         )
+    retention = RetentionJob()
+    retention.start()
     try:
         yield
     finally:
         if relay is not None:
             relay.stop()
             relay = None
+        retention.stop()
+        retention = None
 
 
 def _events_committed() -> None:

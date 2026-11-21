@@ -27,8 +27,7 @@
 | Origin | Provided by the customer in the order form |
 | Where | Postgres: tables `orders`, `order_items` |
 | Who sees it | The kitchen (A004); anyone with the order's link (A005); the server's owner (database, backups) |
-| Retention today | **Forever**: nothing deletes it |
-| Retention proposed | 12 months after the order, then name, phone and address replaced; totals and items stay (task 9.3) |
+| Retention | **12 months after the order ends**, then name, phone and address are replaced by `[removed]`; items, totals and dates stay ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md), task 9.3). **Live only after the next release**; before it, nothing deletes it. Open orders are never touched |
 | Risk | Phone and address identify where a person lives: handle as data to protect, not "just a delivery note" |
 
 ### A002. Order events (the outbox) and the queue
@@ -39,8 +38,7 @@
 | Proposed legal basis | Art. 7, V, as A001 |
 | Data | Order id, **customer name**, items, status, and the ids of the Telegram chats following the order. Phone and address are **left out on purpose** |
 | Where | Postgres `order_events.payload` (JSON); RabbitMQ queues until the worker reads them |
-| Retention today | **Forever** in `order_events` (the outbox keeps published rows as history); the queue drains in seconds |
-| Gap | Anonymizing `orders` alone would leave names in `order_events.payload`: **9.3 must cover both** |
+| Retention | The customer's name in `order_events.payload` is replaced at the same time as the order's (ADR 0023); the queue drains in seconds. **Live only after the next release** |
 
 ### A003. Telegram messages
 
@@ -51,7 +49,7 @@
 | Data | The customer's Telegram chat id (table `telegram_subscriptions`), the order short id and the customer's name in message texts |
 | Third party | **Telegram**: receives and stores the messages and the chat id. Legal role to be confirmed with the lawyer (independent controller for its own service is likely) |
 | International transfer | Yes: Telegram's servers are outside Brazil. Mechanism to be confirmed (Art. 33; ANPD Res. 19/2024). The policy must say it |
-| Retention | Chat links: forever today (proposal: removed with the order's anonymization). Messages in Telegram: outside our control |
+| Retention | Chat links: removed **7 days after the order ends** (ADR 0023, live after the next release). Messages in Telegram: outside our control |
 | Notes | The worker logs chat ids (not texts) in some cases; with Telegram off, in development, it logs the message it would send (names) |
 
 ### A004. The kitchen board
@@ -112,7 +110,7 @@
 ## 4. Findings, in order of importance
 
 1. **No privacy policy** and no way for a customer to see what we keep: 9.2, 9.4.
-2. **No retention**: customer data is kept forever, and `order_events.payload` repeats the name: 9.3.
+2. **No retention** (customer data kept forever, and `order_events.payload` repeating the name): fixed in code by 9.3, live with the next release.
 3. **Google Fonts** sent every visitor's IP to Google: fixed in code by 9.6, live with the next release.
 4. **The order link showed phone and address** to whoever held it: fixed in code by 9.7, live with the next release.
 5. **Unknown logs and backups** on the server: #81. A policy cannot promise what we have not confirmed.

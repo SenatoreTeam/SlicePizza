@@ -121,6 +121,11 @@ services:
       # Default 30 per 60; 0 turns it off (needed to run the load test).
       ORDER_RATE_LIMIT: ${ORDER_RATE_LIMIT:-}
       ORDER_RATE_WINDOW: ${ORDER_RATE_WINDOW:-}
+      # How long customers' personal data is kept (ADR 0023): months after an
+      # order ends (default 12, 0 = off) and days before its Telegram chat links
+      # are removed (default 7, 0 = off).
+      RETENTION_MONTHS: ${RETENTION_MONTHS:-}
+      RETENTION_CHAT_DAYS: ${RETENTION_CHAT_DAYS:-}
       # The menu cache (ADR 0019). Unset: no cache, every menu read goes to
       # Postgres. Redis being down is not an error for the API.
       REDIS_HOST: redis
