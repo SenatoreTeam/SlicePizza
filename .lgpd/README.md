@@ -5,8 +5,9 @@ Artifacts of the LGPD work, in the format of the [`goul4rt/lgpd-skills`](https:/
 | File | What | Status |
 |---|---|---|
 | [`data-map.md`](data-map.md) / [`data-map.en.md`](data-map.en.md) | Inventory of every processing of personal data (task 9.1, [#77](https://github.com/SenatoreTeam/SlicePizza/issues/77)) | Preliminary, v1 |
+| [`privacy-policy.md`](privacy-policy.md) / [`privacy-policy.en.md`](privacy-policy.en.md) | The privacy policy (task 9.2, [#78](https://github.com/SenatoreTeam/SlicePizza/issues/78)) | **DRAFT 1, not published**: waits for the lawyer/encarregado check, Miguel's answers (#81) and the real pizzeria details |
 
-Done with it: retention ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md)) and the customers' requests runbook ([`docs/PRIVACY-REQUESTS.md`](../docs/PRIVACY-REQUESTS.md)). Next: the privacy policy (9.2), which needs a human and legal check first.
+Done with it: retention ([ADR 0023](../docs/adr/0023-retention-of-personal-data.md)) and the customers' requests runbook ([`docs/PRIVACY-REQUESTS.md`](../docs/PRIVACY-REQUESTS.md)). Next: publish the privacy policy (9.2) as a page of the menu site, once it is reviewed and its brackets are filled.
 
 **Rules**
 - **No personal data in this folder.** It describes data; it never holds any.
