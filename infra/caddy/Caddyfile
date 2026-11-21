@@ -142,6 +142,7 @@
 		# this container and the API know: browsers never see it, and a call
 		# straight to /api/... without it is refused by the API.
 		handle_path /kitchen/api/* {
+			header X-Robots-Tag "noindex, nofollow"
 			reverse_proxy {
 				import api_upstream
 				header_up Authorization "Bearer {$KITCHEN_API_TOKEN}"
@@ -152,6 +153,7 @@
 			root * {$KITCHEN_ROOT:/srv-kitchen}
 			file_server
 			import page_headers
+			header X-Robots-Tag "noindex, nofollow"
 		}
 	}
 
@@ -159,6 +161,8 @@
 	# UVICORN_ROOT_PATH=/api, so the links it generates (the interactive docs
 	# at /api/docs) include the prefix.
 	handle_path /api/* {
+		# Search engines should find the menu site, never the API or the kitchen.
+		header X-Robots-Tag "noindex, nofollow"
 		reverse_proxy {
 			import api_upstream
 		}

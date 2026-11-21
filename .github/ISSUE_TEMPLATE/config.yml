@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem / Problema de segurança
+    url: https://github.com/SenatoreTeam/SlicePizza/security/advisories/new
+    about: Report it privately, never in a public issue (see SECURITY.md).
+  - name: A customer's question about their data / Dúvida de cliente sobre os próprios dados
+    url: https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/PRIVACY-REQUESTS.md
+    about: Not an issue: follow the runbook. Never post personal data here.

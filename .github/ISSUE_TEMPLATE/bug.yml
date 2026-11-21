@@ -1,0 +1,25 @@
+name: Bug / Erro
+description: Something does not work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste personal data** (names, phones, addresses, order links with customers' details). For a security problem, use the private report instead (SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / O que aconteceu?
+      description: What you did, what you expected, what you saw.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / Versão
+      description: In the footer of the site, or `release` in /api/health.
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else? / Mais alguma coisa?
+      description: Browser, device, screenshots (hide personal data), logs.
