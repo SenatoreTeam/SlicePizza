@@ -78,6 +78,35 @@ def _expired_orders(db: Session, cutoff: datetime):
     )
 
 
+def anonymize_ids(db: Session, ids: list[str]) -> int:
+    """Replace the personal data of these orders, their events and chat links.
+
+    Does not commit. Returns how many events were changed. Used by the
+    retention job and by a customer's own request (``app/dsar.py``).
+    """
+    # A Core UPDATE that names updated_at, so its on-update default does not
+    # move it to now: the order's age is what decides when it is next looked at.
+    db.execute(
+        update(Order)
+        .where(Order.id.in_(ids))
+        .values(
+            customer_name=REMOVED,
+            customer_phone=REMOVED,
+            delivery_address=REMOVED,
+            updated_at=Order.updated_at,
+        )
+    )
+    events = 0
+    for event in db.scalars(select(OrderEvent).where(OrderEvent.order_id.in_(ids))):
+        payload = copy.deepcopy(event.payload)
+        payload.setdefault("order", {})["customer_name"] = REMOVED
+        payload.setdefault("notify", {})["telegram_chat_ids"] = []
+        event.payload = payload  # a new object, so the JSON change is saved
+        events += 1
+    db.execute(delete(TelegramSubscription).where(TelegramSubscription.order_id.in_(ids)))
+    return events
+
+
 def anonymize_old_orders(
     db: Session, months: int, now: datetime | None = None, dry_run: bool = False
 ) -> tuple[int, int]:
@@ -97,25 +126,7 @@ def anonymize_old_orders(
         ids = list(db.scalars(expired.limit(BATCH)))
         if not ids:
             break
-        # A Core UPDATE that names updated_at, so its on-update default does not
-        # move it to now: the order's age is what decides when it is next looked at.
-        db.execute(
-            update(Order)
-            .where(Order.id.in_(ids))
-            .values(
-                customer_name=REMOVED,
-                customer_phone=REMOVED,
-                delivery_address=REMOVED,
-                updated_at=Order.updated_at,
-            )
-        )
-        for event in db.scalars(select(OrderEvent).where(OrderEvent.order_id.in_(ids))):
-            payload = copy.deepcopy(event.payload)
-            payload.setdefault("order", {})["customer_name"] = REMOVED
-            payload.setdefault("notify", {})["telegram_chat_ids"] = []
-            event.payload = payload  # a new object, so the JSON change is saved
-            events_done += 1
-        db.execute(delete(TelegramSubscription).where(TelegramSubscription.order_id.in_(ids)))
+        events_done += anonymize_ids(db, ids)
         db.commit()
         orders_done += len(ids)
     return orders_done, events_done
