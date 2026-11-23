@@ -1,7 +1,7 @@
 # Direct dependencies of the API, as version ranges. Edit this file, never
 # requirements.txt: that one is generated from it, with exact versions and
 # hashes (see "Dependencies" in README.md).
-fastapi>=0.162.2,<1.0
+fastapi>=0.163.1,<1.0
 sqlalchemy>=2.1.8,<3.0
 psycopg[binary]>=3.3.8,<4.0
 # RabbitMQ client for the outbox relay (app/outbox.py, ADR 0004).
