@@ -34,6 +34,9 @@ updates:
       # Minor and patch updates in one PR a week; a major update gets a PR of its own.
       api-minor-and-patch:
         update-types: [minor, patch]
+        # ruff is pinned exactly and a new ruff can add checks that fail the lint, so it
+        # comes as its own PR and never holds back the other updates (ADR 0008).
+        exclude-patterns: ["ruff"]
 
   # Notification worker: worker/requirements*.in and their lock files, like /api.
   - package-ecosystem: pip
@@ -52,6 +55,9 @@ updates:
     groups:
       worker-minor-and-patch:
         update-types: [minor, patch]
+        # ruff is pinned exactly and a new ruff can add checks that fail the lint, so it
+        # comes as its own PR and never holds back the other updates (ADR 0008).
+        exclude-patterns: ["ruff"]
 
   # Documentation site: docs-site/package.json.
   - package-ecosystem: npm

@@ -23,6 +23,20 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.6.1"
+date = 2026-11-24
+title.en = "FastAPI update"
+title.pt-br = "Atualização do FastAPI"
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "The API's web framework, FastAPI, is updated from 0.162.6 to 0.163.1. The new version brings FastAPI's own bug fixes; nothing changes for customers or the kitchen."
+text.pt-br = "O framework web da API, o FastAPI, foi atualizado de 0.162.6 para 0.163.1. A nova versão traz correções do próprio FastAPI; nada muda para os clientes nem para a cozinha."
+source = "dependabot"
+pr = 110
+
+[[release]]
 version = "1.6.0"
 date = 2026-11-21
 title.en = "A stuck order queue shows in the health check"
