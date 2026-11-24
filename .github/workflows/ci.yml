@@ -348,6 +348,23 @@ jobs:
           curl -fsS http://127.0.0.1:8000/health
           curl -fsS http://127.0.0.1:8000/menu
 
+      # The API falls back to Postgres on any Redis error (ADR 0019), so /menu
+      # answering says nothing about Redis. Check the menu really reached Redis,
+      # so a Redis image the API can no longer use fails here.
+      - name: Check the menu is cached in Redis
+        run: |
+          # The API marks Redis up on its first ping, a moment after it starts.
+          for attempt in $(seq 1 10); do
+            curl -fsS http://127.0.0.1:8000/menu > /dev/null
+            if [ "$(docker compose exec -T redis redis-cli exists slicepizza:menu)" = 1 ]; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "The API did not cache the menu in Redis"
+          docker compose logs api redis
+          exit 1
+
       # The way customers come in: Caddy on 8080 serves the site and forwards /api to the API.
       - name: Check the site and the API through Caddy
         run: |

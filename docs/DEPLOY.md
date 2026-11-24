@@ -33,7 +33,7 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 
 | `db` | `postgres:16-alpine` | No: only `api` reaches it | See [Database](#database) |
 | `rabbitmq` | `rabbitmq:4.4.0-management-alpine` | No: only `api` and `worker` reach it | See [RabbitMQ](#rabbitmq) |
-| `redis` | `redis:8.2.11-alpine` | No: only `api` reaches it | Optional menu cache, see [Redis](#redis-menu-cache) |
+| `redis` | `redis:8.10.3-alpine` | No: only `api` reaches it | Optional menu cache, see [Redis](#redis-menu-cache) |
 | `worker` | `slicepizza-worker` ([`worker/`](../worker/)) | No: no port at all, it only connects out (RabbitMQ, Telegram) | `RABBITMQ_HOST`, `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_PIZZERIA_CHAT_ID`. See [Worker](#worker) |
 
 Both trust the forwarding headers of the proxy in front of them: Caddy those of the server's proxy (from private addresses, see the Caddyfile), and the API those of Caddy (also from private addresses only). That way the access logs show the customer's IP, and links and redirects the API generates keep `https`.
@@ -119,9 +119,10 @@ Optional, from Phase 7 ([ADR 0019](adr/0019-redis-menu-cache.md)). Without it th
 
 | Item | On the server |
 |---|---|
-| Image | `redis:8.2.11-alpine`, the same as `docker-compose.yml`. Command: `redis-server --save "" --appendonly no --maxmemory 64mb --maxmemory-policy allkeys-lru` |
-| Network | The project's network only. **No published port**, no domain, no password (set one with `--requirepass` if the network is ever shared) |
-| Data | None: a cache can be lost. No volume |
+| Image | `redis:8.10.3-alpine`, the same as `docker-compose.yml`. Command: `redis-server --save "" --appendonly no --maxmemory 64mb --maxmemory-policy allkeys-lru` |
+| Updates | **By hand.** A new version only changes the `web`, `api` and `worker` images on the server. When `docker-compose.yml` moves to a new Redis image (a Dependabot Pull Request), change the server's `redis` image to the same one after the merge |
+| Network | The project's network only. **No published port**, no domain, no password (set one with `--requirepass` if the network is ever shared). Redis logs a `WARNING` on every start that it "does not require authentication and is not protected by network restrictions": expected here, the project's network is the restriction |
+| Data | None: a cache can be lost. No volume, and with `read_only: true` (as in `docker-compose.yml`) Redis cannot write to disk at all (`SAVE` and `BGSAVE` fail): the 8.10 image has no `/data` volume (8.2's had one). Saving to disk would need a volume or a `tmpfs` on `/data` |
 | API variables | `REDIS_HOST` (the service name, e.g. `redis`); optionally `REDIS_PORT` (6379) and `REDIS_PASSWORD`. Unset `REDIS_HOST` to turn the cache off |
 
 The API does not wait for Redis: if it is missing or down, every request goes to Postgres.
