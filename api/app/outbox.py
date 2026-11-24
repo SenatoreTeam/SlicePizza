@@ -130,9 +130,15 @@ class RabbitMQPublisher:
             client_properties={"connection_name": "slicepizza-api outbox relay"},
         )
         self._connection = pika.BlockingConnection(params)
-        self._channel = self._connection.channel()
-        self._channel.exchange_declare(EXCHANGE, exchange_type="topic", durable=True)
-        self._channel.confirm_delivery()
+        try:
+            self._channel = self._connection.channel()
+            self._channel.exchange_declare(EXCHANGE, exchange_type="topic", durable=True)
+            self._channel.confirm_delivery()
+        except Exception:
+            # The relay never gets this publisher back, so it cannot close it:
+            # close the connection here, or each retry would leave one open.
+            self.close()
+            raise
 
     def publish(self, event: OrderEvent) -> None:
         pika = self._pika

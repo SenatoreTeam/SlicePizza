@@ -297,6 +297,44 @@ def test_relay_keeps_trying_when_rabbitmq_is_down(client):
     assert len(attempts) == 2
 
 
+def test_publisher_closes_its_connection_when_the_channel_setup_fails(monkeypatch):
+    """A connection opened before a failed exchange_declare is closed, not left open.
+
+    The relay only closes a publisher it got back, and it retries with a new one,
+    so a half-built publisher would leave one RabbitMQ connection open per retry.
+    """
+    import pika
+
+    from app.config import RabbitMQSettings
+    from app.outbox import RabbitMQPublisher
+
+    connections = []
+
+    class FakeChannel:
+        def exchange_declare(self, *args, **kwargs):
+            raise pika.exceptions.ChannelClosedByBroker(406, "PRECONDITION_FAILED - inequivalent arg 'type'")
+
+    class FakeConnection:
+        def __init__(self, params):
+            self.is_open = True
+            connections.append(self)
+
+        def channel(self):
+            return FakeChannel()
+
+        def close(self):
+            self.is_open = False
+
+    monkeypatch.setattr(pika, "BlockingConnection", FakeConnection)
+    settings = RabbitMQSettings(host="rabbitmq", port=5672, user="u", password="p", vhost="/")
+
+    with pytest.raises(pika.exceptions.ChannelClosedByBroker):
+        RabbitMQPublisher(settings)
+
+    [connection] = connections
+    assert not connection.is_open
+
+
 def test_relay_keeps_the_rabbitmq_connection_when_the_database_fails(client, monkeypatch):
     """A database error is retried without dropping a healthy RabbitMQ connection."""
     from sqlalchemy.exc import OperationalError

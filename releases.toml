@@ -23,6 +23,18 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.6.4"
+date = 2026-11-24
+title.en = "The API closes a half-open RabbitMQ connection"
+title.pt-br = "A API fecha uma conexão com o RabbitMQ que ficou pela metade"
+
+[[release.item]]
+kind = "fix"
+area = "System"
+text.en = "When the API could not finish setting up its connection to RabbitMQ, it left that connection open and opened a new one on every retry. It now closes it before trying again. Order updates reach Telegram as before."
+text.pt-br = "Quando a API não conseguia terminar de preparar a sua conexão com o RabbitMQ, deixava essa conexão aberta e abria outra a cada nova tentativa. Agora ela a fecha antes de tentar de novo. As atualizações dos pedidos chegam ao Telegram como antes."
+
+[[release]]
 version = "1.6.1"
 date = 2026-11-24
 title.en = "FastAPI update"
