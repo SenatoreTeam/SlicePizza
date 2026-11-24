@@ -74,9 +74,5 @@ ruff check .          # o que o pipeline roda
 ruff check --fix .    # corrige o que der (ordem dos imports, sintaxe antiga...)
 ```
 
-A API e o worker fixam cada um o seu ruff, e o Dependabot atualiza cada um num Pull
-Request próprio. Por isso o pipeline confere `worker/` com o ruff do worker e o resto com o
-da API: cada pasta com a versão do seu próprio `.venv`.
-
 As regras estão em [`ruff.toml`](https://github.com/SenatoreTeam/SlicePizza/blob/main/ruff.toml).
 Elas procuram prováveis bugs, não estilo: não há formatador para discutir.

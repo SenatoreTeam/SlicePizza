@@ -23,20 +23,6 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
-version = "1.6.2"
-date = 2026-11-24
-title.en = "RabbitMQ client update in the worker"
-title.pt-br = "Atualização do cliente RabbitMQ no worker"
-
-[[release.item]]
-kind = "improvement"
-area = "Telegram"
-text.en = "The worker that sends the Telegram notifications uses a new version of its RabbitMQ client, pika (1.4.4 to 1.5.0). Notifications go out as before; the new version brings pika's own fixes."
-text.pt-br = "O worker que envia as notificações do Telegram usa uma nova versão do seu cliente RabbitMQ, o pika (de 1.4.4 para 1.5.0). As notificações saem como antes; a nova versão traz correções do próprio pika."
-source = "dependabot"
-pr = 112
-
-[[release]]
 version = "1.6.1"
 date = 2026-11-24
 title.en = "FastAPI update"

@@ -53,30 +53,15 @@ jobs:
         with:
           python-version-file: api/.python-version
           cache: pip
-          cache-dependency-path: |
-            api/requirements-dev.txt
-            worker/requirements-dev.txt
+          cache-dependency-path: api/requirements-dev.txt
 
-      # api/ and worker/ each pin ruff in their dev lock file, hash-checked, and Dependabot
-      # updates each folder in its own PR. So each folder is checked with its own ruff, the
-      # version in that folder's .venv: a ruff update is tested where it lands, even while
-      # the two folders are on different versions. The API's ruff also checks the rest
-      # (the CI scripts in .github/).
+      # ruff comes from the API's dev lock file, hash-checked: the same version
+      # as in a developer's .venv.
       - name: Install ruff
-        run: |
-          pip install --require-hashes "--only-binary=:all:" -r api/requirements-dev.txt
-          python -m venv "$RUNNER_TEMP/worker-venv"
-          "$RUNNER_TEMP/worker-venv/bin/pip" install --quiet --require-hashes "--only-binary=:all:" \
-            -r worker/requirements-dev.txt
+        run: pip install --require-hashes "--only-binary=:all:" -r api/requirements-dev.txt
 
       - name: Python (ruff)
-        run: |
-          status=0
-          echo "api/ and the rest: $(ruff --version)"
-          ruff check --output-format=github --extend-exclude worker/ . || status=1
-          echo "worker/: $("$RUNNER_TEMP/worker-venv/bin/ruff" --version)"
-          "$RUNNER_TEMP/worker-venv/bin/ruff" check --output-format=github worker/ || status=1
-          exit "$status"
+        run: ruff check --output-format=github .
 
       # shellcheck comes with GitHub's Ubuntu runners.
       - name: Shell scripts (shellcheck)

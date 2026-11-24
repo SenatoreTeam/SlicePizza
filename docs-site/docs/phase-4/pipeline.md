@@ -78,9 +78,5 @@ ruff check .          # what the pipeline runs
 ruff check --fix .    # fix what it can (import order, old syntax...)
 ```
 
-The API and the worker each pin their own ruff, and Dependabot updates each one
-in its own Pull Request. So the pipeline checks `worker/` with the worker's ruff
-and everything else with the API's: each folder with the version in its own `.venv`.
-
 The rules are in [`ruff.toml`](../../../ruff.toml). They look for likely bugs,
 not style: there is no formatter to argue with.

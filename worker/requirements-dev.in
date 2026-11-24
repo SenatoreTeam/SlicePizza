@@ -9,4 +9,4 @@ pytest-cov>=7.0.0,<8.0
 # The linter (ruff.toml at the repository root; CI runs `ruff check .`).
 # Pinned exactly: a new ruff can add checks that fail the pipeline, so updates
 # come as their own Dependabot Pull Request.
-ruff==0.17.5
+ruff==0.17.4
