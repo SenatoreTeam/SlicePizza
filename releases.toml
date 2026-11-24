@@ -23,6 +23,32 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.6.2"
+date = 2026-11-24
+title.en = "Menu cache fixes and the Redis client update"
+title.pt-br = "Correções no cache do cardápio e atualização do cliente Redis"
+
+[[release.item]]
+kind = "fix"
+area = "Menu"
+text.en = "After the API restarts, the menu no longer shows the previous version for up to a minute: the copy in the cache is dropped before the cache is used."
+text.pt-br = "Depois que a API reinicia, o cardápio não mostra mais a versão anterior por até um minuto: a cópia no cache é apagada antes de o cache ser usado."
+
+[[release.item]]
+kind = "fix"
+area = "System"
+text.en = "The menu cache can no longer break the menu or the API: a damaged entry in Redis, or a `REDIS_PORT` that is not a number, now only turns the cache off. A Redis that is never reached shows in the API's log, and a Redis that hangs no longer holds up the API's shutdown."
+text.pt-br = "O cache do cardápio não consegue mais derrubar o cardápio nem a API: uma entrada estragada no Redis, ou um `REDIS_PORT` que não é número, agora só desliga o cache. Um Redis que nunca responde aparece no log da API, e um Redis travado não segura mais o desligamento da API."
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "The API's Redis client (redis-py), used by the menu cache, is updated from 7.4.1 to 8.1.0. The cache sets the connection settings that changed in the new version itself, so it works as before; nothing changes for customers or the kitchen."
+text.pt-br = "O cliente Redis da API (redis-py), usado pelo cache do cardápio, foi atualizado de 7.4.1 para 8.1.0. O próprio cache define as configurações de conexão que mudaram na nova versão, então ele funciona como antes; nada muda para os clientes nem para a cozinha."
+source = "dependabot"
+pr = 111
+
+[[release]]
 version = "1.6.1"
 date = 2026-11-24
 title.en = "FastAPI update"

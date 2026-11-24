@@ -123,9 +123,10 @@ Optional, from Phase 7 ([ADR 0019](adr/0019-redis-menu-cache.md)). Without it th
 | Updates | **By hand.** A new version only changes the `web`, `api` and `worker` images on the server. When `docker-compose.yml` moves to a new Redis image (a Dependabot Pull Request), change the server's `redis` image to the same one after the merge |
 | Network | The project's network only. **No published port**, no domain, no password (set one with `--requirepass` if the network is ever shared). Redis logs a `WARNING` on every start that it "does not require authentication and is not protected by network restrictions": expected here, the project's network is the restriction |
 | Data | None: a cache can be lost. No volume, and with `read_only: true` (as in `docker-compose.yml`) Redis cannot write to disk at all (`SAVE` and `BGSAVE` fail): the 8.10 image has no `/data` volume (8.2's had one). Saving to disk would need a volume or a `tmpfs` on `/data` |
-| API variables | `REDIS_HOST` (the service name, e.g. `redis`); optionally `REDIS_PORT` (6379) and `REDIS_PASSWORD`. Unset `REDIS_HOST` to turn the cache off |
+| API variables | `REDIS_HOST` (the service name, e.g. `redis`); optionally `REDIS_PORT` (6379; a value that is not a number turns the cache off) and `REDIS_PASSWORD`. Unset `REDIS_HOST` to turn the cache off |
+| Version | Any: the API speaks RESP2 to Redis (set in `api/app/cache.py`, not left to the client's defaults) |
 
-The API does not wait for Redis: if it is missing or down, every request goes to Postgres.
+The API does not wait for Redis: if it is missing or down, every request goes to Postgres. The API's log then says `Redis is down, using the database: <why>` once, and `Redis is up: the menu is cached` when Redis answers again.
 
 ## Worker
 

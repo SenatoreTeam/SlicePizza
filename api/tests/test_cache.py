@@ -1,5 +1,9 @@
 """The Redis menu cache (ADR 0019): fast when it works, invisible when it fails."""
 
+import threading
+import time
+from concurrent.futures import Future
+
 import pytest
 
 from app import cache
@@ -28,12 +32,17 @@ class FakeRedis:
         self._check()
         self.data.pop(key, None)
 
+    def ping(self):
+        self._check()
+        return True
+
 
 @pytest.fixture
 def fake(monkeypatch):
     fake = FakeRedis()
     monkeypatch.setattr(cache, "_get_client", lambda: fake)
     monkeypatch.setattr(cache, "_up", True)
+    monkeypatch.setattr(cache, "_down_logged", False)
     return fake
 
 
@@ -84,8 +93,6 @@ def test_a_cache_that_is_not_up_yet_is_not_used(client, fake, monkeypatch):
 
 
 def test_a_redis_that_hangs_costs_a_request_no_more_than_the_timeout(client, fake, monkeypatch):
-    import time
-
     def slow_get(key):
         time.sleep(2)
 
@@ -95,3 +102,117 @@ def test_a_redis_that_hangs_costs_a_request_no_more_than_the_timeout(client, fak
     assert client.get("/menu").status_code == 200
     assert time.monotonic() - started < 1.0
     assert cache._up is False
+
+
+@pytest.mark.parametrize("entry", [b"not json", b"\xff\xfe", b'{"not": "a list"}', b"42"])
+def test_a_bad_entry_in_redis_falls_back_to_the_database(client, fake, entry):
+    fake.data[cache.MENU_KEY] = entry
+    response = client.get("/menu")
+    assert response.status_code == 200
+    assert len(response.json()) > 0
+    assert cache._up is False  # and the watcher drops the entry before using the cache again
+    cache._watch_once(fake)
+    assert cache.MENU_KEY not in fake.data
+    assert cache._up is True
+
+
+def test_the_watcher_drops_the_old_menu_before_the_cache_is_used(fake, monkeypatch):
+    # At startup (or after an outage) Redis may still hold the menu from before the seed.
+    monkeypatch.setattr(cache, "_up", False)
+    fake.data[cache.MENU_KEY] = b'[{"id": 1, "name": "Old"}]'
+    cache._watch_once(fake)
+    assert cache.MENU_KEY not in fake.data
+    assert cache._up is True
+
+
+def test_while_redis_is_up_the_watcher_only_pings(fake):
+    fake.data[cache.MENU_KEY] = b"[]"
+    cache._watch_once(fake)
+    assert fake.data[cache.MENU_KEY] == b"[]"
+    assert cache._up is True
+
+
+def test_a_redis_never_reached_is_logged_once(fake, monkeypatch, caplog):
+    # A wrong host or password: Redis is never up, which must still show in the logs.
+    monkeypatch.setattr(cache, "_up", False)
+    fake.broken = True
+    for _ in range(3):
+        cache._watch_once(fake)
+    warnings = [r for r in caplog.records if r.name == "app.cache" and r.levelname == "WARNING"]
+    assert len(warnings) == 1
+    assert "Redis is down" in warnings[0].getMessage()
+    assert cache._up is False
+    # Once it is reached, the next outage is logged again.
+    fake.broken = False
+    cache._watch_once(fake)
+    fake.broken = True
+    cache._watch_once(fake)
+    warnings = [r for r in caplog.records if r.name == "app.cache" and r.levelname == "WARNING"]
+    assert len(warnings) == 2
+
+
+def test_a_timeout_says_so_in_the_log(client, fake, monkeypatch, caplog):
+    monkeypatch.setattr(fake, "get", lambda key: time.sleep(1))
+    monkeypatch.setattr(cache, "CALL_TIMEOUT", 0.05)
+    client.get("/menu")
+    assert "Redis read failed, using the database: TimeoutError" in caplog.text
+
+
+def test_a_call_given_up_on_never_runs_later(monkeypatch):
+    monkeypatch.setattr(cache, "CALL_TIMEOUT", 0.05)
+    release = threading.Event()
+    started = threading.Semaphore(0)
+
+    def stuck():
+        started.release()
+        release.wait()
+
+    cache._start_workers()
+    try:
+        for _ in range(cache.WORKERS):
+            cache._jobs.put((Future(), stuck, (), {}))
+        for _ in range(cache.WORKERS):  # every helper thread is now stuck, like Redis hanging
+            assert started.acquire(timeout=5)
+        late = []
+        with pytest.raises(TimeoutError):
+            cache._call(late.append, "written long after the request")
+    finally:
+        release.set()
+    time.sleep(0.2)
+    assert late == []
+
+
+def test_the_helper_threads_never_hold_up_shutdown(fake, client):
+    client.get("/menu")
+    threads = [t for t in threading.enumerate() if t.name.startswith("redis-call")]
+    assert len(threads) == cache.WORKERS
+    assert all(t.daemon for t in threads)
+
+
+def test_a_bad_redis_port_turns_only_the_cache_off(monkeypatch, caplog):
+    monkeypatch.setattr(cache, "_client", None)
+    monkeypatch.setattr(cache, "_off", False)
+    monkeypatch.setenv("REDIS_HOST", "redis")
+    monkeypatch.setenv("REDIS_PORT", "redis:6379")
+    assert cache._get_client() is None
+    assert cache._get_client() is None
+    assert caplog.text.count("REDIS_PORT must be a number") == 1
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    with TestClient(app) as started:  # the API starts and the menu works
+        assert started.get("/menu").status_code == 200
+
+
+def test_the_client_does_not_rely_on_redis_py_defaults(monkeypatch):
+    # redis-py 8 changed them (RESP3, 10 retries with backoff): the cache sets its own.
+    monkeypatch.setattr(cache, "_client", None)
+    monkeypatch.setattr(cache, "_off", False)
+    monkeypatch.setattr(cache, "_watch", lambda client: None)  # no thread pinging a fake host
+    monkeypatch.setenv("REDIS_HOST", "redis.invalid")
+    monkeypatch.delenv("REDIS_PORT", raising=False)
+    settings = cache._get_client().connection_pool.connection_kwargs
+    assert settings["protocol"] == 2
+    assert settings["retry"].get_retries() == 1
+    assert settings["socket_timeout"] == 0.2
