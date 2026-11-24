@@ -1,5 +1,6 @@
 # The tool that generates the lock files (scripts/compile-requirements.sh).
 # Edit this file, never requirements-tools.txt (see "Dependencies" in README.md).
 # Locked with hashes like the worker's own dependencies, so the program that writes
-# the hashes going to production is itself hash-checked. Same version as api/.
+# the hashes going to production is itself hash-checked. Same version as api/:
+# Dependabot updates each folder in its own Pull Request, so merge both.
 pip-tools==7.7.0

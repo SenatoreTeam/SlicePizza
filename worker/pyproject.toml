@@ -2,8 +2,15 @@
 # The ``app`` package is imported from the worker/ directory.
 pythonpath = ["."]
 testpaths = ["tests"]
-# Any warning fails the tests, as in api/ (see api/pyproject.toml).
-filterwarnings = ["error"]
+# Any warning fails the tests, as in api/ (see api/pyproject.toml), except one:
+# pika 1.5.0 warns that BlockingConnection (app/consumer.py) will be removed in
+# pika 2.0. It still works in 1.5.x; moving to pika.Connection is its own change,
+# needed before pika 2.0. pika's upgrade notes suggest this filter: it matches the
+# message, because the warning points at our code, not at pika.
+filterwarnings = [
+    "error",
+    "ignore:.*will be removed in Pika 2\\.0:DeprecationWarning",
+]
 
 # Test coverage (roadmap 10.4). CI runs `pytest -q --cov`; locally add --cov
 # to see the report. fail_under is a floor, not a goal: 71% without RabbitMQ, higher in CI where the integration tests run (2026-11-21).
