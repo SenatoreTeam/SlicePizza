@@ -12,6 +12,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
+from pydantic import TypeAdapter
 from sqlalchemy import select, text
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
@@ -290,10 +291,15 @@ def health(db: Session = Depends(get_db)) -> dict[str, str | int | None]:
     }
 
 
+# A cached menu must have this shape to be served (ADR 0019): during a deploy
+# with several API copies (ADR 0020), an older copy may write another one.
+_MENU = TypeAdapter(list[PizzaOut])
+
+
 @app.get("/menu", response_model=list[PizzaOut])
 def get_menu(db: Session = Depends(get_db)) -> list[dict]:
     """List the pizzas on the menu (from Redis when it is on, ADR 0019)."""
-    cached = cache.get_menu()
+    cached = cache.get_menu(check=_MENU.validate_python)
     if cached is not None:
         return cached
     pizzas = db.scalars(select(Pizza).order_by(Pizza.id))

@@ -104,7 +104,19 @@ def test_a_redis_that_hangs_costs_a_request_no_more_than_the_timeout(client, fak
     assert cache._up is False
 
 
-@pytest.mark.parametrize("entry", [b"not json", b"\xff\xfe", b'{"not": "a list"}', b"42"])
+@pytest.mark.parametrize(
+    "entry",
+    [
+        b"not json",
+        b"\xff\xfe",
+        b'{"not": "a list"}',
+        b"42",
+        # Lists, but not of pizzas in the menu's shape (another version of the API wrote them).
+        b"[1, 2]",
+        b'[{"id": 1}]',
+        b'[{"id": 1, "name": "X", "description": "", "price_cents": "abc", "available": true}]',
+    ],
+)
 def test_a_bad_entry_in_redis_falls_back_to_the_database(client, fake, entry):
     fake.data[cache.MENU_KEY] = entry
     response = client.get("/menu")
@@ -216,3 +228,12 @@ def test_the_client_does_not_rely_on_redis_py_defaults(monkeypatch):
     assert settings["protocol"] == 2
     assert settings["retry"].get_retries() == 1
     assert settings["socket_timeout"] == 0.2
+
+
+def test_a_bad_entry_is_logged_on_one_line(client, fake, caplog):
+    fake.data[cache.MENU_KEY] = b'[{"id": 1}]'
+    client.get("/menu")
+    lines = [r.getMessage() for r in caplog.records if r.name == "app.cache"]
+    assert len(lines) == 1
+    assert lines[0].startswith("Redis read failed, using the database: ")
+    assert "\n" not in lines[0]

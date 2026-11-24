@@ -2,8 +2,9 @@
 
 Off unless REDIS_HOST is set. It never makes the API worse than without it:
 
-- any Redis error (down, slow, wrong password, a bad entry, a bad REDIS_PORT)
-  is logged and the request goes to Postgres as before;
+- any Redis error (down, slow, wrong password, a bad REDIS_PORT) and any
+  entry that is not a valid menu is logged, and the request goes to Postgres
+  as before;
 - after an error the cache is marked down and requests skip it. A background
   thread (the watcher) checks Redis every ``RETRY_AFTER`` seconds and marks it
   up again. Only that thread waits for a dead Redis for long. The socket
@@ -22,6 +23,7 @@ import os
 import queue
 import threading
 import time
+from collections.abc import Callable
 from concurrent.futures import Future
 from typing import Any
 
@@ -109,7 +111,9 @@ def _watch_once(client: Any) -> None:
 
 
 def _why(error: Exception) -> str:
-    return str(error) or type(error).__name__  # a timeout has no message
+    # A timeout has no message; a validation error has one line per problem.
+    lines = str(error).splitlines()
+    return lines[0] if lines else type(error).__name__
 
 
 def _failed(action: str, error: Exception) -> None:
@@ -161,16 +165,24 @@ def _usable() -> Any:
     return client if client is not None and _up else None
 
 
-def get_menu() -> list[dict] | None:
-    """The cached menu, or None (cache off, empty or failing)."""
+def get_menu(check: Callable[[list], Any] | None = None) -> list[dict] | None:
+    """The cached menu, or None (cache off, empty, failing or not a valid menu).
+
+    ``check`` raises (e.g. pydantic's ValidationError) when the entry does not
+    have the menu's shape: one written by another version of the API, or by
+    something else, is then not served.
+    """
     client = _usable()
     if client is None:
         return None
     try:
         raw = _call(client.get, MENU_KEY)
         menu = json.loads(raw) if raw else None
-        if menu is not None and not isinstance(menu, list):
-            raise ValueError(f"{MENU_KEY} holds a {type(menu).__name__}, not a menu")
+        if menu is not None:
+            if not isinstance(menu, list):
+                raise ValueError(f"{MENU_KEY} holds a {type(menu).__name__}, not a menu")
+            if check is not None:
+                check(menu)
     except Exception as error:  # noqa: BLE001 - the cache must never break a request
         _failed("read", error)  # a bad entry is dropped by the watcher
         return None

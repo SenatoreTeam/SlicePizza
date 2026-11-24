@@ -19,13 +19,13 @@ Every visitor reads the menu, and the menu almost never changes: it is written o
 
 Option 1, in `api/app/cache.py`:
 
-- **Off unless `REDIS_HOST` is set.** The compose file sets it and runs `redis:8.2.11-alpine`: no disk persistence, 64 MB cap with LRU eviction, read-only filesystem, `cap_drop: ALL`, no published port.
+- **Off unless `REDIS_HOST` is set.** The compose file sets it and runs `redis:8.10.3-alpine` (8.2.11 until #108): no disk persistence, 64 MB cap with LRU eviction, read-only filesystem, `cap_drop: ALL`, no published port.
 - **Expiry of 60 seconds**, and the old copy is deleted before the cache is used, so a deploy never shows an old menu. The watcher does it (see below) when it first reaches Redis, and again after every error. Until 1.6.2 the API tried to delete it right after the seed, before the cache was up, so nothing was deleted and a restart could show the old menu for up to 60 seconds.
 - **Never worse than no cache.** Any Redis error means "use Postgres". The socket timeouts do not cover the DNS lookup of the host name: with the Redis container stopped, one request waited 26 seconds in a test. So every Redis call runs in a helper thread and is abandoned after 0.3 seconds, the cache is then marked down, and a background thread (the watcher) pings Redis every 5 seconds to mark it up again.
   Since 1.6.2:
   - A call given up on before it started is cancelled, so it never writes to Redis late.
   - The helper threads are daemons, so a call stuck in a DNS lookup does not hold up the API's shutdown.
-  - A damaged entry (not JSON, or not a list) counts as an error, and the watcher then deletes it.
+  - An entry that is not a valid menu counts as an error, and the watcher then deletes it. That covers an entry that is not JSON, is not a list, or does not match the menu's shape (`list[PizzaOut]`, checked in `main.py`). During a deploy with several API copies ([ADR 0020](0020-api-replicas.md)), an older copy may still write the menu in its own shape.
   - A `REDIS_PORT` that is not a number turns the cache off with a warning, instead of stopping the API.
   - The watcher logs once when Redis cannot be reached, also when it was never reached (wrong host or password).
 - **The client's settings are written in `cache.py`, not left to redis-py's defaults**, which changed in redis-py 8 (#111): RESP3 and 10 retries with backoff. The cache uses **RESP2** (`protocol=2`), which works with any Redis and is all the cache needs. It allows **one immediate retry** (`Retry(NoBackoff(), 1)`), which replaces a connection closed by a Redis restart; the watcher does the slow retrying.
