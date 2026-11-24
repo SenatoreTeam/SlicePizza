@@ -1,9 +1,11 @@
 """Order events: the outbox (order_events) and the relay that publishes it (ADR 0004).
 
-RabbitMQ itself is not needed here: the relay is driven with a fake publisher.
+RabbitMQ itself is not needed here: the relay is driven with a fake publisher
+(one test builds the real one against a closed port).
 CI's docker compose smoke test checks the real broker end to end.
 """
 
+import socket
 import threading
 import time
 
@@ -11,11 +13,11 @@ import pytest
 from sqlalchemy import func, select, text
 
 from app import main
-from app.config import ConfigError, rabbitmq_from_env
+from app.config import ConfigError, RabbitMQSettings, rabbitmq_from_env
 from app.database import SessionLocal, engine
 from app.events import ORDER_CREATED, ORDER_STATUS_CHANGED, message_body
 from app.models import Order, OrderEvent
-from app.outbox import ADVISORY_LOCK_ID, OutboxRelay, PublishError, publish_pending
+from app.outbox import ADVISORY_LOCK_ID, OutboxRelay, PublishError, RabbitMQPublisher, publish_pending
 
 ORDER_PAYLOAD = {
     "customer": {"name": "Zé", "phone": "+55 11 99999-0000", "address": "Rua das Pizzas, 42"},
@@ -337,6 +339,24 @@ def test_relay_stops_promptly(client):
     relay.stop()
     assert time.monotonic() - started < 2
     assert not any(t.name == "outbox-relay" and t.is_alive() for t in threading.enumerate())
+
+
+def test_real_publisher_fails_cleanly_when_rabbitmq_is_unreachable():
+    """Builds pika's real connection, which the other tests replace with FakePublisher.
+
+    The tests turn every warning into an error (pyproject.toml), so a deprecation
+    in the pika calls the relay makes fails here, in the PR that updates pika.
+    Nothing listens on the port, so the connection is refused at once.
+    """
+    import pika.exceptions
+
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    settings = RabbitMQSettings(host="127.0.0.1", port=port, user="u", password="p", vhost="/")
+
+    with pytest.raises(pika.exceptions.AMQPConnectionError):
+        RabbitMQPublisher(settings)
 
 
 # --- Settings ----------------------------------------------------------------------
