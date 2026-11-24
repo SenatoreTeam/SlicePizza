@@ -39,8 +39,8 @@ pr = 113
 [[release.item]]
 kind = "improvement"
 area = "System"
-text.en = "The API sends order updates to RabbitMQ with a new version of its client, pika (1.4.4 to 1.5.0), the same as the worker. Order updates reach Telegram as before."
-text.pt-br = "A API envia as atualizações dos pedidos ao RabbitMQ com uma nova versão do seu cliente, o pika (de 1.4.4 para 1.5.0), a mesma do worker. As atualizações dos pedidos chegam ao Telegram como antes."
+text.en = "The API sends order updates to RabbitMQ with a new version of its client, pika (1.4.4 to 1.5.0). Order updates reach Telegram as before."
+text.pt-br = "A API envia as atualizações dos pedidos ao RabbitMQ com uma nova versão do seu cliente, o pika (de 1.4.4 para 1.5.0). As atualizações dos pedidos chegam ao Telegram como antes."
 source = "dependabot"
 pr = 113
 
