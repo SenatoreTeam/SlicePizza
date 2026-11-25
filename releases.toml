@@ -23,8 +23,8 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
-version = "1.6.2"
-date = 2026-11-24
+version = "1.6.5"
+date = 2026-11-25
 title.en = "Menu cache fixes and the Redis client update"
 title.pt-br = "Correções no cache do cardápio e atualização do cliente Redis"
 
@@ -47,6 +47,42 @@ text.en = "The API's Redis client (redis-py), used by the menu cache, is updated
 text.pt-br = "O cliente Redis da API (redis-py), usado pelo cache do cardápio, foi atualizado de 7.4.1 para 8.1.0. O próprio cache define as configurações de conexão que mudaram na nova versão, então ele funciona como antes; nada muda para os clientes nem para a cozinha."
 source = "dependabot"
 pr = 111
+
+[[release]]
+version = "1.6.4"
+date = 2026-11-25
+title.en = "RabbitMQ client update in the worker"
+title.pt-br = "Atualização do cliente RabbitMQ no worker"
+
+[[release.item]]
+kind = "improvement"
+area = "Telegram"
+text.en = "The worker that sends the Telegram notifications reads order updates from RabbitMQ with a new version of its client, pika (1.4.4 to 1.5.0), the same as the API since 1.6.3. Notifications go out as before."
+text.pt-br = "O worker que envia as notificações do Telegram lê as atualizações dos pedidos do RabbitMQ com uma nova versão do seu cliente, o pika (de 1.4.4 para 1.5.0), a mesma da API desde a 1.6.3. As notificações saem como antes."
+source = "dependabot"
+pr = 112
+
+[[release]]
+version = "1.6.3"
+date = 2026-11-24
+title.en = "FastAPI, SQLAlchemy and RabbitMQ client updates in the API"
+title.pt-br = "Atualizações do FastAPI, do SQLAlchemy e do cliente RabbitMQ na API"
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "The API's web framework, FastAPI, is updated from 0.163.1 to 0.163.2, and its database library, SQLAlchemy, from 2.1.8 to 2.1.9. Both bring their own bug fixes; nothing changes for customers or the kitchen."
+text.pt-br = "O framework web da API, o FastAPI, foi atualizado de 0.163.1 para 0.163.2, e a sua biblioteca de banco de dados, o SQLAlchemy, de 2.1.8 para 2.1.9. Os dois trazem correções próprias; nada muda para os clientes nem para a cozinha."
+source = "dependabot"
+pr = 113
+
+[[release.item]]
+kind = "improvement"
+area = "System"
+text.en = "The API sends order updates to RabbitMQ with a new version of its client, pika (1.4.4 to 1.5.0). Order updates reach Telegram as before."
+text.pt-br = "A API envia as atualizações dos pedidos ao RabbitMQ com uma nova versão do seu cliente, o pika (de 1.4.4 para 1.5.0). As atualizações dos pedidos chegam ao Telegram como antes."
+source = "dependabot"
+pr = 113
 
 [[release]]
 version = "1.6.1"
