@@ -13,8 +13,8 @@ testpaths = ["tests"]
 # Accepted: pika 1.5.0 warns that BlockingConnection (app/outbox.py) will be
 # removed in pika 2.0. It still works in 1.5.x; moving to pika.Connection is its
 # own change, needed before pika 2.0 (requirements.in caps pika at <2.0). The
-# filter matches the message, as pika's upgrade notes suggest; worker/ needs the
-# same one when it moves to pika 1.5. tests/test_events.py builds the real
+# filter matches the message, as pika's upgrade notes suggest; worker/ has the
+# same one. tests/test_events.py builds the real
 # publisher, so any other warning from pika still fails the tests.
 filterwarnings = [
     "error",

@@ -4,4 +4,4 @@
 #
 # Telegram is called with the standard library (urllib), so RabbitMQ's client
 # is the only dependency.
-pika>=1.4.4,<2.0
+pika>=1.5.0,<2.0
