@@ -18,7 +18,7 @@
 - **Quem revisa o quê** ([`CODEOWNERS`](https://github.com/SenatoreTeam/SlicePizza/blob/main/.github/CODEOWNERS)): uma mudança no pipeline,
   nas imagens, nos arquivos do servidor ou nas versões pede a revisão de nós dois; uma
   mudança no login, no limite de pedidos ou no banco pede a do Ettore.
-- **Um login da cozinha mais seguro** ([ADR 0024](/adr/0024-kitchen-login-in-the-api)): uma
+- **Um login da cozinha mais seguro** (no ar desde a versão 1.7.0, [ADR 0024](/adr/0024-kitchen-login-in-the-api)): uma
   página de login no lugar da janela do navegador, 15 minutos bloqueado depois de 5 senhas
   erradas de um endereço, e uma sessão que termina em 12 horas, com botão Log out. Não precisou
   de mudança no servidor. O teste contra uma cópia do servidor no Docker mostrou que todos os
