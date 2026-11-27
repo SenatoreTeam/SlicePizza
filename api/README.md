@@ -12,6 +12,9 @@ A **Python + FastAPI** API that serves the menu and receives the pizzeria's orde
 | GET | `/orders/{id}` | Gets an order's progress and items (**no name, phone or address**: whoever has the link sees it, [ADR 0022](../docs/adr/0022-order-link-without-personal-data.md)) |
 | GET | `/orders` | **Kitchen only.** Lists orders: the open ones by default, oldest first |
 | PATCH | `/orders/{id}/status` | **Kitchen only.** Changes an order's status |
+| POST, DELETE | `/session` | The kitchen board's login and logout, **only through `/kitchen/api`** (elsewhere: 404). 5 wrong passwords from one address lock it for 15 minutes; a session lasts 12 hours ([ADR 0024](../docs/adr/0024-kitchen-login-in-the-api.md)) |
+
+"Kitchen only" means a logged-in kitchen board (a session cookie, through `/kitchen/api`) or a script with `Authorization: Bearer <KITCHEN_API_TOKEN>`.
 
 Behind the `web` container (Caddy, see [ADR 0003](../docs/adr/0003-one-domain-caddy-in-front.md)) every route is also served under **`/api`**: `https://slicepizza.senatore.tech/api/menu`, or `http://localhost:8080/api/menu` with Docker Compose. Caddy removes the prefix, so the API itself keeps the routes above.
 
@@ -162,7 +165,7 @@ CI runs `pytest -q --cov` and **fails if coverage drops under the minimum** in [
 pytest --cov
 ```
 
-The minimum is a floor, not a goal: 85% when it was added (the suite was at 87% on SQLite). When a PR raises coverage, raise `fail_under` in the same PR; never lower it to make a PR pass. If code cannot be tested, say why in the PR instead.
+The minimum is a floor, not a goal: 85% when it was added (the suite was at 87% on SQLite), 88% since the kitchen login (90.7%). When a PR raises coverage, raise `fail_under` in the same PR; never lower it to make a PR pass. If code cannot be tested, say why in the PR instead.
 
 To run the same tests against Postgres (CI does both):
 

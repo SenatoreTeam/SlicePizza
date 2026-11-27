@@ -125,6 +125,79 @@ body {
   outline-offset: 2px;
 }
 
+/* The top bar's "Log out": light on the green bar. */
+.bar-button {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  border: 2px solid #cfe0d5;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--paper);
+  font: 600 0.95rem / 1.2 var(--sans);
+  cursor: pointer;
+}
+
+.bar-button:hover {
+  background: var(--basil-dark);
+}
+
+.bar-button:focus-visible {
+  outline: 3px solid var(--paper);
+  outline-offset: 2px;
+}
+
+/* --- Login (ADR 0024) ------------------------------------------------------------ */
+
+.login {
+  display: grid;
+  gap: 0.5rem;
+  width: min(24rem, calc(100% - 2rem));
+  margin: clamp(1.5rem, 8vh, 4rem) auto;
+  padding: 1.5rem;
+  border-top: 6px solid var(--basil);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+
+.login-title {
+  margin: 0 0 0.5rem;
+  font: 400 1.5rem / 1.2 var(--serif);
+}
+
+.login-label {
+  font-weight: 600;
+}
+
+.login-input {
+  min-height: 3rem;
+  padding: 0 0.75rem;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  font: 400 1.1rem / 1 var(--sans);
+}
+
+.login-input:focus-visible {
+  border-color: var(--basil);
+  outline: 3px solid var(--basil);
+  outline-offset: 1px;
+}
+
+.login-problem {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--error-bg);
+  color: var(--tomato-dark);
+  font-weight: 600;
+}
+
+.login-note {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 /* --- Rails ------------------------------------------------------------------- */
 
 .board {

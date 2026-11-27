@@ -345,7 +345,7 @@ jobs:
           cp .env.example .env
           # A bot username, so the check below sees Caddy fill it into config.js.
           echo "TELEGRAM_BOT_USERNAME=CiPizzeriaBot" >> .env
-          # The kitchen login (ADR 0007). KITCHEN_PASSWORD is only for the checks
+          # The kitchen login (ADR 0024). KITCHEN_PASSWORD is only for the checks
           # below; the containers get its hash, made the way .env.example says.
           echo "KITCHEN_API_TOKEN=$(openssl rand -hex 32)" >> .env
           echo "KITCHEN_PASSWORD=ci-kitchen-password" >> .env
@@ -411,23 +411,39 @@ jobs:
           # The worker-only /internal routes must never be reachable through Caddy (ADR 0006).
           test "$(curl -s -o /dev/null -w '%{http_code}' -X PUT http://127.0.0.1:8080/api/internal/orders/x/telegram-subscriptions/1)" = 404
 
-      - name: Check the kitchen login (ADR 0007)
+      - name: Check the kitchen login (ADR 0024)
         run: |
           set -a; . ./.env; set +a
+          K=http://127.0.0.1:8080/kitchen
           code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
-          # The board and its calls need the login...
-          test "$(code http://127.0.0.1:8080/kitchen/)" = 401
-          test "$(code -u "kitchen:wrong" http://127.0.0.1:8080/kitchen/)" = 401
-          test "$(code http://127.0.0.1:8080/kitchen/api/orders)" = 401
-          curl -fsS -u "kitchen:$KITCHEN_PASSWORD" http://127.0.0.1:8080/kitchen/ | grep -q "Pizzeria kitchen"
-          curl -fsS -u "kitchen:$KITCHEN_PASSWORD" http://127.0.0.1:8080/kitchen/kitchen.js > /dev/null
-          curl -fsS -u "kitchen:$KITCHEN_PASSWORD" http://127.0.0.1:8080/kitchen/api/orders | grep -q '^\['
-          # ...and the public /api can neither list orders nor change them, even
-          # with the kitchen's login (only the token Caddy adds works).
+          login() { curl -s -o /dev/null -D - -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+            -d "{\"password\":\"$1\"}" "$K/api/session"; }
+          # The page is public and holds no data; its calls need a session.
+          curl -fsS "$K/" | grep -q "Pizzeria kitchen"
+          curl -fsS "$K/kitchen.js" > /dev/null
+          test "$(code "$K/api/orders")" = 401
+          # The right password gives a session cookie that opens the order list.
+          headers="$(login "$KITCHEN_PASSWORD")"
+          echo "$headers" | tail -n1 | grep -qx 200
+          cookie="$(echo "$headers" | grep -i '^set-cookie: kitchen_session=' | sed 's/^[^:]*: //; s/;.*//')"
+          echo "$headers" | grep -i '^set-cookie: kitchen_session=' | grep -qi 'httponly.*secure\|secure.*httponly'
+          curl -fsS -H "Cookie: $cookie" "$K/api/orders" | grep -q '^\['
+          # The public /api can neither list orders nor change them, even with
+          # the cookie: only the kitchen route vouches for it.
           test "$(code http://127.0.0.1:8080/api/orders)" = 401
-          test "$(code -u "kitchen:$KITCHEN_PASSWORD" http://127.0.0.1:8080/api/orders)" = 401
+          test "$(code -H "Cookie: $cookie" http://127.0.0.1:8080/api/orders)" = 401
+          test "$(code -X POST -H 'Content-Type: application/json' -d '{"password":"x"}' http://127.0.0.1:8080/api/session)" = 404
           test "$(code -X PATCH -H 'Content-Type: application/json' -d '{"status":"preparing"}' \
             http://127.0.0.1:8080/api/orders/00000000-0000-0000-0000-000000000000/status)" = 401
+          # Five wrong passwords lock this address, even for the right one.
+          for i in 1 2 3 4; do login wrong | tail -n1 | grep -qx 401; done
+          login wrong | tail -n1 | grep -qx 429
+          login "$KITCHEN_PASSWORD" | tail -n1 | grep -qx 429
+          # Logging out clears the cookie.
+          curl -fsS -D - -o /dev/null -X DELETE "$K/api/session" | grep -i '^set-cookie: kitchen_session=' | grep -qi 'max-age=0'
+          # The lockout must not hold up the next checks, which log in again.
+          docker compose restart api
+          docker compose up -d --wait
 
       # Caddy refuses to start with an empty or malformed hash; the image's start
       # script must turn only the kitchen off, never the whole site.

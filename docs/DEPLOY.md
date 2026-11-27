@@ -28,8 +28,8 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 
 | Container | Image | Public? | Settings |
 |---|---|---|---|
-| `web` | `slicepizza-web` (Caddy + the site, [`infra/caddy/`](../infra/caddy/)) | **Yes**: the domain points here, port 8080 | `API_HOST` and `API_PORT`: the API's service name and port on the project network (default `api` and `8000`; with several API containers Caddy shares the requests among them). The older `API_UPSTREAM=host:port` still works. `TELEGRAM_BOT_USERNAME`: the bot for the "Follow on Telegram" button, without the @ (unset: no button). `KITCHEN_PASSWORD_HASH`, `KITCHEN_USERNAME` and `KITCHEN_API_TOKEN` for the kitchen board (see [Kitchen](#kitchen)). `TRUSTED_PROXIES` if the server's proxy is outside the private ranges (see below) |
-| `api` | `slicepizza-api` ([`api/`](../api/)) | No: only `web` reaches it | `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`, plus the database variables below. `INTERNAL_API_TOKEN` for the worker's routes ([ADR 0006](adr/0006-customer-telegram-opt-in.md)). `KITCHEN_API_TOKEN` for the kitchen's routes ([ADR 0007](adr/0007-kitchen-login.md)) |
+| `web` | `slicepizza-web` (Caddy + the site, [`infra/caddy/`](../infra/caddy/)) | **Yes**: the domain points here, port 8080 | `API_HOST` and `API_PORT`: the API's service name and port on the project network (default `api` and `8000`; with several API containers Caddy shares the requests among them). The older `API_UPSTREAM=host:port` still works. `TELEGRAM_BOT_USERNAME`: the bot for the "Follow on Telegram" button, without the @ (unset: no button). `KITCHEN_PASSWORD_HASH` and `KITCHEN_API_TOKEN` for the kitchen board (see [Kitchen](#kitchen)). `TRUSTED_PROXIES` only if the server's proxy is outside the private ranges and `100.64.0.0/10` (see below) |
+| `api` | `slicepizza-api` ([`api/`](../api/)) | No: only `web` reaches it | `UVICORN_ROOT_PATH=/api` and `UVICORN_FORWARDED_ALLOW_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`, plus the database variables below. `INTERNAL_API_TOKEN` for the worker's routes ([ADR 0006](adr/0006-customer-telegram-opt-in.md)). `KITCHEN_API_TOKEN` for the kitchen's routes ([ADR 0024](adr/0024-kitchen-login-in-the-api.md)) |
 
 | `db` | `postgres:16-alpine` | No: only `api` reaches it | See [Database](#database) |
 | `rabbitmq` | `rabbitmq:4.4.0-management-alpine` | No: only `api` and `worker` reach it | See [RabbitMQ](#rabbitmq) |
@@ -38,7 +38,7 @@ https://slicepizza.senatore.tech ──► server proxy (HTTPS) ──► web:80
 
 Both trust the forwarding headers of the proxy in front of them: Caddy those of the server's proxy (from private addresses, see the Caddyfile), and the API those of Caddy (also from private addresses only). That way the access logs show the customer's IP, and links and redirects the API generates keep `https`.
 
-If the server's proxy is not in a private range (on the live server Traefik is at `100.80.1.0/24`, which is not), Caddy ignores its headers and logs the proxy's IP and `http`. Set `TRUSTED_PROXIES` on `web` to the ranges to trust, space-separated and with `private_ranges` kept: `private_ranges 100.80.1.0/24`. On `api`, put the same range in `UVICORN_FORWARDED_ALLOW_IPS` (comma-separated).
+Caddy trusts the private ranges and `100.64.0.0/10` by default; the live server's Traefik is at `100.80.1.0/24`, inside it. It reads `X-Forwarded-For` from the right, skipping trusted proxies (so a customer can't fake an address), and passes the API **one** address, the customer's, so the API's `UVICORN_FORWARDED_ALLOW_IPS` only needs the private ranges. Before 1.7 the default was the private ranges only, and with the server's documented settings every customer looked like Traefik's address (tested in Docker, [ADR 0024](adr/0024-kitchen-login-in-the-api.md)). If the server's proxy is somewhere else, set `TRUSTED_PROXIES` on `web`: space-separated, and it replaces the default, so keep `private_ranges 100.64.0.0/10` in it. To check: the order rate limit and the kitchen login log the customer's address, never the proxy's.
 
 Both images meet the server's rules:
 
@@ -201,13 +201,14 @@ A merge that adds no version is published as `sha-<commit>` only, and production
 
 ## Kitchen
 
-The kitchen board is at `https://slicepizza.senatore.tech/kitchen/`, behind a login ([ADR 0007](adr/0007-kitchen-login.md)). It needs three settings:
+The kitchen board is at `https://slicepizza.senatore.tech/kitchen/`. The page asks for the kitchen's password; the API checks it, locks an address for 15 minutes after 5 wrong passwords, and keeps the board logged in for 12 hours ([ADR 0024](adr/0024-kitchen-login-in-the-api.md)). It needs two settings:
 
 | Setting | On | Value |
 |---|---|---|
 | `KITCHEN_API_TOKEN` | `api` **and** `web`, the same value | `openssl rand -hex 32` |
-| `KITCHEN_PASSWORD_HASH` | `web` | The login's password, hashed and base64-encoded (below) |
-| `KITCHEN_USERNAME` | `web` | Optional, default `kitchen` |
+| `KITCHEN_PASSWORD_HASH` | `web` | The password, hashed and base64-encoded (below). `web` passes it to the API on the kitchen's route |
+
+`KITCHEN_USERNAME` is no longer used: the login asks only for the password.
 
 To make the hash, run this on any machine with Docker. It asks for the password twice and prints the value:
 
@@ -222,7 +223,9 @@ What happens when something is missing:
 - **No `KITCHEN_PASSWORD_HASH`**: `/kitchen` answers 404.
 - **A malformed `KITCHEN_PASSWORD_HASH`** (cut short when pasting, say): `/kitchen` answers 404 too, and the `web` log starts with an `ERROR: KITCHEN_PASSWORD_HASH ...` line. The rest of the site keeps working: the image checks the value before Caddy loads it ([`infra/caddy/start.sh`](../infra/caddy/start.sh)), since Caddy wouldn't start at all with it.
 - **No `KITCHEN_API_TOKEN` on `api`**: nobody can list orders or change a status (503); the board says the kitchen isn't connected.
-- **Different values on `api` and `web`**: the board loads, but says the kitchen isn't connected (the API answers 401).
+- **Different values on `api` and `web`**: the board loads, but logging in says the kitchen isn't connected (the API doesn't recognise the kitchen's route and answers 404).
+- **Locked out** after wrong passwords: wait 15 minutes, or restart `api` to clear every lockout at once. The `api` log says which address was locked.
+- **Log every device out**: change the password (a new hash) or `KITCHEN_API_TOKEN`.
 
 To change the password, set a new hash and restart `web`. Everyone then logs in again with the new password.
 

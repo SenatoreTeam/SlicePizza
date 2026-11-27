@@ -23,6 +23,7 @@ from .config import settings
 from .database import Base, SessionLocal, engine, get_db, wait_for_database
 from .events import ORDER_CREATED, ORDER_STATUS_CHANGED, record_event
 from .internal import router as internal_router
+from .kitchen_login import router as kitchen_login_router
 from .models import ALLOWED_TRANSITIONS, Order, OrderEvent, OrderItem, OrderStatus, Pizza
 from .outbox import OutboxRelay, RabbitMQPublisher
 from .ratelimit import limit_orders
@@ -165,6 +166,7 @@ if settings.cors_origins:
 
 # Routes for the notification worker (ADR 0006): off without INTERNAL_API_TOKEN.
 app.include_router(internal_router)
+app.include_router(kitchen_login_router)
 
 
 @app.exception_handler(RequestValidationError)

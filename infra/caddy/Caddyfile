@@ -17,13 +17,15 @@
 #                      Needed only if config.js points at an API elsewhere.
 #   TELEGRAM_BOT_USERNAME  the bot for "Follow on Telegram", without the @
 #                      (default none: no button). See config.js below.
-#   KITCHEN_USERNAME   the kitchen login's user name      (default kitchen)
-#   KITCHEN_PASSWORD_HASH  bcrypt hash of its password, from
+#   KITCHEN_PASSWORD_HASH  bcrypt hash of the kitchen's password, from
 #                      `caddy hash-password`, base64-encoded or not (default
 #                      none: /kitchen is off). The image's start script turns
 #                      the kitchen off if the value is malformed (start.sh).
-#   KITCHEN_API_TOKEN  the token the API expects from the kitchen (the same
-#                      value as on the API, ADR 0007)
+#                      Caddy passes it to the API, which checks the login
+#                      (ADR 0024).
+#   KITCHEN_API_TOKEN  the same value as on the API: proves to it that a
+#                      request came through the kitchen's route
+#   KITCHEN_USERNAME   no longer used (the login asks only for the password)
 #   KITCHEN_ROOT       folder with the kitchen page     (default /srv-kitchen)
 {
 	# No admin endpoint, no certificates, nothing written to disk:
@@ -38,11 +40,18 @@
 		# keeps the X-Forwarded-For and X-Forwarded-Proto they send, so the
 		# access log and the API see the customer's IP and "https", not the
 		# proxy's IP and "http". Nothing outside the server reaches :8080.
-		# TRUSTED_PROXIES adds ranges the private ones don't cover (on the
-		# live server Traefik is at 100.80.1.0/24): space-separated, and
-		# "private_ranges" has to be listed again to keep it.
-		trusted_proxies static {$TRUSTED_PROXIES:private_ranges}
+		# The default also trusts 100.64.0.0/10, the shared address space where
+		# the live server's Traefik is (100.80.1.0/24): without it every
+		# customer looked like Traefik's address to the order rate limit and
+		# the kitchen login's lockout (#98, tested in Docker). Like the private
+		# ranges, nothing in it reaches :8080 from outside the server.
+		# TRUSTED_PROXIES replaces the default: space-separated, and list
+		# "private_ranges 100.64.0.0/10" again to keep them.
+		trusted_proxies static {$TRUSTED_PROXIES:private_ranges 100.64.0.0/10}
 		client_ip_headers X-Forwarded-For
+		# Read X-Forwarded-For from the right, skipping trusted proxies, so a
+		# customer who sends their own X-Forwarded-For can't pick their address.
+		trusted_proxies_strict
 	}
 }
 
@@ -59,6 +68,10 @@
 		refresh 5s
 	}
 	lb_policy round_robin
+	# The API gets exactly one address: the customer's, as worked out above.
+	# (Passing the whole chain would make the API, which trusts only private
+	# ranges, take the proxy's address instead.)
+	header_up X-Forwarded-For {client_ip}
 	# If a copy is gone, try another one instead of failing the request.
 	lb_try_duration 3s
 	lb_try_interval 250ms
@@ -114,8 +127,9 @@
 		respond "Not Found" 404
 	}
 
-	# The kitchen dashboard (ADR 0007): a login, then the page and its API
-	# calls. Off (404) until KITCHEN_PASSWORD_HASH is set.
+	# The kitchen board (ADR 0024). The page itself is public and holds no
+	# data; the API checks the login and the session behind /kitchen/api.
+	# Off (404) until KITCHEN_PASSWORD_HASH is set.
 	@kitchen_off {
 		path /kitchen /kitchen/*
 		expression `{env.KITCHEN_PASSWORD_HASH} == ""`
@@ -126,26 +140,20 @@
 
 	@kitchen path /kitchen /kitchen/*
 	handle @kitchen {
-		# Asks for KITCHEN_USERNAME (default "kitchen") and the password whose
-		# bcrypt hash is KITCHEN_PASSWORD_HASH (`caddy hash-password`, which
-		# Caddy also accepts base64-encoded). The
-		# fallback hash is of a random password nobody has; it is never used,
-		# since the block above answers 404 when the variable is empty.
-		basic_auth bcrypt "Zé's Pizzeria kitchen" {
-			{$KITCHEN_USERNAME:kitchen} {$KITCHEN_PASSWORD_HASH:$2a$14$.Q0udJ7HbtEAFRPKiJ5mTuOjNPXB7E86gL06nmuoYhP4G8JulL4BK}
-		}
-
 		redir /kitchen /kitchen/ 308
 
 		# The page's API calls: /kitchen/api/orders reaches the API as /orders.
-		# The browser's login is replaced by the kitchen token, which only
-		# this container and the API know: browsers never see it, and a call
-		# straight to /api/... without it is refused by the API.
+		# Two headers only this container can add (they replace anything the
+		# browser sends): the kitchen token, which tells the API the request
+		# came through here, and the password's hash, which the API checks
+		# the login against (POST /kitchen/api/session). The public /api
+		# route adds neither, so a session cookie or a login only works here.
 		handle_path /kitchen/api/* {
 			header X-Robots-Tag "noindex, nofollow"
 			reverse_proxy {
 				import api_upstream
-				header_up Authorization "Bearer {$KITCHEN_API_TOKEN}"
+				header_up X-Kitchen-Proxy {$KITCHEN_API_TOKEN}
+				header_up X-Kitchen-Password-Hash {$KITCHEN_PASSWORD_HASH}
 			}
 		}
 
@@ -165,6 +173,11 @@
 		header X-Robots-Tag "noindex, nofollow"
 		reverse_proxy {
 			import api_upstream
+			# Only the kitchen's route may carry these (ADR 0024). The API
+			# would refuse a forged one anyway (it needs the token), but the
+			# public route never forwards them.
+			header_up -X-Kitchen-Proxy
+			header_up -X-Kitchen-Password-Hash
 		}
 	}
 

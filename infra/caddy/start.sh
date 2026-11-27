@@ -1,7 +1,8 @@
 #!/bin/sh
 # Starts Caddy in the web image.
 #
-# First it checks the kitchen login's settings (ADR 0007). Caddy refuses to
+# First it checks the kitchen login's settings (ADR 0024: Caddy passes the
+# hash to the API, which checks the password). Caddy refuses to
 # start at all with a malformed or empty hash or user name, which would take
 # the whole site down with the kitchen. So a malformed value only turns the kitchen login off (/kitchen
 # answers 404), with an error in the log saying why; the menu site and the
