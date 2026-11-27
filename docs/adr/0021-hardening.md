@@ -19,7 +19,7 @@ Phase 8: "I heard hackers attack pizzerias". The system takes real orders, holds
 
 ## Options not taken
 
-- **A rate limiter in Caddy**: needs a plugin, so a custom Caddy build to maintain; the API-level limit covers the route that matters. The kitchen login stays without one (see `SECRETS.md`).
+- **A rate limiter in Caddy**: needs a plugin, so a custom Caddy build to maintain; the API-level limit covers the route that matters. The kitchen login stays without one (it got its own lockout in [ADR 0024](0024-kitchen-login-in-the-api.md)) (see `SECRETS.md`).
 - **A limit shared between API copies in Redis**: Redis is optional and the server runs one copy; per-copy counters are enough to stop abuse.
 - **A secrets manager (Vault and similar)**: another service to run and unseal on one shared VPS, for a handful of secrets. Dokploy's environment and a written rotation routine fit the size.
 - **Scanning in a separate nightly workflow only**: would let a vulnerable image be published first.

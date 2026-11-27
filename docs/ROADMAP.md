@@ -209,14 +209,14 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 | 10.1 | **Migrations with Alembic**: a first migration that matches today's tables, so the server's database is "at version 1"; `create_all` stops being the way ([ADR 0002](adr/0002-sqlalchemy-and-schema-creation.md)). Applied when the API starts | Ettore | L | an ADR; the server's database is checked first |
 | 10.2 | **A migration report on every PR that touches one**: the SQL, the operations that delete data, a test that goes up and back down on Postgres (Kaladrius: decision 139) | Ettore | M | 10.1 |
 | 10.3 | **A rule for the rollback**: the pipeline's automatic rollback puts the old image back but never undoes a migration, so migrations must work with the previous version (add, never rename, in one step). Written in `CONTRIBUTING.md` | Ettore | S | 10.1 |
-| 10.4 ✅ | **Measure coverage** in the pipeline and fail below today's number; raise it as tests are added. Done: `pytest --cov` in CI, API floor 85% (87% today), worker 70% (see [api/README.md](../api/README.md#test-coverage)) | Ettore | S | |
+| 10.4 ✅ | **Measure coverage** in the pipeline and fail below today's number; raise it as tests are added. Done: `pytest --cov` in CI, API floor 85% (87% then; 88% since 11.7), worker 70% (see [api/README.md](../api/README.md#test-coverage)) | Ettore | S | |
 | 10.5 | **Tell Miguel** what the server must know: the API now migrates on start, so a restore of an old backup is migrated forward | Miguel | S | 10.1 |
 
 **Done when:** a new column can be added in a PR, the PR shows its SQL, and the server's database gets it on release with no manual step.
 
 ## Phase 11: "How do I know nobody tampered with what we run?"
 
-**Status:** 🚧 In progress (started 2026-11-21): 11.1 to 11.6 done; 11.7 decided (ADR 0024), 11.8, 11.9 open (issues [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98), [#99](https://github.com/SenatoreTeam/SlicePizza/issues/99), [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103))
+**Status:** 🚧 In progress (started 2026-11-21): 11.1 to 11.7 done; 11.8, 11.9 open (issues [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98), [#99](https://github.com/SenatoreTeam/SlicePizza/issues/99), [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103))
 
 **Goal:** make sure only the code we reviewed, and the versions we chose, run in production, and that the repository is a good public citizen.
 
@@ -228,7 +228,7 @@ Phases 1 to 8 built the system. This stage is about **running it responsibly**: 
 | 11.4 ✅ | **`CODEOWNERS`**: structural files (`.github/`, Dockerfiles, `docker-compose.yml`, `infra/`, the schema and migrations, `api/app/auth.py`, `ratelimit.py`) need their owner's approval; the rest, any teammate. Done: [`.github/CODEOWNERS`](../.github/CODEOWNERS), chosen by Ettore; GitHub requests the owners' review, not yet required (Miguel can propose changes in [#103](https://github.com/SenatoreTeam/SlicePizza/issues/103)) | both | S | |
 | 11.5 ✅ | (**needs the repository's *private vulnerability reporting* turned on in Settings → Security, by a repo admin; it is off today**) **`SECURITY.md`** (how to report privately through GitHub's advisories, what is supported, the answer time), **`CODE_OF_CONDUCT.md`**, issue templates (bug, idea) | Ettore | S | |
 | 11.6 ✅ | **`X-Robots-Tag: noindex`** on the API and the kitchen; the site and docs stay indexable | Ettore | S | |
-| 11.7 | **Kitchen login protection**: a lockout after wrong passwords (the login moves from Caddy's basic auth into the API or a small login page), a shorter session. Decided in [ADR 0024](adr/0024-kitchen-login-in-the-api.md): a login page checked by the API, 5 tries per address then 15 minutes locked, 12-hour session. To build ([#98](https://github.com/SenatoreTeam/SlicePizza/issues/98)); before release, the API must see real client addresses | Ettore | L | |
+| 11.7 ✅ | **Kitchen login protection**: a lockout after wrong passwords (the login moves from Caddy's basic auth into the API or a small login page), a shorter session. Done ([#98](https://github.com/SenatoreTeam/SlicePizza/issues/98), [ADR 0024](adr/0024-kitchen-login-in-the-api.md)): a login page checked by the API, 5 tries per address then 15 minutes locked, 12-hour session, no server change. Tested in Docker with a copy of the server's proxy chain, which also fixed the customers' addresses for the order rate limit | Ettore | L | |
 | 11.8 | **Confirm the server items** listed as "not verified" in [SECRETS.md](SECRETS.md): SSH keys, Dokploy and Cloudflare two-step, `.env` permissions, who can read backups. Note the date | Miguel | S | |
 | 11.9 | **Rotate the secrets once**, to prove the routine in SECRETS.md works, and fix the doc where it did not | both | M | 11.8 |
 

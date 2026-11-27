@@ -5,7 +5,7 @@ Plain HTML, CSS and JavaScript, with no build step and no framework (the project
 | Page | Folder | Address | For whom | Phase |
 |---|---|---|---|---|
 | Menu website | [`menu/`](menu/) | `https://slicepizza.senatore.tech/` | Customers pick pizzas, place an order and follow its status | 2 |
-| Kitchen board | [`kitchen/`](kitchen/) | `https://slicepizza.senatore.tech/kitchen/` (with a login) | The kitchen sees the open orders and moves them along | 3 |
+| Kitchen board | [`kitchen/`](kitchen/) | `https://slicepizza.senatore.tech/kitchen/` (with a password) | The kitchen sees the open orders and moves them along | 3 |
 
 ## Menu website
 
@@ -102,7 +102,7 @@ kitchen/
 └── kitchen.css
 ```
 
-Served at **`/kitchen/`**, behind a login that Caddy asks for ([ADR 0007](../docs/adr/0007-kitchen-login.md)). The page calls `/kitchen/api/orders`, and Caddy forwards those calls to the API with the kitchen token. The page never holds a token: the browser only keeps the login.
+Served at **`/kitchen/`** ([ADR 0024](../docs/adr/0024-kitchen-login-in-the-api.md)). The page itself is public and holds no data: it asks for the kitchen's password, logs in with `POST /kitchen/api/session`, and the API answers with a session cookie (`HttpOnly`, 12 hours) that the page cannot read. Its calls go to `/kitchen/api/...`, which Caddy forwards to the API. **Log out** ends the session; 5 wrong passwords lock the address for 15 minutes.
 
 What it does:
 
@@ -111,7 +111,7 @@ What it does:
 3. Refreshes every 5 seconds and right after every change. New tickets flash once, and screen readers announce them. Tickets are only redrawn when something on them changed, so a tap is never lost to a refresh.
 4. If another screen moved an order first, it says so and shows where the order is now. If the API can't be reached, it keeps showing the last orders it loaded, says since when, and retries further apart each time (up to once a minute).
 
-To try it locally, set `KITCHEN_API_TOKEN` and `KITCHEN_PASSWORD_HASH` in `.env` (see `.env.example`), run `docker compose up -d`, and open <http://localhost:8080/kitchen/>. The user name is `kitchen`. The page is served from the `web` image; `docker-compose.site-dev.yml` mounts `frontend/kitchen/` too, for live edits.
+To try it locally, set `KITCHEN_API_TOKEN` and `KITCHEN_PASSWORD_HASH` in `.env` (see `.env.example`), run `docker compose up -d`, and open <http://localhost:8080/kitchen/>. The login asks only for the password. The page is served from the `web` image; `docker-compose.site-dev.yml` mounts `frontend/kitchen/` too, for live edits.
 
 ## Fonts
 

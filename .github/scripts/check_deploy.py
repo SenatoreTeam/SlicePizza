@@ -12,7 +12,7 @@ reaches the server, so this only looks at the public site:
    the server looks for new versions every 2 minutes, so the old one answers
    for a while.
 2. Checks what any visitor sees: the menu site, the menu, the API docs, and
-   that the private routes stay private (/kitchen asks for a login, listing or
+   that the private routes stay private (/kitchen/api needs a session, listing or
    changing orders without the kitchen's token is refused, /api/internal is not
    reachable).
 
@@ -135,8 +135,11 @@ def check_public(base):
         raise CheckFailed(f"GET {base}/api/menu: expected a non-empty list, got {menu!r:.200}")
     print(f"ok  GET {base}/api/menu -> {len(menu)} pizzas")
     expect_status("GET", f"{base}/api/docs", 200)
-    # Private routes stay private (ADR 0006, ADR 0007).
-    expect_status("GET", f"{base}/kitchen/", 401)
+    # Private routes stay private (ADR 0006, ADR 0024): the kitchen page is
+    # public, but its calls need a session, and the login exists only there.
+    expect_status("GET", f"{base}/kitchen/", 200)
+    expect_status("GET", f"{base}/kitchen/api/orders", 401)
+    expect_status("POST", f"{base}/api/session", 404, body={"password": "x"})
     expect_status("GET", f"{base}/api/orders", 401)
     expect_status(
         "PATCH",

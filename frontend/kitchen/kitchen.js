@@ -1,12 +1,14 @@
 // Zé's Pizzeria kitchen board: plain JavaScript, no build step.
 //
-// Served at /kitchen/ behind the kitchen login (Caddy, ADR 0007). Its calls go
-// to /kitchen/api/..., which Caddy forwards to the API with the kitchen token:
-// this page never holds a token.
+// Served at /kitchen/. The page holds no data and no token: its calls go to
+// /kitchen/api/..., which Caddy forwards to the API, and the API checks this
+// browser's session (an HttpOnly cookie the page cannot read, ADR 0024).
 //
-//   GET   api/orders                 the open orders, oldest first
-//   PATCH api/orders/<id>/status     move one along
-//   GET   /releases.json             the version and what changed in each one
+//   POST   api/session               log in with the kitchen's password
+//   DELETE api/session               log out
+//   GET    api/orders                the open orders, oldest first
+//   PATCH  api/orders/<id>/status    move one along
+//   GET    /releases.json            the version and what changed in each one
 //
 // The board refreshes every few seconds, and right away after every change.
 
@@ -83,10 +85,16 @@ async function api(method, path, body) {
   }
   if (response.ok) return data;
   const detail = typeof data?.detail === "string" ? data.detail : "";
-  if (response.status === 401 || response.status === 503) {
+  if (response.status === 401) {
+    throw new ApiError(detail || "Please log in.", 401);
+  }
+  if (response.status === 429) {
+    throw new ApiError(detail || "Too many wrong passwords. Try again in 15 minutes.", 429);
+  }
+  if (response.status === 503 || (response.status === 404 && path === "/session")) {
     throw new ApiError(
       "The kitchen isn't connected to the orders. Whoever runs the server should " +
-        "check KITCHEN_API_TOKEN: it must be set, and the same, on the web and api containers.",
+        "check KITCHEN_API_TOKEN (the same on the web and api containers) and KITCHEN_PASSWORD_HASH.",
       response.status,
     );
   }
@@ -94,6 +102,61 @@ async function api(method, path, body) {
     throw new ApiError("The pizzeria's system is offline for a moment.", response.status);
   }
   throw new ApiError(detail || `Something went wrong (error ${response.status}).`, response.status);
+}
+
+// --- Login --------------------------------------------------------------------
+
+function showLogin(message = "") {
+  clearTimeout(state.timer);
+  state.orders = [];
+  state.known = null;
+  state.loadedAt = null;
+  $("board").hidden = true;
+  $("logout").hidden = true;
+  showProblem("");
+  $("updated").textContent = "Logged out";
+  $("login").hidden = false;
+  showLoginProblem(message);
+  $("password").focus();
+}
+
+function showLoginProblem(message) {
+  $("login-problem").textContent = message;
+  $("login-problem").hidden = !message;
+}
+
+function showBoard() {
+  $("login").hidden = true;
+  $("board").hidden = false;
+  $("logout").hidden = false;
+}
+
+async function logIn(event) {
+  event.preventDefault();
+  const button = $("login-submit");
+  button.disabled = true;
+  showLoginProblem("");
+  try {
+    await api("POST", "/session", { password: $("password").value });
+    $("password").value = "";
+    showBoard();
+    refresh();
+  } catch (error) {
+    showLoginProblem(error.message);
+    $("password").select();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function logOut() {
+  try {
+    await api("DELETE", "/session");
+  } catch {
+    // Logged out anyway as far as this page is concerned.
+  }
+  state.loads += 1; // drop the answer of a refresh still in flight
+  showLogin();
 }
 
 // --- Loading ------------------------------------------------------------------
@@ -106,6 +169,7 @@ async function refresh() {
     // A newer refresh started meanwhile (a tap, or the tab coming back):
     // its answer is fresher, so drop this one.
     if (load !== state.loads) return;
+    showBoard();
     noteArrivals(orders);
     state.orders = orders;
     state.loadedAt = new Date();
@@ -113,6 +177,10 @@ async function refresh() {
     showProblem("");
   } catch (error) {
     if (load !== state.loads) return;
+    if (error.status === 401) {
+      showLogin();
+      return;
+    }
     state.failures += 1;
     const since = state.loadedAt ? ` Showing the orders from ${clock.format(state.loadedAt)}.` : "";
     showProblem(`${error.message}${since}`);
@@ -413,11 +481,13 @@ function openWhatsNew() {
 $("whats-new-open").addEventListener("click", openWhatsNew);
 $("new-version-open").addEventListener("click", openWhatsNew);
 $("whats-new-close").addEventListener("click", () => $("whats-new").close());
+$("login").addEventListener("submit", logIn);
+$("logout").addEventListener("click", logOut);
 
 // --- Start --------------------------------------------------------------------
 
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) refresh();
+  if (!document.hidden && $("login").hidden) refresh();
 });
 
 refresh();

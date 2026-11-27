@@ -1,9 +1,10 @@
-"""Shared-secret checks for the routes that are not public (ADR 0006, ADR 0007)."""
+"""Checks for the routes that are not public (ADR 0006, ADR 0007, ADR 0024)."""
 
 import hmac
 
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, Request, status
 
+from . import kitchen_login
 from .config import settings
 
 
@@ -22,11 +23,15 @@ def unauthorized() -> HTTPException:
     )
 
 
-def require_kitchen(authorization: str | None = Header(default=None, include_in_schema=False)) -> None:
-    """Only the kitchen dashboard may list orders and change their status.
+def require_kitchen(
+    request: Request,
+    authorization: str | None = Header(default=None, include_in_schema=False),
+) -> None:
+    """Only the kitchen may list orders and change their status.
 
-    The dashboard never holds the token itself: Caddy checks the kitchen login
-    at /kitchen and adds the token to the requests it forwards (ADR 0007).
+    Two ways in: the kitchen board, logged in through /kitchen/api/session
+    (a session cookie, checked in app/kitchen_login.py, ADR 0024), or a script
+    with ``Authorization: Bearer <KITCHEN_API_TOKEN>`` (ADR 0007).
     """
     token = settings.kitchen_api_token
     if token is None:
@@ -35,5 +40,10 @@ def require_kitchen(authorization: str | None = Header(default=None, include_in_
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Kitchen access is not set up on this server (KITCHEN_API_TOKEN).",
         )
-    if not bearer_matches(authorization, token):
-        raise unauthorized()
+    if bearer_matches(authorization, token):
+        return
+    if kitchen_login.has_valid_session(request):
+        if request.method not in ("GET", "HEAD"):
+            kitchen_login.require_json(request)
+        return
+    raise unauthorized()

@@ -16,7 +16,19 @@
   <header class="bar">
     <h1 class="bar-title">Zé's Pizzeria kitchen</h1>
     <p id="updated" class="bar-status" aria-live="off">Loading orders…</p>
+    <button id="logout" class="bar-button" type="button" hidden>Log out</button>
   </header>
+
+  <!-- Shown when this browser is not logged in (ADR 0024). -->
+  <form id="login" class="login" hidden>
+    <h2 class="login-title">Kitchen login</h2>
+    <label class="login-label" for="password">Password</label>
+    <input id="password" class="login-input" name="password" type="password"
+           autocomplete="current-password" required maxlength="200">
+    <p id="login-problem" class="login-problem" role="alert" hidden></p>
+    <button id="login-submit" class="btn btn-go" type="submit">Log in</button>
+    <p class="login-note">You stay logged in for 12 hours on this device.</p>
+  </form>
 
   <p id="problem" class="problem" role="alert" hidden></p>
   <!-- After an update, until "What's new" is opened in this browser. -->

@@ -21,7 +21,7 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0004](0004-order-events-outbox-rabbitmq.md) | Order events through a transactional outbox and RabbitMQ | Accepted |
 | [0005](0005-notification-worker.md) | The notification worker: one queue, retries, dead letters | Accepted |
 | [0006](0006-customer-telegram-opt-in.md) | Customers follow their order on Telegram, linked through the API | Accepted |
-| [0007](0007-kitchen-login.md) | The kitchen board at /kitchen, behind a Caddy login and a token | Accepted |
+| [0007](0007-kitchen-login.md) | The kitchen board at /kitchen, behind a Caddy login and a token | Login superseded by 0024 |
 | [0008](0008-one-gated-pipeline.md) | One pipeline: lint, then tests, then images, and only tested commits are published | Accepted |
 | [0009](0009-numbered-versions.md) | Numbered versions: production runs the newest release, and the server fetches it | Accepted (its files superseded by 0010) |
 | [0010](0010-releases-file.md) | The versions live in releases.toml, like the other projects | Accepted |
@@ -38,4 +38,4 @@ An accepted ADR is not edited. If the decision changes, write a new ADR and mark
 | [0021](0021-hardening.md) | Hardening: image scans, secret scans, an order rate limit, no root, a credential review | Accepted |
 | [0022](0022-order-link-without-personal-data.md) | The order link carries no personal data | Accepted |
 | [0023](0023-retention-of-personal-data.md) | Customers' personal data is replaced after 12 months, by the API itself | Accepted |
-| [0024](0024-kitchen-login-in-the-api.md) | The kitchen logs in through the API, with a lockout and a session that expires | Accepted (not built yet, #98) |
+| [0024](0024-kitchen-login-in-the-api.md) | The kitchen logs in through the API, with a lockout and a session that expires | Accepted |

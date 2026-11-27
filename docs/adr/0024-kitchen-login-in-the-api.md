@@ -1,7 +1,7 @@
 # 0024: The kitchen logs in through the API, with a lockout and a session that expires
 
-- **Status:** Accepted (to be built in [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98); [ADR 0007](0007-kitchen-login.md) stays in force until that ships, then is marked "Superseded by 0024")
-- **Date:** 2026-11-21
+- **Status:** Accepted, built in [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98). Supersedes [ADR 0007](0007-kitchen-login.md)'s login (its token stays)
+- **Date:** 2026-11-21, revised 2026-11-26 before building (see "Revision" at the end)
 - **Phase:** 11 (task 11.7)
 
 ## Context
@@ -24,22 +24,28 @@ Option 2.
 
 ```
 browser ──/kitchen/ (page, no data in it) ───────────────────────────► Caddy: static files, public
-browser ──POST /kitchen/api/login {password} ─► Caddy ─► API: checks password + lockout, sets the session cookie
+browser ──POST /kitchen/api/session {password} ► Caddy ─► API: checks password + lockout, sets the session cookie
 browser ──/kitchen/api/orders + cookie ───────► Caddy ─► API: valid session? then the kitchen routes
 scripts ──/api/orders + Bearer KITCHEN_API_TOKEN ───────► API: unchanged (CI, curl)
 ```
 
-- **The password** lives on the **API** as a hash made with Python's standard `hashlib.scrypt` (no new dependency), created with a command (`python -m app.kitchen_login hash`). One shared kitchen login, as today; the user name is dropped. Caddy no longer asks for a password, and `KITCHEN_PASSWORD_HASH` moves from `web` to `api` in the new format: **a server step for Miguel** when it is released.
+- **The password** stays as today's bcrypt hash in `KITCHEN_PASSWORD_HASH` on `web` (`caddy hash-password`). Caddy no longer asks for it; on the kitchen's route it passes the hash to the API in `X-Kitchen-Password-Hash`, and the API checks the password with the `bcrypt` library. One shared kitchen login, as today; the user name is dropped. **No change on the server.**
+- **Only through the kitchen's route:** Caddy also sends `X-Kitchen-Proxy: <KITCHEN_API_TOKEN>` on `/kitchen/api/*`, and removes both headers on the public `/api/*`. Without a matching token the login answers 404 and a session cookie is ignored, so a forged hash header is useless.
 - **Lockout:** after **5 wrong passwords from one client address in 15 minutes**, that address gets `429` for **15 minutes**, without checking the password (so a flood costs no hashing). Counted per client address, never per account: locking the shared account would let anyone lock the real kitchen out during service. Counted in each API copy's memory, like the order rate limit ([ADR 0021](0021-hardening.md)); with N copies an attacker gets up to 5×N tries per window, acceptable for a long password.
-- **Session:** a cookie signed by the API (HMAC with a key derived from `KITCHEN_API_TOKEN`, so there is no new secret), valid **12 hours**, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/kitchen`. A **Log out** button clears it. Changing `KITCHEN_API_TOKEN` logs every device out.
-- **Cross-site requests:** `SameSite=Strict` plus the API accepting only `application/json` bodies on the kitchen's write routes.
-- **The token route stays** for scripts: `Authorization: Bearer <KITCHEN_API_TOKEN>` still works on the kitchen routes, so the CI tests and curl keep working. Caddy stops adding the token to browser calls.
+- **The client address** is worked out by Caddy and passed to the API as a single `X-Forwarded-For` value. Caddy now trusts `100.64.0.0/10` by default (the live server's Traefik is at `100.80.1.0/24`) and reads the header strictly from the right, so a customer can't choose their address by sending one.
+- **Session:** a cookie signed by the API (HMAC with a key derived from `KITCHEN_API_TOKEN`, so there is no new secret; the signature covers the expiry and the password hash), valid **12 hours**, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/kitchen`. A **Log out** button clears it. Changing the password or `KITCHEN_API_TOKEN` logs every device out.
+- **Cross-site requests:** `SameSite=Strict` plus the API accepting only `application/json` bodies on the login and on the kitchen's writes (415 otherwise).
+- **The token route stays** for scripts: `Authorization: Bearer <KITCHEN_API_TOKEN>` still works on the kitchen routes, so the CI tests and curl keep working. Caddy stops adding it to browser calls.
 - Every login, wrong password and lockout is logged with the client address and no password.
 
 ## Consequences
 
 - **A password-guessing script is stopped** after 5 tries per address, and the board logs itself out after 12 hours.
 - **The kitchen staff see a new login page** instead of the browser's pop-up, and must log in again every 12 hours. They need to be told before the release (a short pt-BR note).
-- **Blocker before release: the API must see real client addresses.** The lockout uses the same address as the order rate limit (X-Forwarded-For through the server's proxy). If every request appears to come from the proxy, one wrong password streak would lock out everyone, the kitchen included. Miguel has been asked to check the `web` access log ([#81](https://github.com/SenatoreTeam/SlicePizza/issues/81)); this must be confirmed before 11.7 is released.
-- **Server step:** set the new `KITCHEN_PASSWORD_HASH` (scrypt) on `api`, remove the old one from `web`. Issue for Miguel at release time.
+- **Real client addresses, without the server's help.** Tested in Docker with a copy of the server's chain (a proxy at `100.80.1.10` in front of `web`): before this change, with the server's settings as documented, every customer looked like the proxy's address, so one person's wrong passwords locked everyone out (and the order rate limit counted everyone together). With Caddy's new defaults each customer has their own address, whether or not the server sets `TRUSTED_PROXIES`, and a forged `X-Forwarded-For` is ignored. If the addresses were ever wrong again, the lockout only gets stricter (a stranger could lock the kitchen out for 15 minutes), never weaker.
+- **No server step:** the same `KITCHEN_PASSWORD_HASH` and `KITCHEN_API_TOKEN` as today.
 - **More code in the API** (login, sessions, lockout) and more tests; the Caddyfile gets simpler. Per-person accounts later become an extension of this, not a rewrite.
+
+## Revision (2026-11-26, before building)
+
+The first version of this ADR moved the password to the API as a new scrypt hash (Python's standard library, no new dependency). That needed the server's owner to set a new variable before release, and the release would wait on it. Keeping the bcrypt hash on `web` and passing it to the API on the kitchen's route needs nothing on the server, at the cost of one dependency (`bcrypt`, wheels for every Python, pinned with hashes). The client-address fix in Caddy came out of the Docker test.

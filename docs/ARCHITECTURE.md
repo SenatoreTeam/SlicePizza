@@ -30,7 +30,7 @@ One domain serves both the site and the API, so the browser never calls another 
 | Web container (Caddy) | `infra/caddy/` | Serves the site at `/` and forwards `/api/*` to the API. HTTPS is terminated before it, by the server's proxy | 2 |
 | RabbitMQ | (official image) | Queue for order events | 3 |
 | Notification worker | `worker/` | Reads its queue and sends Telegram messages: the pizzeria's chat, then customers who ask ([ADR 0005](adr/0005-notification-worker.md)) | 3 |
-| Kitchen board | `frontend/kitchen/` | The kitchen sees the open orders and moves them along, at `/kitchen` behind a login ([ADR 0007](adr/0007-kitchen-login.md)) | 3 |
+| Kitchen board | `frontend/kitchen/` | The kitchen sees the open orders and moves them along, at `/kitchen`, after a password checked by the API ([ADR 0024](adr/0024-kitchen-login-in-the-api.md)) | 3 |
 | Redis | (official image) | Menu cache | 7 |
 
 ## Order flow

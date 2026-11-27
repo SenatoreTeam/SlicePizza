@@ -18,13 +18,14 @@
 - **Quem revisa o quê** ([`CODEOWNERS`](https://github.com/SenatoreTeam/SlicePizza/blob/main/.github/CODEOWNERS)): uma mudança no pipeline,
   nas imagens, nos arquivos do servidor ou nas versões pede a revisão de nós dois; uma
   mudança no login, no limite de pedidos ou no banco pede a do Ettore.
+- **Um login da cozinha mais seguro** ([ADR 0024](/adr/0024-kitchen-login-in-the-api)): uma
+  página de login no lugar da janela do navegador, 15 minutos bloqueado depois de 5 senhas
+  erradas de um endereço, e uma sessão que termina em 12 horas, com botão Log out. Não precisou
+  de mudança no servidor. O teste contra uma cópia do servidor no Docker mostrou que todos os
+  clientes pareciam um só endereço; agora o Caddy passa o endereço real de cada cliente, o que
+  também corrige o limite de pedidos.
 
 ## Planejado
-
-- **Um login da cozinha mais seguro** ([ADR 0024](/adr/0024-kitchen-login-in-the-api),
-  [#98](https://github.com/SenatoreTeam/SlicePizza/issues/98)): uma página de login no lugar
-  da janela do navegador, 15 minutos bloqueado depois de 5 senhas erradas de um endereço, e
-  uma sessão que termina em 12 horas, com botão Sair.
 - **Confirmar a segurança do próprio servidor** e **trocar todos os segredos uma vez**, para
   provar que a rotina do [`SECRETS.md`](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/SECRETS.md) funciona
   ([#99](https://github.com/SenatoreTeam/SlicePizza/issues/99),

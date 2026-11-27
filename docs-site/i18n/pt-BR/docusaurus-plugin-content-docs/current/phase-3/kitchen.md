@@ -2,7 +2,7 @@
 
 A cozinha precisa de uma tela para ver os pedidos abertos e movê-los adiante. Esta página explica
 como ela funciona e por que foi construída assim; o raciocínio completo está no
-[ADR 0007](/adr/0007-kitchen-login), e as configurações estão no [DEPLOY.md](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/DEPLOY.md).
+[ADR 0007](/adr/0007-kitchen-login) e, para o login de hoje, no [ADR 0024](/adr/0024-kitchen-login-in-the-api), e as configurações estão no [DEPLOY.md](https://github.com/SenatoreTeam/SlicePizza/blob/main/docs/DEPLOY.md).
 
 ## O painel
 
@@ -22,24 +22,30 @@ mudança de status agora envia uma mensagem no Telegram ao cliente. Uma lista de
 também expõe telefones e endereços. As duas coisas agora são só da cozinha.
 
 ```
-cozinha ──/kitchen/ (usuário + senha)──► Caddy ──► os arquivos do painel
-cozinha ──/kitchen/api/orders (mesmo login)──► Caddy ──► API
-                  o Caddy troca o login por "Authorization: Bearer <token>"
+cozinha ──/kitchen/──► Caddy ──► os arquivos do painel (públicos, sem dados)
+cozinha ──POST /kitchen/api/session {senha}──► Caddy ──► API: senha certa? cookie de sessão
+cozinha ──/kitchen/api/orders + cookie──► Caddy ──► API: sessão válida? os pedidos
 qualquer outra pessoa ──/api/orders, PATCH /api/orders/{id}/status──► API: 401
 ```
 
-Duas camadas, cada uma fazendo o que sabe fazer bem:
+Como as partes dividem o trabalho (desde o [ADR 0024](/adr/0024-kitchen-login-in-the-api);
+antes, o Caddy pedia a senha numa janela do navegador):
 
-- **O Caddy** pede usuário e senha (guarda-se um hash bcrypt, nunca a senha). Sem um hash
-  configurado, o `/kitchen` não existe (404).
-- **A API** só aceita as requisições da cozinha com um token secreto, que o Caddy adiciona
-  depois do login. O token fica só no servidor, então o navegador nunca o vê.
+- **A página** pede a senha da cozinha. O login dura **12 horas** naquele aparelho, e o
+  botão **Log out** encerra.
+- **A API** confere a senha com um hash bcrypt (nunca a própria senha) e responde com um
+  cookie de sessão que a página não consegue ler. Depois de **5 senhas erradas de um mesmo
+  endereço, esse endereço espera 15 minutos**: um script não adivinha a senha, e outra
+  pessoa não consegue trancar a cozinha de verdade.
+- **O Caddy** manda as chamadas da cozinha para a API com o hash e um token secreto, que só
+  existe no servidor. O `/api` público não adiciona nenhum dos dois, então o login e o
+  cookie só funcionam na página da cozinha. Sem um hash configurado, o `/kitchen` não existe
+  (404).
 
 Os clientes não são afetados: eles continuam lendo o próprio pedido pelo id.
 
 ## O que isso ainda não faz
 
 É **um login compartilhado**. Todos na cozinha usam a mesma senha, não há papéis e nada registra
-quem mudou o quê. Isso basta para uma pizzaria e evita construir gerenciamento de usuários, e o
-[ADR 0007](/adr/0007-kitchen-login) diz o que mudaria para dar suporte a contas individuais.
-Limitar tentativas repetidas de senha errada fica para a fase de segurança.
+quem mudou o quê. Isso basta para uma pizzaria e evita construir gerenciamento de usuários; o
+[ADR 0024](/adr/0024-kitchen-login-in-the-api) deixa espaço para contas individuais depois.

@@ -26,7 +26,7 @@ Each order gets its own page showing the four stages: received, being prepared, 
 
 ## The kitchen board
 
-The pizzeria sees orders at `/kitchen/`, behind a login ([ADR 0007](/adr/0007-kitchen-login)). Orders move from **New** to **In the oven** to **On the way** with a single button, and can be cancelled while they are new.
+The pizzeria sees orders at `/kitchen/`, after the kitchen's password ([ADR 0024](/adr/0024-kitchen-login-in-the-api)). Orders move from **New** to **In the oven** to **On the way** with a single button, and can be cancelled while they are new.
 
 ![The kitchen board with orders in three columns](@site/static/img/screenshots/kitchen-board.png)
 

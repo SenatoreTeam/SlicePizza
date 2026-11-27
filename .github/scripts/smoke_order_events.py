@@ -3,15 +3,16 @@
 1. Binds a temporary queue to the events exchange (management HTTP API),
    next to the worker's own queue.
 2. Creates an order through the web container and changes its status
-   through the kitchen route (/kitchen/api, behind the kitchen login).
+   through the kitchen route (/kitchen/api, logged in with the kitchen's
+   password, ADR 0024).
 3. Expects both events, in order, as persistent JSON messages whose
    message_id is the event_id.
 
 (The "no queue at all: the event waits in the outbox" case is covered by
 api/tests/test_events.py; smoke_worker_down.py covers the worker's queue.)
 
-Usage: smoke_order_events.py   (reads RABBITMQ_USER, RABBITMQ_PASSWORD,
-KITCHEN_USERNAME and KITCHEN_PASSWORD)
+Usage: smoke_order_events.py   (reads RABBITMQ_USER, RABBITMQ_PASSWORD
+and KITCHEN_PASSWORD)
 Only the standard library is used.
 """
 
@@ -34,17 +35,27 @@ AUTH = "Basic " + base64.b64encode(
 ).decode()
 
 
-KITCHEN_AUTH = "Basic " + base64.b64encode(
-    f"{os.getenv('KITCHEN_USERNAME') or 'kitchen'}:{os.environ['KITCHEN_PASSWORD']}".encode()
-).decode()
+def kitchen_session():
+    """Log in to the kitchen board; returns the Cookie header for its calls."""
+    request = urllib.request.Request(
+        f"{WEB}/kitchen/api/session",
+        data=json.dumps({"password": os.environ["KITCHEN_PASSWORD"]}).encode(),
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        for header in response.headers.get_all("Set-Cookie") or []:
+            if header.startswith("kitchen_session="):
+                return header.split(";", 1)[0]
+    raise SystemExit("The kitchen login did not set a session cookie")
 
 
-def call(method, url, body=None, auth=False, kitchen=False):
+def call(method, url, body=None, auth=False, kitchen=None):
     headers = {"Content-Type": "application/json"}
     if auth:
         headers["Authorization"] = AUTH
     if kitchen:
-        headers["Authorization"] = KITCHEN_AUTH
+        headers["Cookie"] = kitchen
     data = json.dumps(body).encode() if body is not None else None
     request = urllib.request.Request(url, data=data, method=method, headers=headers)
     with urllib.request.urlopen(request, timeout=10) as response:
@@ -93,7 +104,12 @@ def main():
         },
     )
     print(f"Created order {order['id']}")
-    call("PATCH", f"{WEB}/kitchen/api/orders/{order['id']}/status", {"status": "preparing"}, kitchen=True)
+    call(
+        "PATCH",
+        f"{WEB}/kitchen/api/orders/{order['id']}/status",
+        {"status": "preparing"},
+        kitchen=kitchen_session(),
+    )
 
     received = []
 

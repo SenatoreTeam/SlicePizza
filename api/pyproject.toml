@@ -22,7 +22,8 @@ filterwarnings = [
 ]
 
 # Test coverage (roadmap 10.4). CI runs `pytest -q --cov`; locally add --cov
-# to see the report. fail_under is a floor, not a goal: 87% when this was added (SQLite leg, 2026-11-21).
+# to see the report. fail_under is a floor, not a goal: 87% when this was added (SQLite leg, 2026-11-21),
+# raised to 88 with the kitchen login (90.7%, 2026-11-26).
 # Raise it when coverage goes up; never lower it to make a PR pass
 # (see "Test coverage" in api/README.md).
 [tool.coverage.run]
@@ -30,6 +31,6 @@ source = ["app"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 85
+fail_under = 88
 show_missing = true
 skip_covered = true

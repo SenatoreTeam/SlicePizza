@@ -1,6 +1,6 @@
 # 0007: The kitchen board at /kitchen, behind a Caddy login and a token
 
-- **Status:** Accepted
+- **Status:** Superseded by [0024](0024-kitchen-login-in-the-api.md) for the login (the page is now public and the API checks a password and a session); the token and the private routes stay
 - **Date:** 2026-11-13
 - **Phase:** 3
 

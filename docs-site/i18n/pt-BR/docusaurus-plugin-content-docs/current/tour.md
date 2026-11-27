@@ -26,7 +26,7 @@ Cada pedido tem a própria página, mostrando as quatro etapas: recebido, em pre
 
 ## O painel da cozinha
 
-A pizzaria vê os pedidos em `/kitchen/`, atrás de um login ([ADR 0007](/adr/0007-kitchen-login)). Os pedidos passam de **New** para **In the oven** e depois **On the way** com um único botão, e podem ser cancelados enquanto são novos.
+A pizzaria vê os pedidos em `/kitchen/`, depois da senha da cozinha ([ADR 0024](/adr/0024-kitchen-login-in-the-api)). Os pedidos passam de **New** para **In the oven** e depois **On the way** com um único botão, e podem ser cancelados enquanto são novos.
 
 ![O painel da cozinha com pedidos em três colunas](@site/static/img/screenshots/kitchen-board.png)
 
