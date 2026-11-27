@@ -16,10 +16,11 @@ RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r requireme
 
 # Hardening (Phase 8, ADR 0021). The image's own pip is not needed to run the
 # app, and carries copies of libraries (urllib3, msgpack, setuptools) that
-# vulnerability scans flag: remove it. zlib1g is upgraded when Debian has a
-# security fix newer than the base image (a no-op once the base catches up).
+# vulnerability scans flag: remove it. zlib1g and libzstd1 (CVE-2026-124851) are
+# upgraded when Debian has a security fix newer than the base image (a no-op
+# once the base catches up).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+    && apt-get install -y --no-install-recommends --only-upgrade zlib1g libzstd1 \
     && rm -rf /var/lib/apt/lists/* \
     && pip uninstall -y pip
 
