@@ -23,6 +23,30 @@
 # Security fixes say that something was fixed, never how to exploit it.
 
 [[release]]
+version = "1.7.0"
+date = 2026-11-27
+title.en = "A safer kitchen login"
+title.pt-br = "Um login da cozinha mais seguro"
+
+[[release.item]]
+kind = "security"
+area = "Kitchen"
+text.en = "The kitchen board has its own login page instead of the browser's pop-up: it asks only for the password, stays logged in for 12 hours on each device, and has a Log out button. After 5 wrong passwords from one place, that place waits 15 minutes."
+text.pt-br = "O painel da cozinha tem a sua própria página de login no lugar da janela do navegador: pede só a senha, fica conectado por 12 horas em cada aparelho e tem um botão Log out. Depois de 5 senhas erradas de um mesmo lugar, esse lugar espera 15 minutos."
+
+[[release.item]]
+kind = "fix"
+area = "Orders"
+text.en = "The limit on orders per customer now counts each customer on their own. Behind the server's proxy, every customer looked like the same address, so a busy evening could count everyone together."
+text.pt-br = "O limite de pedidos por cliente agora conta cada cliente separadamente. Atrás do proxy do servidor, todos os clientes pareciam o mesmo endereço, então uma noite movimentada podia contar todo mundo junto."
+
+[[release.item]]
+kind = "security"
+area = "System"
+text.en = "A compression library inside the API and worker images is updated with a security fix that the base image did not have yet."
+text.pt-br = "Uma biblioteca de compressão dentro das imagens da API e do worker foi atualizada com uma correção de segurança que a imagem base ainda não tinha."
+
+[[release]]
 version = "1.6.5"
 date = 2026-11-25
 title.en = "Menu cache fixes and the Redis client update"
